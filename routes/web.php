@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
@@ -13,6 +14,7 @@ Route::prefix('{current_team}')
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::resource('properties', PropertyController::class);
+        Route::resource('leases', LeaseController::class);
     });
 
 Route::middleware(['auth'])->group(function () {

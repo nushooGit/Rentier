@@ -23,9 +23,11 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
  * @property-read Collection<int, TeamInvitation> $invitations
+ * @property-read Collection<int, Lease> $leases
  * @property-read Collection<int, Membership> $memberships
  * @property-read Collection<int, User> $members
  * @property-read Collection<int, Property> $properties
+ * @property-read Collection<int, Renter> $renters
  */
 #[Fillable(['name', 'slug', 'is_personal'])]
 class Team extends Model
@@ -104,6 +106,26 @@ class Team extends Model
     public function properties(): HasMany
     {
         return $this->hasMany(Property::class);
+    }
+
+    /**
+     * Get all renter contacts for this workspace.
+     *
+     * @return HasMany<Renter, $this>
+     */
+    public function renters(): HasMany
+    {
+        return $this->hasMany(Renter::class);
+    }
+
+    /**
+     * Get all leases for this workspace.
+     *
+     * @return HasMany<Lease, $this>
+     */
+    public function leases(): HasMany
+    {
+        return $this->hasMany(Lease::class);
     }
 
     /**

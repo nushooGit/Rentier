@@ -2,63 +2,48 @@
 
 namespace App\Models;
 
-use Database\Factories\PropertyFactory;
+use Database\Factories\LeaseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $team_id
- * @property string $name
- * @property string $type
- * @property string $country
- * @property string $city
- * @property string|null $county_or_sector
- * @property string $address_line
- * @property string|null $postal_code
- * @property int|null $rooms
- * @property string|null $usable_area_sqm
- * @property int|null $floor
- * @property int|null $total_floors
- * @property string $status
- * @property string|null $monthly_rent_amount
+ * @property int $property_id
+ * @property int $renter_id
+ * @property Carbon $start_date
+ * @property Carbon|null $end_date
+ * @property string $monthly_rent_amount
  * @property string $currency
  * @property int|null $rent_due_day
  * @property string|null $deposit_amount
+ * @property string $status
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
- * @property-read Collection<int, Lease> $leases
  * @property-read Team $team
+ * @property-read Property $property
+ * @property-read Renter $renter
  */
 #[Fillable([
     'team_id',
-    'name',
-    'type',
-    'country',
-    'city',
-    'county_or_sector',
-    'address_line',
-    'postal_code',
-    'rooms',
-    'usable_area_sqm',
-    'floor',
-    'total_floors',
-    'status',
+    'property_id',
+    'renter_id',
+    'start_date',
+    'end_date',
     'monthly_rent_amount',
     'currency',
     'rent_due_day',
     'deposit_amount',
+    'status',
     'notes',
 ])]
-class Property extends Model
+class Lease extends Model
 {
-    /** @use HasFactory<PropertyFactory> */
+    /** @use HasFactory<LeaseFactory> */
     use HasFactory;
 
     /**
@@ -72,13 +57,23 @@ class Property extends Model
     }
 
     /**
-     * Get the leases for this property.
+     * Get the leased property.
      *
-     * @return HasMany<Lease, $this>
+     * @return BelongsTo<Property, $this>
      */
-    public function leases(): HasMany
+    public function property(): BelongsTo
     {
-        return $this->hasMany(Lease::class);
+        return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * Get the renter contact for this lease.
+     *
+     * @return BelongsTo<Renter, $this>
+     */
+    public function renter(): BelongsTo
+    {
+        return $this->belongsTo(Renter::class);
     }
 
     /**
@@ -89,11 +84,9 @@ class Property extends Model
     protected function casts(): array
     {
         return [
-            'rooms' => 'integer',
-            'floor' => 'integer',
-            'total_floors' => 'integer',
+            'start_date' => 'date',
+            'end_date' => 'date',
             'rent_due_day' => 'integer',
-            'usable_area_sqm' => 'decimal:2',
             'monthly_rent_amount' => 'decimal:2',
             'deposit_amount' => 'decimal:2',
         ];

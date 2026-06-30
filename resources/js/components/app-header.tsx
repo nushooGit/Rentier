@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     BookOpen,
     Building2,
+    FileText,
     Folder,
     LayoutGrid,
     Menu,
@@ -42,6 +43,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as leasesIndex } from '@/routes/leases';
 import { index as propertiesIndex } from '@/routes/properties';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
@@ -82,6 +84,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             title: 'Proprietăți',
             href: currentTeam ? propertiesIndex(currentTeam.slug) : '/',
             icon: Building2,
+        },
+        {
+            title: 'Contracte',
+            href: currentTeam ? leasesIndex(currentTeam.slug) : '/',
+            icon: FileText,
         },
     ];
 

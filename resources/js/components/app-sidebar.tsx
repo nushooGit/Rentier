@@ -1,5 +1,11 @@
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Building2, FolderGit2, LayoutGrid } from 'lucide-react';
+import {
+    BookOpen,
+    Building2,
+    FileText,
+    FolderGit2,
+    LayoutGrid,
+} from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
@@ -15,6 +21,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as leasesIndex } from '@/routes/leases';
 import { index as propertiesIndex } from '@/routes/properties';
 import type { NavItem } from '@/types';
 
@@ -36,6 +43,13 @@ export function AppSidebar() {
                 ? propertiesIndex(page.props.currentTeam.slug)
                 : '/',
             icon: Building2,
+        },
+        {
+            title: 'Contracte',
+            href: page.props.currentTeam
+                ? leasesIndex(page.props.currentTeam.slug)
+                : '/',
+            icon: FileText,
         },
     ];
 
