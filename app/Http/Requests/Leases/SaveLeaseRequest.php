@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SaveLeaseRequest extends FormRequest
 {
@@ -57,6 +58,55 @@ class SaveLeaseRequest extends FormRequest
             'status' => ['required', 'string', Rule::in(['upcoming', 'active', 'ended', 'cancelled'])],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($this->input('status') !== 'active') {
+                return;
+            }
+
+            $team = $this->route('current_team');
+
+            if (
+                ! $team instanceof Team
+                || ! $this->input('property_id')
+                || ! $this->input('start_date')
+                || $validator->errors()->has('property_id')
+                || $validator->errors()->has('start_date')
+                || $validator->errors()->has('end_date')
+            ) {
+                return;
+            }
+
+            $lease = $this->route('lease');
+            $startDate = $this->input('start_date');
+            $endDate = $this->input('end_date');
+
+            $overlappingLeaseExists = Lease::query()
+                ->whereBelongsTo($team)
+                ->where('property_id', $this->input('property_id'))
+                ->where('status', 'active')
+                ->when($lease instanceof Lease, fn ($query) => $query->whereKeyNot($lease->id))
+                ->when($endDate, fn ($query) => $query->whereDate('start_date', '<=', $endDate))
+                ->where(function ($query) use ($startDate) {
+                    $query
+                        ->whereNull('end_date')
+                        ->orWhereDate('end_date', '>=', $startDate);
+                })
+                ->exists();
+
+            if ($overlappingLeaseExists) {
+                $validator->errors()->add(
+                    'property_id',
+                    'Această proprietate are deja un contract activ în perioada selectată.'
+                );
+            }
+        });
     }
 
     /**

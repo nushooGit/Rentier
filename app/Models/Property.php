@@ -33,7 +33,9 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Collection<int, Expense> $expenses
  * @property-read Collection<int, Lease> $leases
+ * @property-read Collection<int, RentPayment> $rentPayments
  * @property-read Team $team
  */
 #[Fillable([
@@ -79,6 +81,52 @@ class Property extends Model
     public function leases(): HasMany
     {
         return $this->hasMany(Lease::class);
+    }
+
+    /**
+     * Get the rent payments for this property.
+     *
+     * @return HasMany<RentPayment, $this>
+     */
+    public function rentPayments(): HasMany
+    {
+        return $this->hasMany(RentPayment::class);
+    }
+
+    /**
+     * Get the expenses for this property.
+     *
+     * @return HasMany<Expense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
+    }
+
+    /**
+     * Determine whether the property has an active lease for the given date.
+     */
+    public function isOccupied(?Carbon $date = null): bool
+    {
+        $date ??= today();
+
+        return $this->leases()
+            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $date);
+            })
+            ->exists();
+    }
+
+    /**
+     * Get the occupancy status derived from active leases.
+     */
+    public function occupancyStatus(?Carbon $date = null): string
+    {
+        return $this->isOccupied($date) ? 'occupied' : 'available';
     }
 
     /**

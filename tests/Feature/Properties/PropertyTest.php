@@ -1,11 +1,13 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Lease;
 use App\Models\Property;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -96,6 +98,115 @@ test('property validation requires core fields', function () {
         'rent_due_day',
         'monthly_rent_amount',
     ]);
+});
+
+test('property without active lease shows available occupancy status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'status' => 'occupied',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('properties/show')
+            ->where('property.status', 'available')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property with active current lease shows occupied occupancy status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'status' => 'available',
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('properties/index')
+            ->where('properties.0.status', 'occupied')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property with future lease still shows available occupancy status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-08-01',
+        'end_date' => '2027-07-31',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('properties/show')
+            ->where('property.status', 'available')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property with expired lease shows available occupancy status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2025-07-01',
+        'end_date' => '2026-06-30',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('properties/show')
+            ->where('property.status', 'available')
+        );
+
+    Carbon::setTestNow();
 });
 
 test('workspace members can view and update properties regardless of team role', function () {

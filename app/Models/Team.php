@@ -22,10 +22,12 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Expense> $expenses
  * @property-read Collection<int, TeamInvitation> $invitations
  * @property-read Collection<int, Lease> $leases
  * @property-read Collection<int, Membership> $memberships
  * @property-read Collection<int, User> $members
+ * @property-read Collection<int, RentPayment> $rentPayments
  * @property-read Collection<int, Property> $properties
  * @property-read Collection<int, Renter> $renters
  */
@@ -126,6 +128,26 @@ class Team extends Model
     public function leases(): HasMany
     {
         return $this->hasMany(Lease::class);
+    }
+
+    /**
+     * Get all rent payments for this workspace.
+     *
+     * @return HasMany<RentPayment, $this>
+     */
+    public function rentPayments(): HasMany
+    {
+        return $this->hasMany(RentPayment::class);
+    }
+
+    /**
+     * Get all expenses for this workspace.
+     *
+     * @return HasMany<Expense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
     }
 
     /**

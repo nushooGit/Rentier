@@ -5,6 +5,8 @@ import {
     FileText,
     FolderGit2,
     LayoutGrid,
+    ReceiptText,
+    WalletCards,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavFooter } from '@/components/nav-footer';
@@ -21,7 +23,9 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
+import { index as paymentsIndex } from '@/routes/payments';
 import { index as propertiesIndex } from '@/routes/properties';
 import type { NavItem } from '@/types';
 
@@ -50,6 +54,20 @@ export function AppSidebar() {
                 ? leasesIndex(page.props.currentTeam.slug)
                 : '/',
             icon: FileText,
+        },
+        {
+            title: 'Plăți',
+            href: page.props.currentTeam
+                ? paymentsIndex(page.props.currentTeam.slug)
+                : '/',
+            icon: WalletCards,
+        },
+        {
+            title: 'Cheltuieli',
+            href: page.props.currentTeam
+                ? expensesIndex(page.props.currentTeam.slug)
+                : '/',
+            icon: ReceiptText,
         },
     ];
 

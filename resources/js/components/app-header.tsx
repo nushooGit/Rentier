@@ -6,7 +6,9 @@ import {
     Folder,
     LayoutGrid,
     Menu,
+    ReceiptText,
     Search,
+    WalletCards,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import AppLogoIcon from '@/components/app-logo-icon';
@@ -43,7 +45,9 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
+import { index as paymentsIndex } from '@/routes/payments';
 import { index as propertiesIndex } from '@/routes/properties';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
@@ -89,6 +93,16 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             title: 'Contracte',
             href: currentTeam ? leasesIndex(currentTeam.slug) : '/',
             icon: FileText,
+        },
+        {
+            title: 'Plăți',
+            href: currentTeam ? paymentsIndex(currentTeam.slug) : '/',
+            icon: WalletCards,
+        },
+        {
+            title: 'Cheltuieli',
+            href: currentTeam ? expensesIndex(currentTeam.slug) : '/',
+            icon: ReceiptText,
         },
     ];
 

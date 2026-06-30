@@ -115,6 +115,70 @@ test('lease validation requires core fields and workspace property', function ()
     ]);
 });
 
+test('cannot create overlapping active leases for the same property', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-06-30',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => '2026-12-01',
+            'end_date' => '2027-12-31',
+            'status' => 'active',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'property_id' => 'Această proprietate are deja un contract activ în perioada selectată.',
+    ]);
+
+    $this->assertDatabaseCount('leases', 1);
+});
+
+test('cannot update a lease to overlap another active lease for the same property', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-06-30',
+        'status' => 'active',
+    ]);
+
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2027-07-01',
+        'end_date' => '2028-06-30',
+        'status' => 'upcoming',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('leases.update', [$team, $lease]), validLeasePayload($property, [
+            'start_date' => '2027-01-01',
+            'end_date' => '2027-12-31',
+            'status' => 'active',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'property_id' => 'Această proprietate are deja un contract activ în perioada selectată.',
+    ]);
+
+    $this->assertDatabaseHas('leases', [
+        'id' => $lease->id,
+        'status' => 'upcoming',
+    ]);
+});
+
 test('workspace members can view and update leases regardless of team role', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();

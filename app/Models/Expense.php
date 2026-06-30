@@ -1,0 +1,91 @@
+<?php
+
+namespace App\Models;
+
+use Database\Factories\ExpenseFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * @property int $id
+ * @property int $team_id
+ * @property int $property_id
+ * @property int|null $lease_id
+ * @property string $title
+ * @property string $category
+ * @property string $amount
+ * @property string $currency
+ * @property Carbon $expense_date
+ * @property string $paid_by
+ * @property string $status
+ * @property string|null $notes
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ * @property-read Team $team
+ * @property-read Property $property
+ * @property-read Lease|null $lease
+ */
+#[Fillable([
+    'team_id',
+    'property_id',
+    'lease_id',
+    'title',
+    'category',
+    'amount',
+    'currency',
+    'expense_date',
+    'paid_by',
+    'status',
+    'notes',
+])]
+class Expense extends Model
+{
+    /** @use HasFactory<ExpenseFactory> */
+    use HasFactory;
+
+    /**
+     * Get the owning workspace.
+     *
+     * @return BelongsTo<Team, $this>
+     */
+    public function team(): BelongsTo
+    {
+        return $this->belongsTo(Team::class);
+    }
+
+    /**
+     * Get the related property.
+     *
+     * @return BelongsTo<Property, $this>
+     */
+    public function property(): BelongsTo
+    {
+        return $this->belongsTo(Property::class);
+    }
+
+    /**
+     * Get the related lease, if any.
+     *
+     * @return BelongsTo<Lease, $this>
+     */
+    public function lease(): BelongsTo
+    {
+        return $this->belongsTo(Lease::class);
+    }
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'amount' => 'decimal:2',
+            'expense_date' => 'date',
+        ];
+    }
+}

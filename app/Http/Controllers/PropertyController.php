@@ -171,7 +171,7 @@ class PropertyController extends Controller
             'usable_area_sqm' => $property->usable_area_sqm,
             'floor' => $property->floor,
             'total_floors' => $property->total_floors,
-            'status' => $property->status,
+            'status' => $property->occupancyStatus(),
             'monthly_rent_amount' => $property->monthly_rent_amount,
             'currency' => $property->currency,
             'rent_due_day' => $property->rent_due_day,

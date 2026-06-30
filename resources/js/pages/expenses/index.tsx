@@ -1,0 +1,146 @@
+import { Head, Link, usePage } from '@inertiajs/react';
+import { Eye, Pencil, Plus, ReceiptText } from 'lucide-react';
+import Heading from '@/components/heading';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    expenseCategoryLabel,
+    expensePaidByLabel,
+    expenseStatusLabel,
+} from '@/pages/expenses/labels';
+import { create, edit, index, show } from '@/routes/expenses';
+import type { Expense, ExpenseOption, ExpenseStatus } from '@/types';
+
+type Props = {
+    expenses: Expense[];
+    expenseStatuses: ExpenseOption<ExpenseStatus>[];
+};
+
+function formatMoney(amount?: string | null, currency = 'RON') {
+    if (!amount) {
+        return 'Nesetat';
+    }
+
+    return `${Number(amount).toLocaleString('ro-RO', {
+        maximumFractionDigits: 2,
+        minimumFractionDigits: 0,
+    })} ${currency}`;
+}
+
+function formatDate(date: string) {
+    const [year, month, day] = date.split('-');
+
+    return day && month && year ? `${day}.${month}.${year}` : date;
+}
+
+export default function ExpensesIndex({ expenses }: Props) {
+    const { currentTeam } = usePage().props;
+    const currentTeamSlug = currentTeam?.slug ?? '';
+
+    return (
+        <>
+            <Head title="Cheltuieli" />
+            <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <Heading
+                        variant="small"
+                        title="Cheltuieli"
+                        description="Urmărește costurile pe proprietăți și contracte"
+                    />
+                    <Button asChild data-test="expense-create-link">
+                        <Link href={create(currentTeamSlug)}>
+                            <Plus /> Cheltuială nouă
+                        </Link>
+                    </Button>
+                </div>
+
+                {expenses.length > 0 ? (
+                    <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                        {expenses.map((expense) => (
+                            <article
+                                key={expense.id}
+                                className="flex flex-col gap-2.5 rounded-lg border p-3"
+                                data-test="expense-card"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <h2 className="truncate text-base font-medium">
+                                            {expense.title}
+                                        </h2>
+                                        <p className="mt-1 text-sm text-muted-foreground">
+                                            {expense.property.name} ·{' '}
+                                            {expenseCategoryLabel(
+                                                expense.category,
+                                            )}
+                                        </p>
+                                    </div>
+                                    <Badge variant="secondary">
+                                        {expenseStatusLabel(expense.status)}
+                                    </Badge>
+                                </div>
+                                <div className="grid gap-0.5 text-sm">
+                                    <span className="font-medium">
+                                        {formatMoney(
+                                            expense.amount,
+                                            expense.currency,
+                                        )}
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                        {formatDate(expense.expense_date)} ·{' '}
+                                        {expensePaidByLabel(expense.paid_by)}
+                                    </span>
+                                </div>
+                                <div className="mt-auto flex justify-end gap-2">
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link
+                                            href={show([
+                                                currentTeamSlug,
+                                                expense.id,
+                                            ])}
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" size="sm" asChild>
+                                        <Link
+                                            href={edit([
+                                                currentTeamSlug,
+                                                expense.id,
+                                            ])}
+                                        >
+                                            <Pencil className="h-4 w-4" />
+                                        </Link>
+                                    </Button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
+                        <ReceiptText className="mx-auto h-8 w-8 text-muted-foreground" />
+                        <h2 className="mt-3 text-base font-medium">
+                            Nu există cheltuieli încă
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            Adaugă prima cheltuială pentru o proprietate.
+                        </p>
+                        <Button className="mt-4" asChild>
+                            <Link href={create(currentTeamSlug)}>
+                                <Plus /> Cheltuială nouă
+                            </Link>
+                        </Button>
+                    </div>
+                )}
+            </div>
+        </>
+    );
+}
+
+ExpensesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
+    breadcrumbs: [
+        {
+            title: 'Cheltuieli',
+            href: props.currentTeam ? index(props.currentTeam.slug) : '/',
+        },
+    ],
+});

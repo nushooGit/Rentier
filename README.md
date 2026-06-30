@@ -113,6 +113,16 @@ npm run lint
 npm run format
 ```
 
+Seed local demo data:
+
+```bash
+php artisan db:seed
+```
+
+The seeder creates or updates a local demo workspace with București properties,
+renters, active contracts, rent payments, and expenses. It is intended for local
+development and is not run automatically in production.
+
 ## Documentation
 
 - [Project Rules](PROJECT_RULES.md)

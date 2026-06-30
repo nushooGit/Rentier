@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Database\Factories\LeaseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -27,6 +29,8 @@ use Illuminate\Support\Carbon;
  * @property-read Team $team
  * @property-read Property $property
  * @property-read Renter $renter
+ * @property-read Collection<int, RentPayment> $rentPayments
+ * @property-read Collection<int, Expense> $expenses
  */
 #[Fillable([
     'team_id',
@@ -74,6 +78,26 @@ class Lease extends Model
     public function renter(): BelongsTo
     {
         return $this->belongsTo(Renter::class);
+    }
+
+    /**
+     * Get the rent payments for this lease.
+     *
+     * @return HasMany<RentPayment, $this>
+     */
+    public function rentPayments(): HasMany
+    {
+        return $this->hasMany(RentPayment::class);
+    }
+
+    /**
+     * Get the expenses linked to this lease.
+     *
+     * @return HasMany<Expense, $this>
+     */
+    public function expenses(): HasMany
+    {
+        return $this->hasMany(Expense::class);
     }
 
     /**
