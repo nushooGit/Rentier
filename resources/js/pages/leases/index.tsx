@@ -1,5 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Eye, FileText, Pencil, Plus } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Eye, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { leaseStatusLabel } from '@/pages/leases/labels';
-import { create, edit, index, show } from '@/routes/leases';
+import { create, destroy, edit, index, show } from '@/routes/leases';
 import type { Lease, LeaseOption, LeaseStatus } from '@/types';
 
 type Props = {
@@ -38,6 +38,18 @@ function formatPeriod(lease: Lease) {
 export default function LeasesIndex({ leases }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
+
+    const deleteLease = (lease: Lease) => {
+        if (
+            !window.confirm(
+                'Sigur vrei să ștergi acest contract? Acțiunea nu poate fi anulată.',
+            )
+        ) {
+            return;
+        }
+
+        router.delete(destroy([currentTeamSlug, lease.id]).url);
+    };
 
     return (
         <>
@@ -140,6 +152,26 @@ export default function LeasesIndex({ leases }: Props) {
                                             </TooltipTrigger>
                                             <TooltipContent>
                                                 <p>Editează contractul</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        deleteLease(lease)
+                                                    }
+                                                    aria-label="Șterge contractul"
+                                                    data-test="lease-delete-button"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Șterge contractul</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>

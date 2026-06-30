@@ -1,5 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Eye, Pencil, Plus } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,7 +13,7 @@ import {
     propertyStatusLabel,
     propertyTypeLabel,
 } from '@/pages/properties/labels';
-import { create, edit, index, show } from '@/routes/properties';
+import { create, destroy, edit, index, show } from '@/routes/properties';
 import type {
     Property,
     PropertyOption,
@@ -41,6 +41,18 @@ function formatMoney(amount?: string | null, currency = 'RON') {
 export default function PropertiesIndex({ properties }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
+
+    const deleteProperty = (property: Property) => {
+        if (
+            !window.confirm(
+                'Sigur vrei să ștergi această proprietate? Acțiunea nu poate fi anulată.',
+            )
+        ) {
+            return;
+        }
+
+        router.delete(destroy([currentTeamSlug, property.id]).url);
+    };
 
     return (
         <>
@@ -146,6 +158,26 @@ export default function PropertiesIndex({ properties }: Props) {
                                             </TooltipTrigger>
                                             <TooltipContent>
                                                 <p>Editează proprietatea</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    type="button"
+                                                    onClick={() =>
+                                                        deleteProperty(property)
+                                                    }
+                                                    aria-label="Șterge proprietatea"
+                                                    data-test="property-delete-button"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Șterge proprietatea</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
