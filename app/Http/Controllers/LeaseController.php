@@ -57,7 +57,7 @@ class LeaseController extends Controller
     {
         $validated = $request->validatedWithDefaults();
 
-        $lease = DB::transaction(function () use ($currentTeam, $validated) {
+        DB::transaction(function () use ($currentTeam, $validated) {
             $renter = Renter::create([
                 'team_id' => $currentTeam->id,
                 'name' => $validated['renter_name'],
@@ -75,10 +75,7 @@ class LeaseController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Lease created.')]);
 
-        return to_route('leases.show', [
-            'current_team' => $currentTeam,
-            'lease' => $lease,
-        ]);
+        return to_route('leases.index', ['current_team' => $currentTeam]);
     }
 
     /**

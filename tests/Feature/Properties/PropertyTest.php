@@ -67,7 +67,7 @@ test('workspace members can create properties', function () {
 
     $property = Property::first();
 
-    $response->assertRedirect(route('properties.show', [$team, $property]));
+    $response->assertRedirect(route('properties.index', $team));
 
     $this->assertDatabaseHas('properties', [
         'team_id' => $team->id,

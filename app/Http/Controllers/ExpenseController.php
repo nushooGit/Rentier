@@ -59,17 +59,14 @@ class ExpenseController extends Controller
      */
     public function store(SaveExpenseRequest $request, Team $currentTeam): RedirectResponse
     {
-        $expense = Expense::create([
+        Expense::create([
             ...$request->validatedWithDefaults(),
             'team_id' => $currentTeam->id,
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Expense created.')]);
 
-        return to_route('expenses.show', [
-            'current_team' => $currentTeam,
-            'expense' => $expense,
-        ]);
+        return to_route('expenses.index', ['current_team' => $currentTeam]);
     }
 
     /**

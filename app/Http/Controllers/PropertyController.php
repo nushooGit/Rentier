@@ -51,17 +51,14 @@ class PropertyController extends Controller
      */
     public function store(SavePropertyRequest $request, Team $currentTeam): RedirectResponse
     {
-        $property = Property::create([
+        Property::create([
             ...$request->validatedWithDefaults(),
             'team_id' => $currentTeam->id,
         ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Property created.')]);
 
-        return to_route('properties.show', [
-            'current_team' => $currentTeam,
-            'property' => $property,
-        ]);
+        return to_route('properties.index', ['current_team' => $currentTeam]);
     }
 
     /**

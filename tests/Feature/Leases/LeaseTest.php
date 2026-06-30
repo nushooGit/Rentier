@@ -64,7 +64,7 @@ test('workspace members can create leases with renter contact details', function
     $lease = Lease::first();
     $renter = Renter::first();
 
-    $response->assertRedirect(route('leases.show', [$team, $lease]));
+    $response->assertRedirect(route('leases.index', $team));
 
     $this->assertDatabaseHas('renters', [
         'team_id' => $team->id,

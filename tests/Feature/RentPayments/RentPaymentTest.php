@@ -63,7 +63,7 @@ test('workspace members can create payments and derived property and renter are 
 
     $payment = RentPayment::first();
 
-    $response->assertRedirect(route('payments.show', [$team, $payment]));
+    $response->assertRedirect(route('payments.index', $team));
 
     $this->assertDatabaseHas('rent_payments', [
         'team_id' => $team->id,
@@ -142,7 +142,7 @@ test('partial payment can be created below the monthly rent amount', function ()
 
     $payment = RentPayment::first();
 
-    $response->assertRedirect(route('payments.show', [$team, $payment]));
+    $response->assertRedirect(route('payments.index', $team));
 
     $this->assertDatabaseHas('rent_payments', [
         'team_id' => $team->id,
@@ -168,7 +168,7 @@ test('fully paid payment can be created when amount matches monthly rent amount'
 
     $payment = RentPayment::first();
 
-    $response->assertRedirect(route('payments.show', [$team, $payment]));
+    $response->assertRedirect(route('payments.index', $team));
 
     $this->assertDatabaseHas('rent_payments', [
         'team_id' => $team->id,

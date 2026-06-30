@@ -63,7 +63,7 @@ test('workspace members can create expenses', function () {
 
     $expense = Expense::first();
 
-    $response->assertRedirect(route('expenses.show', [$team, $expense]));
+    $response->assertRedirect(route('expenses.index', $team));
 
     $this->assertDatabaseHas('expenses', [
         'team_id' => $team->id,

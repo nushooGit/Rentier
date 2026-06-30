@@ -58,7 +58,7 @@ class RentPaymentController extends Controller
         $validated = $request->validatedWithDefaults();
         $lease = $this->findWorkspaceLease($currentTeam, $validated['lease_id']);
 
-        $payment = RentPayment::create([
+        RentPayment::create([
             ...$this->paymentAttributes($validated),
             'team_id' => $currentTeam->id,
             'property_id' => $lease->property_id,
@@ -67,10 +67,7 @@ class RentPaymentController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment created.')]);
 
-        return to_route('payments.show', [
-            'current_team' => $currentTeam,
-            'payment' => $payment,
-        ]);
+        return to_route('payments.index', ['current_team' => $currentTeam]);
     }
 
     /**
