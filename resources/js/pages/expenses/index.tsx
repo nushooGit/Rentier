@@ -1,5 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
-import { Eye, Pencil, Plus, ReceiptText } from 'lucide-react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Eye, Pencil, Plus, ReceiptText, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import {
     expensePaidByLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
-import { create, edit, index, show } from '@/routes/expenses';
+import { create, destroy, edit, index, show } from '@/routes/expenses';
 import type { Expense, ExpenseOption, ExpenseStatus } from '@/types';
 
 type Props = {
@@ -36,6 +36,18 @@ function formatDate(date: string) {
 export default function ExpensesIndex({ expenses }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
+
+    const deleteExpense = (expense: Expense) => {
+        if (
+            !window.confirm(
+                'Sigur vrei să ștergi această cheltuială? Acțiunea nu poate fi anulată.',
+            )
+        ) {
+            return;
+        }
+
+        router.delete(destroy([currentTeamSlug, expense.id]).url);
+    };
 
     return (
         <>
@@ -110,6 +122,16 @@ export default function ExpensesIndex({ expenses }: Props) {
                                         >
                                             <Pencil className="h-4 w-4" />
                                         </Link>
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        type="button"
+                                        onClick={() => deleteExpense(expense)}
+                                        aria-label="Șterge cheltuiala"
+                                        data-test="expense-delete-button"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
                             </article>
