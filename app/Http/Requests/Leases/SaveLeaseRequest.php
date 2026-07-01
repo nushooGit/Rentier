@@ -56,7 +56,6 @@ class SaveLeaseRequest extends FormRequest
             'currency' => ['required', 'string', 'size:3'],
             'rent_due_day' => ['nullable', 'integer', 'between:1,31'],
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
-            'status' => ['required', 'string', Rule::in(['upcoming', 'active', 'ended', 'cancelled'])],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];
     }

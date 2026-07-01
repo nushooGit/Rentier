@@ -155,10 +155,9 @@ class LeaseController extends Controller
     private function leaseStatuses(): array
     {
         return [
-            ['value' => 'upcoming', 'label' => 'Upcoming'],
-            ['value' => 'active', 'label' => 'Active'],
-            ['value' => 'ended', 'label' => 'Ended'],
-            ['value' => 'cancelled', 'label' => 'Cancelled'],
+            ['value' => Lease::STATUS_UPCOMING, 'label' => 'Viitor'],
+            ['value' => Lease::STATUS_ACTIVE, 'label' => 'Activ'],
+            ['value' => Lease::STATUS_ENDED, 'label' => 'Închis'],
         ];
     }
 
@@ -198,7 +197,7 @@ class LeaseController extends Controller
             'currency' => $lease->currency,
             'rent_due_day' => $lease->rent_due_day,
             'deposit_amount' => $lease->deposit_amount,
-            'status' => $lease->status,
+            'status' => $lease->computedStatus(),
             'notes' => $lease->notes,
             'property' => [
                 'id' => $lease->property->id,
@@ -236,7 +235,10 @@ class LeaseController extends Controller
             'currency' => $validated['currency'],
             'rent_due_day' => $validated['rent_due_day'] ?? null,
             'deposit_amount' => $validated['deposit_amount'] ?? null,
-            'status' => $validated['status'],
+            'status' => Lease::computeStatusForDates(
+                $validated['start_date'],
+                $validated['end_date'] ?? null,
+            ),
             'notes' => $validated['notes'] ?? null,
         ];
     }

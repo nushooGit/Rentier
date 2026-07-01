@@ -3,8 +3,7 @@ import type { LeaseStatus } from '@/types';
 export const leaseStatusLabels: Record<LeaseStatus, string> = {
     upcoming: 'Viitor',
     active: 'Activ',
-    ended: 'Încheiat',
-    cancelled: 'Anulat',
+    ended: 'Închis',
 };
 
 export function leaseStatusLabel(value: LeaseStatus) {

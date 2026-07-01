@@ -51,12 +51,22 @@ class DashboardController extends Controller
 
         $activeLeaseCount = Lease::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $today);
+            })
             ->count();
 
         $estimatedMonthlyRent = Lease::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', 'active')
+            ->whereDate('start_date', '<=', $today)
+            ->where(function ($query) use ($today) {
+                $query
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $today);
+            })
             ->sum('monthly_rent_amount');
 
         $currentMonthPayments = RentPayment::query()
@@ -83,7 +93,7 @@ class DashboardController extends Controller
                 'id' => $lease->id,
                 'renter_name' => $lease->renter->name,
                 'property_name' => $lease->property->name,
-                'status' => $lease->status,
+                'status' => $lease->computedStatus($today),
                 'start_date' => $lease->start_date->toDateString(),
                 'monthly_rent_amount' => $lease->monthly_rent_amount,
                 'currency' => $lease->currency,

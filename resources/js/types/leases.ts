@@ -1,4 +1,4 @@
-export type LeaseStatus = 'upcoming' | 'active' | 'ended' | 'cancelled';
+export type LeaseStatus = 'upcoming' | 'active' | 'ended';
 
 export type LeaseOption<TValue extends string = string> = {
     value: TValue;

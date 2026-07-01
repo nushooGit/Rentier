@@ -4,20 +4,14 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import LeaseForm from '@/pages/leases/form';
 import { edit, show, update } from '@/routes/leases';
-import type {
-    Lease,
-    LeaseOption,
-    LeasePropertyOption,
-    LeaseStatus,
-} from '@/types';
+import type { Lease, LeasePropertyOption } from '@/types';
 
 type Props = {
     lease: Lease;
     properties: LeasePropertyOption[];
-    leaseStatuses: LeaseOption<LeaseStatus>[];
 };
 
-export default function LeaseEdit({ lease, properties, leaseStatuses }: Props) {
+export default function LeaseEdit({ lease, properties }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
 
@@ -47,7 +41,6 @@ export default function LeaseEdit({ lease, properties, leaseStatuses }: Props) {
                     submitLabel="Salvează"
                     lease={lease}
                     properties={properties}
-                    leaseStatuses={leaseStatuses}
                 />
             </div>
         </>

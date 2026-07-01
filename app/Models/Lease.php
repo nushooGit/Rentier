@@ -50,6 +50,12 @@ class Lease extends Model
     /** @use HasFactory<LeaseFactory> */
     use HasFactory;
 
+    public const STATUS_UPCOMING = 'upcoming';
+
+    public const STATUS_ACTIVE = 'active';
+
+    public const STATUS_ENDED = 'ended';
+
     /**
      * Get the owning workspace.
      *
@@ -98,6 +104,34 @@ class Lease extends Model
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class);
+    }
+
+    /**
+     * Get the lease status derived from its date interval.
+     */
+    public function computedStatus(?Carbon $date = null): string
+    {
+        return self::computeStatusForDates($this->start_date, $this->end_date, $date);
+    }
+
+    /**
+     * Compute a lease status from its start and end dates.
+     */
+    public static function computeStatusForDates(mixed $startDate, mixed $endDate = null, ?Carbon $date = null): string
+    {
+        $date ??= today();
+        $startDate = $startDate instanceof Carbon ? $startDate : Carbon::parse($startDate);
+        $endDate = $endDate instanceof Carbon || $endDate === null ? $endDate : Carbon::parse($endDate);
+
+        if ($startDate->isAfter($date)) {
+            return self::STATUS_UPCOMING;
+        }
+
+        if ($endDate !== null && $endDate->isBefore($date)) {
+            return self::STATUS_ENDED;
+        }
+
+        return self::STATUS_ACTIVE;
     }
 
     /**

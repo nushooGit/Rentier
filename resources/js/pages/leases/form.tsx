@@ -5,13 +5,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { leaseStatusLabel } from '@/pages/leases/labels';
-import type {
-    Lease,
-    LeaseOption,
-    LeasePropertyOption,
-    LeaseStatus,
-} from '@/types';
+import type { Lease, LeasePropertyOption } from '@/types';
 
 type Props = {
     action: {
@@ -21,7 +15,6 @@ type Props = {
     submitLabel: string;
     lease?: Lease;
     properties: LeasePropertyOption[];
-    leaseStatuses: LeaseOption<LeaseStatus>[];
 };
 
 function fieldValue(value: string | number | null | undefined) {
@@ -68,7 +61,6 @@ export default function LeaseForm({
     submitLabel,
     lease,
     properties,
-    leaseStatuses,
 }: Props) {
     const [selectedPropertyId, setSelectedPropertyId] = useState(
         fieldValue(lease?.property_id).toString(),
@@ -118,28 +110,6 @@ export default function LeaseForm({
                                 ))}
                             </select>
                             <InputError message={errors.property_id} />
-                        </Field>
-
-                        <Field>
-                            <Label htmlFor="status">Status</Label>
-                            <select
-                                id="status"
-                                name="status"
-                                className={selectClassName}
-                                defaultValue={lease?.status ?? 'upcoming'}
-                                required
-                                data-test="lease-status-select"
-                            >
-                                {leaseStatuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {leaseStatusLabel(status.value)}
-                                    </option>
-                                ))}
-                            </select>
-                            <InputError message={errors.status} />
                         </Field>
 
                         <Field>

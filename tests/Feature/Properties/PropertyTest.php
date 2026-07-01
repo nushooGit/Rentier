@@ -136,7 +136,7 @@ test('property with active current lease shows occupied occupancy status', funct
         'property_id' => $property->id,
         'start_date' => '2026-07-01',
         'end_date' => '2027-07-01',
-        'status' => 'active',
+        'status' => 'ended',
     ]);
 
     $response = $this

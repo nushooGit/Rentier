@@ -206,7 +206,7 @@ class RentPaymentController extends Controller
             'notes' => $payment->notes,
             'lease' => [
                 'id' => $payment->lease->id,
-                'status' => $payment->lease->status,
+                'status' => $payment->lease->computedStatus(),
                 'start_date' => $payment->lease->start_date->toDateString(),
                 'end_date' => $payment->lease->end_date?->toDateString(),
             ],

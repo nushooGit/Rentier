@@ -111,7 +111,6 @@ class Property extends Model
         $date ??= today();
 
         return $this->leases()
-            ->where('status', 'active')
             ->whereDate('start_date', '<=', $date)
             ->where(function ($query) use ($date) {
                 $query
@@ -122,7 +121,7 @@ class Property extends Model
     }
 
     /**
-     * Get the occupancy status derived from active leases.
+     * Get the occupancy status derived from current lease dates.
      */
     public function occupancyStatus(?Carbon $date = null): string
     {

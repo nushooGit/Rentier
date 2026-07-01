@@ -8,6 +8,7 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -191,6 +192,81 @@ test('the saved lease rent equals the selected property rent', function () {
     expect(Lease::first()->monthly_rent_amount)->toBe('1111.00');
 });
 
+test('lease with future start date shows future status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-08-01',
+        'end_date' => '2027-07-31',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('leases.show', [$team, $lease]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('leases/show')
+            ->where('lease.status', 'upcoming')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('lease with current date inside period shows active status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'status' => 'ended',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('leases.show', [$team, $lease]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('leases/show')
+            ->where('lease.status', 'active')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('lease with past end date shows closed status', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2025-07-01',
+        'end_date' => '2026-06-30',
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('leases.show', [$team, $lease]));
+
+    $response
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('leases/show')
+            ->where('lease.status', 'ended')
+        );
+
+    Carbon::setTestNow();
+});
+
 test('lease validation requires core fields and workspace property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -221,7 +297,6 @@ test('lease validation requires core fields and workspace property', function ()
         'currency',
         'rent_due_day',
         'deposit_amount',
-        'status',
     ]);
 });
 
