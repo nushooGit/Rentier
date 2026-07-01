@@ -120,7 +120,28 @@ test('fully paid payment cannot be created below the monthly rent amount', funct
         ]));
 
     $response->assertSessionHasErrors([
-        'amount' => 'Suma introdusă este mai mică decât chiria lunară. Marchează plata ca parțială sau introdu suma completă.',
+        'amount' => 'Pentru o plată achitată integral, suma trebuie să fie egală cu chiria lunară.',
+    ]);
+
+    $this->assertDatabaseCount('rent_payments', 0);
+});
+
+test('fully paid payment cannot be created above the monthly rent amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 2600,
+            'status' => 'paid',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'amount' => 'Suma introdusă depășește chiria lunară. Plățile în avans vor fi gestionate într-un modul viitor.',
     ]);
 
     $this->assertDatabaseCount('rent_payments', 0);
@@ -150,6 +171,48 @@ test('partial payment can be created below the monthly rent amount', function ()
         'amount' => 1500,
         'status' => 'partial',
     ]);
+});
+
+test('partial payment cannot be created when amount equals monthly rent amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 2500,
+            'status' => 'partial',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'amount' => 'O plată parțială trebuie să fie mai mică decât chiria lunară.',
+    ]);
+
+    $this->assertDatabaseCount('rent_payments', 0);
+});
+
+test('partial payment cannot be created when amount is above monthly rent amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 2600,
+            'status' => 'partial',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'amount' => 'Suma introdusă depășește chiria lunară. Plățile în avans vor fi gestionate într-un modul viitor.',
+    ]);
+
+    $this->assertDatabaseCount('rent_payments', 0);
 });
 
 test('fully paid payment can be created when amount matches monthly rent amount', function () {
@@ -223,6 +286,38 @@ test('workspace members can update and delete payments', function () {
 
     $this->assertDatabaseHas('renters', [
         'id' => $lease->renter_id,
+    ]);
+});
+
+test('payment update validates amount against monthly rent amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+    $payment = RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 2500,
+        'status' => 'paid',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('payments.update', [$team, $payment]), validRentPaymentPayload($lease, [
+            'amount' => 1500,
+            'status' => 'paid',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'amount' => 'Pentru o plată achitată integral, suma trebuie să fie egală cu chiria lunară.',
+    ]);
+
+    $this->assertDatabaseHas('rent_payments', [
+        'id' => $payment->id,
+        'amount' => 2500,
+        'status' => 'paid',
     ]);
 });
 

@@ -63,13 +63,16 @@ class SaveRentPaymentRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
-            if ($this->input('status') !== 'paid') {
-                return;
-            }
-
             $team = $this->route('current_team');
 
-            if (! $team instanceof Team || ! is_numeric($this->input('amount'))) {
+            if (
+                ! $team instanceof Team
+                || ! $this->input('lease_id')
+                || ! is_numeric($this->input('amount'))
+                || $validator->errors()->has('lease_id')
+                || $validator->errors()->has('amount')
+                || $validator->errors()->has('status')
+            ) {
                 return;
             }
 
@@ -82,10 +85,30 @@ class SaveRentPaymentRequest extends FormRequest
                 return;
             }
 
-            if ((float) $this->input('amount') < (float) $lease->monthly_rent_amount) {
+            $amount = number_format((float) $this->input('amount'), 2, '.', '');
+            $monthlyRent = number_format((float) $lease->monthly_rent_amount, 2, '.', '');
+            $amountComparison = bccomp($amount, $monthlyRent, 2);
+
+            if ($amountComparison === 1) {
                 $validator->errors()->add(
                     'amount',
-                    'Suma introdusă este mai mică decât chiria lunară. Marchează plata ca parțială sau introdu suma completă.'
+                    'Suma introdusă depășește chiria lunară. Plățile în avans vor fi gestionate într-un modul viitor.'
+                );
+
+                return;
+            }
+
+            if ($this->input('status') === 'paid' && $amountComparison !== 0) {
+                $validator->errors()->add(
+                    'amount',
+                    'Pentru o plată achitată integral, suma trebuie să fie egală cu chiria lunară.'
+                );
+            }
+
+            if ($this->input('status') === 'partial' && $amountComparison >= 0) {
+                $validator->errors()->add(
+                    'amount',
+                    'O plată parțială trebuie să fie mai mică decât chiria lunară.'
                 );
             }
         });
