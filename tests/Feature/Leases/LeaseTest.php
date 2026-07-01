@@ -23,7 +23,7 @@ function validLeasePayload(Property $property, array $overrides = []): array
         'renter_notes' => 'Preferă contact prin email.',
         'start_date' => '2026-07-01',
         'end_date' => '2027-06-30',
-        'monthly_rent_amount' => 2500,
+        'monthly_rent_amount' => $property->monthly_rent_amount,
         'currency' => 'RON',
         'rent_due_day' => 5,
         'deposit_amount' => 2500,
@@ -55,7 +55,9 @@ test('leases index shows leases for the current workspace', function () {
 test('workspace members can create leases with renter contact details', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
-    $property = Property::factory()->for($team)->create();
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
 
     $response = $this
         ->actingAs($user)
@@ -79,6 +81,93 @@ test('workspace members can create leases with renter contact details', function
         'status' => 'active',
         'monthly_rent_amount' => 2500,
     ]);
+});
+
+test('a lease can be created when rent matches the selected property rent', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 1111,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'monthly_rent_amount' => 1111,
+        ]));
+
+    $response->assertRedirect(route('leases.index', $team));
+
+    $this->assertDatabaseHas('leases', [
+        'property_id' => $property->id,
+        'monthly_rent_amount' => 1111,
+    ]);
+});
+
+test('a lease cannot be created with rent different from the selected property rent', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 1111,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'monthly_rent_amount' => 111,
+        ]));
+
+    $response->assertSessionHasErrors([
+        'monthly_rent_amount' => 'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.',
+    ]);
+
+    $this->assertDatabaseCount('leases', 0);
+});
+
+test('a lease update cannot change rent to a value different from the selected property rent', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 1111,
+    ]);
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'monthly_rent_amount' => 1111,
+        'status' => 'upcoming',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->patch(route('leases.update', [$team, $lease]), validLeasePayload($property, [
+            'monthly_rent_amount' => 111,
+            'status' => 'upcoming',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'monthly_rent_amount' => 'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.',
+    ]);
+
+    $this->assertDatabaseHas('leases', [
+        'id' => $lease->id,
+        'monthly_rent_amount' => 1111,
+    ]);
+});
+
+test('the saved lease rent equals the selected property rent', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 1111,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'monthly_rent_amount' => 1111,
+        ]))
+        ->assertRedirect(route('leases.index', $team));
+
+    expect(Lease::first()->monthly_rent_amount)->toBe('1111.00');
 });
 
 test('lease validation requires core fields and workspace property', function () {
@@ -118,7 +207,9 @@ test('lease validation requires core fields and workspace property', function ()
 test('cannot create overlapping active leases for the same property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
-    $property = Property::factory()->for($team)->create();
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
 
     Lease::factory()->for($team)->create([
         'property_id' => $property->id,
@@ -145,7 +236,9 @@ test('cannot create overlapping active leases for the same property', function (
 test('cannot update a lease to overlap another active lease for the same property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
-    $property = Property::factory()->for($team)->create();
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
 
     Lease::factory()->for($team)->create([
         'property_id' => $property->id,
@@ -187,7 +280,9 @@ test('workspace members can view and update leases regardless of team role', fun
     $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
     $team->members()->attach($member, ['role' => TeamRole::Member->value]);
 
-    $property = Property::factory()->for($team)->create();
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
     $lease = Lease::factory()->for($team)->create([
         'property_id' => $property->id,
         'status' => 'upcoming',

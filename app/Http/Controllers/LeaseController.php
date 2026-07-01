@@ -163,19 +163,21 @@ class LeaseController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, name: string, address_line: string, city: string}>
+     * @return array<int, array{id: int, name: string, address_line: string, city: string, monthly_rent_amount: string|null, currency: string}>
      */
     private function propertyOptions(Team $currentTeam): array
     {
         return Property::query()
             ->whereBelongsTo($currentTeam)
             ->orderBy('name')
-            ->get(['id', 'name', 'address_line', 'city'])
+            ->get(['id', 'name', 'address_line', 'city', 'monthly_rent_amount', 'currency'])
             ->map(fn (Property $property) => [
                 'id' => $property->id,
                 'name' => $property->name,
                 'address_line' => $property->address_line,
                 'city' => $property->city,
+                'monthly_rent_amount' => $property->monthly_rent_amount,
+                'currency' => $property->currency,
             ])
             ->all();
     }
@@ -203,6 +205,8 @@ class LeaseController extends Controller
                 'name' => $lease->property->name,
                 'address_line' => $lease->property->address_line,
                 'city' => $lease->property->city,
+                'monthly_rent_amount' => $lease->property->monthly_rent_amount,
+                'currency' => $lease->property->currency,
             ],
             'renter' => [
                 'id' => $lease->renter->id,
@@ -222,11 +226,13 @@ class LeaseController extends Controller
      */
     private function leaseAttributes(array $validated): array
     {
+        $property = Property::query()->findOrFail($validated['property_id']);
+
         return [
             'property_id' => $validated['property_id'],
             'start_date' => $validated['start_date'],
             'end_date' => $validated['end_date'] ?? null,
-            'monthly_rent_amount' => $validated['monthly_rent_amount'],
+            'monthly_rent_amount' => $property->monthly_rent_amount,
             'currency' => $validated['currency'],
             'rent_due_day' => $validated['rent_due_day'] ?? null,
             'deposit_amount' => $validated['deposit_amount'] ?? null,

@@ -10,6 +10,8 @@ export type LeasePropertyOption = {
     name: string;
     address_line: string;
     city: string;
+    monthly_rent_amount: string | null;
+    currency: string;
 };
 
 export type LeaseRenter = {

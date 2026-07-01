@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Leases;
 
 use App\Models\Lease;
+use App\Models\Property;
 use App\Models\Team;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -66,6 +67,8 @@ class SaveLeaseRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            $this->validateRentMatchesSelectedProperty($validator);
+
             if ($this->input('status') !== 'active') {
                 return;
             }
@@ -107,6 +110,48 @@ class SaveLeaseRequest extends FormRequest
                 );
             }
         });
+    }
+
+    private function validateRentMatchesSelectedProperty(Validator $validator): void
+    {
+        $team = $this->route('current_team');
+
+        if (
+            ! $team instanceof Team
+            || ! $this->input('property_id')
+            || $validator->errors()->has('property_id')
+            || $validator->errors()->has('monthly_rent_amount')
+        ) {
+            return;
+        }
+
+        $property = Property::query()
+            ->whereBelongsTo($team)
+            ->whereKey($this->input('property_id'))
+            ->first();
+
+        if (! $property) {
+            return;
+        }
+
+        if ($property->monthly_rent_amount === null) {
+            $validator->errors()->add(
+                'monthly_rent_amount',
+                'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.'
+            );
+
+            return;
+        }
+
+        $leaseRent = number_format((float) $this->input('monthly_rent_amount'), 2, '.', '');
+        $propertyRent = number_format((float) $property->monthly_rent_amount, 2, '.', '');
+
+        if ($leaseRent !== $propertyRent) {
+            $validator->errors()->add(
+                'monthly_rent_amount',
+                'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.'
+            );
+        }
     }
 
     /**

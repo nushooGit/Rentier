@@ -1,4 +1,5 @@
 import { Form } from '@inertiajs/react';
+import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -69,6 +70,20 @@ export default function LeaseForm({
     properties,
     leaseStatuses,
 }: Props) {
+    const [selectedPropertyId, setSelectedPropertyId] = useState(
+        fieldValue(lease?.property_id).toString(),
+    );
+    const selectedProperty = useMemo(
+        () =>
+            properties.find(
+                (property) => property.id.toString() === selectedPropertyId,
+            ),
+        [properties, selectedPropertyId],
+    );
+    const selectedPropertyRent = fieldValue(
+        selectedProperty?.monthly_rent_amount,
+    );
+
     return (
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
@@ -83,7 +98,10 @@ export default function LeaseForm({
                                 id="property_id"
                                 name="property_id"
                                 className={selectClassName}
-                                defaultValue={fieldValue(lease?.property_id)}
+                                value={selectedPropertyId}
+                                onChange={(event) =>
+                                    setSelectedPropertyId(event.target.value)
+                                }
                                 required
                                 data-test="lease-property-select"
                             >
@@ -221,12 +239,19 @@ export default function LeaseForm({
                                 type="number"
                                 min="0"
                                 step="0.01"
-                                defaultValue={fieldValue(
-                                    lease?.monthly_rent_amount,
-                                )}
+                                value={selectedPropertyRent}
+                                readOnly
                                 required
+                                aria-describedby="monthly_rent_amount_help"
                                 data-test="lease-monthly-rent-input"
                             />
+                            <p
+                                id="monthly_rent_amount_help"
+                                className="text-xs text-muted-foreground"
+                            >
+                                Chiria este preluată automat din proprietatea
+                                selectată.
+                            </p>
                             <InputError message={errors.monthly_rent_amount} />
                         </Field>
 
