@@ -69,10 +69,6 @@ class SaveLeaseRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $this->validateRentMatchesSelectedProperty($validator);
 
-            if ($this->input('status') !== 'active') {
-                return;
-            }
-
             $team = $this->route('current_team');
 
             if (
@@ -93,7 +89,6 @@ class SaveLeaseRequest extends FormRequest
             $overlappingLeaseExists = Lease::query()
                 ->whereBelongsTo($team)
                 ->where('property_id', $this->input('property_id'))
-                ->where('status', 'active')
                 ->when($lease instanceof Lease, fn ($query) => $query->whereKeyNot($lease->id))
                 ->when($endDate, fn ($query) => $query->whereDate('start_date', '<=', $endDate))
                 ->where(function ($query) use ($startDate) {
@@ -106,7 +101,7 @@ class SaveLeaseRequest extends FormRequest
             if ($overlappingLeaseExists) {
                 $validator->errors()->add(
                     'property_id',
-                    'Această proprietate are deja un contract activ în perioada selectată.'
+                    'Această proprietate are deja un contract în perioada selectată.'
                 );
             }
         });

@@ -83,6 +83,27 @@ test('workspace members can create leases with renter contact details', function
     ]);
 });
 
+test('can create a lease when no other lease exists for the property', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => '2026-07-01',
+            'end_date' => '2027-07-01',
+        ]));
+
+    $response->assertRedirect(route('leases.index', $team));
+
+    $this->assertDatabaseHas('leases', [
+        'property_id' => $property->id,
+    ]);
+});
+
 test('a lease can be created when rent matches the selected property rent', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -204,7 +225,7 @@ test('lease validation requires core fields and workspace property', function ()
     ]);
 });
 
-test('cannot create overlapping active leases for the same property', function () {
+test('cannot create a lease with overlapping dates on the same property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $property = Property::factory()->for($team)->create([
@@ -227,13 +248,73 @@ test('cannot create overlapping active leases for the same property', function (
         ]));
 
     $response->assertSessionHasErrors([
-        'property_id' => 'Această proprietate are deja un contract activ în perioada selectată.',
+        'property_id' => 'Această proprietate are deja un contract în perioada selectată.',
     ]);
 
     $this->assertDatabaseCount('leases', 1);
 });
 
-test('cannot update a lease to overlap another active lease for the same property', function () {
+test('can create a lease on another property for the same dates', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+    $otherProperty = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'status' => 'active',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($otherProperty, [
+            'start_date' => '2026-07-01',
+            'end_date' => '2027-07-01',
+        ]));
+
+    $response->assertRedirect(route('leases.index', $team));
+
+    $this->assertDatabaseHas('leases', [
+        'property_id' => $otherProperty->id,
+    ]);
+});
+
+test('can create a lease on the same property after the previous lease ended', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'status' => 'ended',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => '2027-07-02',
+            'end_date' => '2028-07-01',
+            'status' => 'upcoming',
+        ]));
+
+    $response->assertRedirect(route('leases.index', $team));
+
+    $this->assertDatabaseCount('leases', 2);
+});
+
+test('cannot update a lease to overlap another lease on the same property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $property = Property::factory()->for($team)->create([
@@ -263,7 +344,7 @@ test('cannot update a lease to overlap another active lease for the same propert
         ]));
 
     $response->assertSessionHasErrors([
-        'property_id' => 'Această proprietate are deja un contract activ în perioada selectată.',
+        'property_id' => 'Această proprietate are deja un contract în perioada selectată.',
     ]);
 
     $this->assertDatabaseHas('leases', [
