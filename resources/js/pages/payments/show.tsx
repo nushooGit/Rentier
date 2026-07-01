@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import {
     paymentMethodLabel,
     paymentStatusLabel,
@@ -41,12 +42,6 @@ const monthNames = [
 
 function formatRentPeriod(month: number, year: number) {
     return `${monthNames[month - 1] ?? month} ${year}`;
-}
-
-function formatDate(date: string) {
-    const [year, month, day] = date.split('-');
-
-    return day && month && year ? `${day}.${month}.${year}` : date;
 }
 
 function contractLabel(payment: RentPayment) {
@@ -136,7 +131,7 @@ export default function PaymentShow({ payment }: Props) {
                         />
                         <Detail
                             label="Data încasării"
-                            value={formatDate(payment.payment_date)}
+                            value={formatDateLong(payment.payment_date)}
                         />
                         <Detail
                             label="Perioada chiriei"

@@ -77,7 +77,9 @@ test('workspace members can create payments and derived property and renter are 
 test('payment validation requires core fields and workspace lease', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
-    $lease = Lease::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
     $otherLease = Lease::factory()->create();
 
     $response = $this
@@ -244,7 +246,9 @@ test('fully paid payment can be created when amount matches monthly rent amount'
 test('workspace members can update and delete payments', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
-    $lease = Lease::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
     $payment = RentPayment::factory()->for($team)->create([
         'lease_id' => $lease->id,
         'property_id' => $lease->property_id,

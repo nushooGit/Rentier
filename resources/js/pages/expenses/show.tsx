@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
@@ -23,12 +24,6 @@ function formatMoney(amount?: string | null, currency = 'RON') {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0,
     })} ${currency}`;
-}
-
-function formatDate(date: string) {
-    const [year, month, day] = date.split('-');
-
-    return day && month && year ? `${day}.${month}.${year}` : date;
 }
 
 function Detail({
@@ -123,7 +118,7 @@ export default function ExpenseShow({ expense }: Props) {
                         />
                         <Detail
                             label="Data cheltuielii"
-                            value={formatDate(expense.expense_date)}
+                            value={formatDateLong(expense.expense_date)}
                         />
                         <Detail
                             label="Status"

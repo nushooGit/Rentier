@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import { leaseStatusLabel } from '@/pages/leases/labels';
 import { destroy, edit, index, show } from '@/routes/leases';
 import type { Lease } from '@/types';
@@ -102,8 +103,14 @@ export default function LeaseShow({ lease }: Props) {
                             label="Status"
                             value={leaseStatusLabel(lease.status)}
                         />
-                        <Detail label="Data început" value={lease.start_date} />
-                        <Detail label="Data sfârșit" value={lease.end_date} />
+                        <Detail
+                            label="Data început"
+                            value={formatDateLong(lease.start_date)}
+                        />
+                        <Detail
+                            label="Data sfârșit"
+                            value={formatDateLong(lease.end_date)}
+                        />
                     </dl>
                 </section>
 

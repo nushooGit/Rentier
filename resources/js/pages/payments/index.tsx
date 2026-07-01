@@ -3,6 +3,7 @@ import { Eye, Pencil, Plus, Trash2, WalletCards } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import {
     paymentMethodLabel,
     paymentStatusLabel,
@@ -43,12 +44,6 @@ const monthNames = [
 
 function formatRentPeriod(month: number, year: number) {
     return `${monthNames[month - 1] ?? month} ${year}`;
-}
-
-function formatDate(date: string) {
-    const [year, month, day] = date.split('-');
-
-    return day && month && year ? `${day}.${month}.${year}` : date;
 }
 
 export default function PaymentsIndex({ payments }: Props) {
@@ -118,7 +113,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                         )}
                                     </span>
                                     <span className="text-muted-foreground">
-                                        {formatDate(payment.payment_date)} ·{' '}
+                                        {formatDateLong(payment.payment_date)} ·{' '}
                                         {paymentMethodLabel(payment.method)}
                                     </span>
                                 </div>

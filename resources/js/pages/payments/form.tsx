@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -182,15 +183,14 @@ export default function PaymentForm({
 
                         <Field>
                             <Label htmlFor="payment_date">Data încasării</Label>
-                            <Input
+                            <DateInput
                                 id="payment_date"
                                 name="payment_date"
                                 className={inputClassName}
-                                type="date"
-                                defaultValue={fieldValue(
+                                defaultValue={
                                     payment?.payment_date ??
-                                        now.toISOString().slice(0, 10),
-                                )}
+                                    now.toISOString().slice(0, 10)
+                                }
                                 required
                             />
                             <InputError message={errors.payment_date} />

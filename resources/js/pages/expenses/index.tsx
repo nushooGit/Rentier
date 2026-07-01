@@ -3,6 +3,7 @@ import { Eye, Pencil, Plus, ReceiptText, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
@@ -25,12 +26,6 @@ function formatMoney(amount?: string | null, currency = 'RON') {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0,
     })} ${currency}`;
-}
-
-function formatDate(date: string) {
-    const [year, month, day] = date.split('-');
-
-    return day && month && year ? `${day}.${month}.${year}` : date;
 }
 
 export default function ExpensesIndex({ expenses }: Props) {
@@ -98,7 +93,7 @@ export default function ExpensesIndex({ expenses }: Props) {
                                         )}
                                     </span>
                                     <span className="text-muted-foreground">
-                                        {formatDate(expense.expense_date)} ·{' '}
+                                        {formatDateLong(expense.expense_date)} ·{' '}
                                         {expensePaidByLabel(expense.paid_by)}
                                     </span>
                                 </div>

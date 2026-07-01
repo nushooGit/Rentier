@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,12 +115,11 @@ export default function LeaseForm({
 
                         <Field>
                             <Label htmlFor="start_date">Data început</Label>
-                            <Input
+                            <DateInput
                                 id="start_date"
                                 name="start_date"
                                 className={inputClassName}
-                                type="date"
-                                defaultValue={fieldValue(lease?.start_date)}
+                                defaultValue={lease?.start_date}
                                 required
                                 data-test="lease-start-date-input"
                             />
@@ -128,12 +128,11 @@ export default function LeaseForm({
 
                         <Field>
                             <Label htmlFor="end_date">Data sfârșit</Label>
-                            <Input
+                            <DateInput
                                 id="end_date"
                                 name="end_date"
                                 className={inputClassName}
-                                type="date"
-                                defaultValue={fieldValue(lease?.end_date)}
+                                defaultValue={lease?.end_date}
                             />
                             <InputError message={errors.end_date} />
                         </Field>

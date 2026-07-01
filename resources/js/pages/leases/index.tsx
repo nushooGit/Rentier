@@ -3,6 +3,7 @@ import { Eye, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatDateRangeLong } from '@/lib/date';
 import {
     Tooltip,
     TooltipContent,
@@ -30,9 +31,7 @@ function formatMoney(amount?: string | null, currency = 'RON') {
 }
 
 function formatPeriod(lease: Lease) {
-    return lease.end_date
-        ? `${lease.start_date} - ${lease.end_date}`
-        : `Din ${lease.start_date}`;
+    return formatDateRangeLong(lease.start_date, lease.end_date);
 }
 
 export default function LeasesIndex({ leases }: Props) {
