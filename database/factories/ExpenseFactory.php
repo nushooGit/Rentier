@@ -30,7 +30,9 @@ class ExpenseFactory extends Factory
             'amount' => fake()->randomFloat(2, 100, 2500),
             'currency' => 'RON',
             'expense_date' => fake()->dateTimeBetween('-6 months', 'now')->format('Y-m-d'),
-            'paid_by' => fake()->randomElement(['landlord', 'renter', 'other']),
+            'paid_by' => 'owner',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'none',
             'status' => fake()->randomElement(['paid', 'pending', 'reimbursable', 'cancelled']),
             'notes' => fake()->optional()->sentence(),
         ];

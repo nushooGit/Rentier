@@ -186,7 +186,9 @@ class DatabaseSeeder extends Seeder
             'category' => 'repairs',
             'amount' => 650,
             'currency' => 'RON',
-            'paid_by' => 'landlord',
+            'paid_by' => 'owner',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'none',
             'status' => 'paid',
             'notes' => 'Schimbat baterie și racorduri.',
         ]);
@@ -201,7 +203,9 @@ class DatabaseSeeder extends Seeder
             'category' => 'utilities',
             'amount' => 320,
             'currency' => 'RON',
-            'paid_by' => 'renter',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
             'status' => 'reimbursable',
             'notes' => 'De recuperat la următoarea plată.',
         ]);
@@ -216,7 +220,9 @@ class DatabaseSeeder extends Seeder
             'category' => 'insurance',
             'amount' => 480,
             'currency' => 'RON',
-            'paid_by' => 'landlord',
+            'paid_by' => 'owner',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'none',
             'status' => 'paid',
             'notes' => null,
         ]);

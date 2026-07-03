@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property string $currency
  * @property Carbon $expense_date
  * @property string $paid_by
+ * @property string $responsible_party
+ * @property string $settlement_type
  * @property string $status
  * @property string|null $notes
  * @property Carbon|null $created_at
@@ -38,6 +40,8 @@ use Illuminate\Support\Carbon;
     'currency',
     'expense_date',
     'paid_by',
+    'responsible_party',
+    'settlement_type',
     'status',
     'notes',
 ])]
@@ -45,6 +49,15 @@ class Expense extends Model
 {
     /** @use HasFactory<ExpenseFactory> */
     use HasFactory;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+    ];
 
     /**
      * Get the owning workspace.

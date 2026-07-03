@@ -10,6 +10,8 @@ import type {
     ExpenseOption,
     ExpensePaidBy,
     ExpensePropertyOption,
+    ExpenseResponsibleParty,
+    ExpenseSettlementType,
     ExpenseStatus,
 } from '@/types';
 
@@ -18,6 +20,8 @@ type Props = {
     leases: ExpenseLeaseOption[];
     expenseCategories: ExpenseOption<ExpenseCategory>[];
     expensePaidByOptions: ExpenseOption<ExpensePaidBy>[];
+    expenseResponsiblePartyOptions: ExpenseOption<ExpenseResponsibleParty>[];
+    expenseSettlementTypeOptions: ExpenseOption<ExpenseSettlementType>[];
     expenseStatuses: ExpenseOption<ExpenseStatus>[];
 };
 
@@ -26,6 +30,8 @@ export default function ExpenseCreate({
     leases,
     expenseCategories,
     expensePaidByOptions,
+    expenseResponsiblePartyOptions,
+    expenseSettlementTypeOptions,
     expenseStatuses,
 }: Props) {
     const { currentTeam } = usePage().props;
@@ -65,6 +71,10 @@ export default function ExpenseCreate({
                     leases={leases}
                     expenseCategories={expenseCategories}
                     expensePaidByOptions={expensePaidByOptions}
+                    expenseResponsiblePartyOptions={
+                        expenseResponsiblePartyOptions
+                    }
+                    expenseSettlementTypeOptions={expenseSettlementTypeOptions}
                     expenseStatuses={expenseStatuses}
                 />
             </div>

@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,8 @@ import { Label } from '@/components/ui/label';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
+    expenseResponsiblePartyLabel,
+    expenseSettlementTypeLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import type {
@@ -17,6 +20,8 @@ import type {
     ExpenseOption,
     ExpensePaidBy,
     ExpensePropertyOption,
+    ExpenseResponsibleParty,
+    ExpenseSettlementType,
     ExpenseStatus,
 } from '@/types';
 
@@ -31,6 +36,8 @@ type Props = {
     leases: ExpenseLeaseOption[];
     expenseCategories: ExpenseOption<ExpenseCategory>[];
     expensePaidByOptions: ExpenseOption<ExpensePaidBy>[];
+    expenseResponsiblePartyOptions: ExpenseOption<ExpenseResponsibleParty>[];
+    expenseSettlementTypeOptions: ExpenseOption<ExpenseSettlementType>[];
     expenseStatuses: ExpenseOption<ExpenseStatus>[];
 };
 
@@ -73,6 +80,21 @@ const selectClassName =
 const textareaClassName =
     'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
+function allowedSettlementTypes(
+    paidBy: ExpensePaidBy,
+    responsibleParty: ExpenseResponsibleParty,
+): ExpenseSettlementType[] {
+    if (paidBy === 'tenant' && responsibleParty === 'owner') {
+        return ['deduct_from_rent', 'deduct_from_utilities', 'reimburse'];
+    }
+
+    if (paidBy === 'owner' && responsibleParty === 'tenant') {
+        return ['reimburse'];
+    }
+
+    return ['none'];
+}
+
 export default function ExpenseForm({
     action,
     submitLabel,
@@ -81,9 +103,29 @@ export default function ExpenseForm({
     leases,
     expenseCategories,
     expensePaidByOptions,
+    expenseResponsiblePartyOptions,
+    expenseSettlementTypeOptions,
     expenseStatuses,
 }: Props) {
     const now = new Date();
+    const [paidBy, setPaidBy] = useState<ExpensePaidBy>(
+        expense?.paid_by ?? 'owner',
+    );
+    const [responsibleParty, setResponsibleParty] =
+        useState<ExpenseResponsibleParty>(expense?.responsible_party ?? 'owner');
+    const [settlementType, setSettlementType] =
+        useState<ExpenseSettlementType>(expense?.settlement_type ?? 'none');
+    const allowedSettlements = allowedSettlementTypes(
+        paidBy,
+        responsibleParty,
+    );
+    const effectiveSettlementType = allowedSettlements.includes(settlementType)
+        ? settlementType
+        : allowedSettlements[0];
+    const visibleSettlementTypeOptions = expenseSettlementTypeOptions.filter(
+        (settlementTypeOption) =>
+            allowedSettlements.includes(settlementTypeOption.value),
+    );
 
     return (
         <Form {...action} className="space-y-3.5">
@@ -250,7 +292,12 @@ export default function ExpenseForm({
                                 id="paid_by"
                                 name="paid_by"
                                 className={selectClassName}
-                                defaultValue={expense?.paid_by ?? 'landlord'}
+                                value={paidBy}
+                                onChange={(event) =>
+                                    setPaidBy(
+                                        event.target.value as ExpensePaidBy,
+                                    )
+                                }
                                 required
                             >
                                 {expensePaidByOptions.map((paidBy) => (
@@ -264,6 +311,82 @@ export default function ExpenseForm({
                             </select>
                             <InputError message={errors.paid_by} />
                         </Field>
+
+                        <Field>
+                            <Label htmlFor="responsible_party">
+                                Cine suporta cheltuiala?
+                            </Label>
+                            <select
+                                id="responsible_party"
+                                name="responsible_party"
+                                className={selectClassName}
+                                value={responsibleParty}
+                                onChange={(event) =>
+                                    setResponsibleParty(
+                                        event.target
+                                            .value as ExpenseResponsibleParty,
+                                    )
+                                }
+                                required
+                            >
+                                {expenseResponsiblePartyOptions.map(
+                                    (responsibleParty) => (
+                                        <option
+                                            key={responsibleParty.value}
+                                            value={responsibleParty.value}
+                                        >
+                                            {expenseResponsiblePartyLabel(
+                                                responsibleParty.value,
+                                            )}
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                            <InputError message={errors.responsible_party} />
+                        </Field>
+
+                        <Field>
+                            <Label htmlFor="settlement_type">Decontare</Label>
+                            <select
+                                id="settlement_type"
+                                name="settlement_type"
+                                className={selectClassName}
+                                value={effectiveSettlementType}
+                                onChange={(event) =>
+                                    setSettlementType(
+                                        event.target
+                                            .value as ExpenseSettlementType,
+                                    )
+                                }
+                                required
+                            >
+                                {visibleSettlementTypeOptions.map(
+                                    (settlementType) => (
+                                        <option
+                                            key={settlementType.value}
+                                            value={settlementType.value}
+                                        >
+                                            {expenseSettlementTypeLabel(
+                                                settlementType.value,
+                                            )}
+                                        </option>
+                                    ),
+                                )}
+                            </select>
+                            <InputError message={errors.settlement_type} />
+                        </Field>
+
+                        <div className="space-y-1 text-xs text-muted-foreground md:col-span-2">
+                            <p>
+                                Cheltuielile suportate de chirias nu afecteaza
+                                profitul proprietarului.
+                            </p>
+                            <p>
+                                Daca chiriasul plateste o cheltuiala suportata
+                                de proprietar, aceasta poate fi scazuta din
+                                chirie sau rambursata.
+                            </p>
+                        </div>
                     </FormSection>
 
                     <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">

@@ -99,6 +99,14 @@ function FinancialLeaseLine({
                     Chirie: {formatMoney(lease.expected_amount, lease.currency)}
                 </span>
                 <span>
+                    Incasat cash:{' '}
+                    {formatMoney(lease.collected_amount, lease.currency)}
+                </span>
+                <span>
+                    Scazut din chirie:{' '}
+                    {formatMoney(lease.rent_deduction_amount, lease.currency)}
+                </span>
+                <span>
                     Rest:{' '}
                     <strong className="font-medium text-foreground">
                         {formatMoney(lease.remaining_amount, lease.currency)}
@@ -172,6 +180,61 @@ export default function Dashboard({
                         description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
                     />
                 </div>
+
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+                    <SummaryCard
+                        label="Cheltuieli suportate de proprietar"
+                        value={formatMoney(
+                            summary.current_month_expenses,
+                            summary.currency,
+                        )}
+                        description="Responsabilitate economica, nu cash platit"
+                    />
+                    <SummaryCard
+                        label="Scazut din chirie"
+                        value={formatMoney(
+                            summary.current_month_rent_deductions,
+                            summary.currency,
+                        )}
+                        description="Reduce restul de chirie"
+                    />
+                    <SummaryCard
+                        label="De rambursat catre chirias"
+                        value={formatMoney(
+                            summary.tenant_reimbursement_expenses,
+                            summary.currency,
+                        )}
+                    />
+                    <SummaryCard
+                        label="De scazut din utilitati"
+                        value={formatMoney(
+                            summary.utility_deduction_expenses,
+                            summary.currency,
+                        )}
+                    />
+                    <SummaryCard
+                        label="De recuperat de la chiriasi"
+                        value={formatMoney(
+                            summary.recoverable_expenses,
+                            summary.currency,
+                        )}
+                    />
+                </div>
+
+                {Number(summary.unsettled_tenant_paid_owner_expenses) > 0 ? (
+                    <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:p-3.5">
+                        Exista cheltuieli platite de chirias, suportate de
+                        proprietar, fara decontare:{' '}
+                        <strong>
+                            {formatMoney(
+                                summary.unsettled_tenant_paid_owner_expenses,
+                                summary.currency,
+                            )}
+                        </strong>
+                        . Editeaza cheltuielile si alege scadere din chirie,
+                        scadere din utilitati sau rambursare.
+                    </section>
+                ) : null}
 
                 <div className="grid gap-3 lg:grid-cols-3">
                     <section className="rounded-lg border p-3 sm:p-3.5">

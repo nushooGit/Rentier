@@ -82,6 +82,8 @@ class DashboardController extends Controller
                     'days' => $status['days'],
                     'expected_amount' => $status['expected_amount'],
                     'collected_amount' => $status['collected_amount'],
+                    'rent_deduction_amount' => $status['rent_deduction_amount'],
+                    'covered_amount' => $status['covered_amount'],
                     'remaining_amount' => $status['remaining_amount'],
                 ];
             })
@@ -89,7 +91,9 @@ class DashboardController extends Controller
 
         $estimatedMonthlyRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['expected_amount']);
         $currentMonthPayments = $leaseFinancialRows->sum(fn (array $row) => (float) $row['collected_amount']);
-        $remainingRent = max($estimatedMonthlyRent - $currentMonthPayments, 0);
+        $currentMonthRentDeductions = $leaseFinancialRows->sum(fn (array $row) => (float) $row['rent_deduction_amount']);
+        $currentMonthCoveredRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['covered_amount']);
+        $remainingRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['remaining_amount']);
 
         $overdueLeases = $leaseFinancialRows
             ->filter(fn (array $row) => $row['status_key'] === 'overdue')
@@ -121,9 +125,50 @@ class DashboardController extends Controller
                 'currency' => $property->currency,
             ]);
 
-        $currentMonthExpenses = Expense::query()
+        $ownerSupportedExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
             ->where('status', '!=', 'cancelled')
+            ->where('responsible_party', 'owner')
+            ->whereYear('expense_date', $currentYear)
+            ->whereMonth('expense_date', $currentMonth)
+            ->sum('amount');
+
+        $tenantReimbursementExpenses = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'tenant')
+            ->where('responsible_party', 'owner')
+            ->where('settlement_type', 'reimburse')
+            ->whereYear('expense_date', $currentYear)
+            ->whereMonth('expense_date', $currentMonth)
+            ->sum('amount');
+
+        $utilityDeductionExpenses = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'tenant')
+            ->where('responsible_party', 'owner')
+            ->where('settlement_type', 'deduct_from_utilities')
+            ->whereYear('expense_date', $currentYear)
+            ->whereMonth('expense_date', $currentMonth)
+            ->sum('amount');
+
+        $unsettledTenantPaidOwnerExpenses = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'tenant')
+            ->where('responsible_party', 'owner')
+            ->where('settlement_type', 'none')
+            ->whereYear('expense_date', $currentYear)
+            ->whereMonth('expense_date', $currentMonth)
+            ->sum('amount');
+
+        $recoverableExpenses = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'owner')
+            ->where('responsible_party', 'tenant')
+            ->where('settlement_type', 'reimburse')
             ->whereYear('expense_date', $currentYear)
             ->whereMonth('expense_date', $currentMonth)
             ->sum('amount');
@@ -183,14 +228,20 @@ class DashboardController extends Controller
                 'active_lease_count' => $activeLeaseCount,
                 'estimated_monthly_rent' => $this->decimalString($estimatedMonthlyRent),
                 'current_month_payments' => $this->decimalString($currentMonthPayments),
+                'current_month_rent_deductions' => $this->decimalString($currentMonthRentDeductions),
+                'current_month_covered_rent' => $this->decimalString($currentMonthCoveredRent),
                 'remaining_rent' => $this->decimalString($remainingRent),
                 'overdue_count' => $overdueLeases->count(),
                 'occupancy_label' => "{$occupiedPropertyCount}/{$propertyCount}",
                 'occupancy_rate' => $propertyCount > 0
                     ? round(($occupiedPropertyCount / $propertyCount) * 100)
                     : 0,
-                'current_month_expenses' => (string) $currentMonthExpenses,
-                'current_month_profit' => (string) ($currentMonthPayments - $currentMonthExpenses),
+                'current_month_expenses' => $this->decimalString($ownerSupportedExpenses),
+                'current_month_profit' => $this->decimalString($currentMonthCoveredRent - $ownerSupportedExpenses),
+                'tenant_reimbursement_expenses' => $this->decimalString($tenantReimbursementExpenses),
+                'utility_deduction_expenses' => $this->decimalString($utilityDeductionExpenses),
+                'unsettled_tenant_paid_owner_expenses' => $this->decimalString($unsettledTenantPaidOwnerExpenses),
+                'recoverable_expenses' => $this->decimalString($recoverableExpenses),
                 'currency' => 'RON',
             ],
             'propertyStatusSummary' => [

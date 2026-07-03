@@ -6,6 +6,8 @@ import { formatDateLong } from '@/lib/date';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
+    expenseResponsiblePartyLabel,
+    expenseSettlementTypeLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import { destroy, edit, index, show } from '@/routes/expenses';
@@ -119,6 +121,26 @@ export default function ExpenseShow({ expense }: Props) {
                         <Detail
                             label="Data cheltuielii"
                             value={formatDateLong(expense.expense_date)}
+                        />
+                        <Detail
+                            label="Suportat de"
+                            value={expenseResponsiblePartyLabel(
+                                expense.responsible_party,
+                            )}
+                        />
+                        <Detail
+                            label="Decontare"
+                            value={expenseSettlementTypeLabel(
+                                expense.settlement_type,
+                            )}
+                        />
+                        <Detail
+                            label="Impact profit"
+                            value={
+                                expense.affects_owner_profit
+                                    ? 'Afecteaza profitul'
+                                    : 'Nu afecteaza profitul'
+                            }
                         />
                         <Detail
                             label="Status"

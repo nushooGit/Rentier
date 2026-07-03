@@ -21,7 +21,9 @@ function validExpensePayload(Property $property, array $overrides = []): array
         'amount' => 650,
         'currency' => 'RON',
         'expense_date' => '2026-06-12',
-        'paid_by' => 'landlord',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
         'status' => 'paid',
         'notes' => 'Schimbat racorduri.',
     ], $overrides);
@@ -93,6 +95,8 @@ test('expense validation requires core fields and same property lease', function
             'currency' => '',
             'expense_date' => '',
             'paid_by' => 'nobody',
+            'responsible_party' => 'nobody',
+            'settlement_type' => 'unknown',
             'status' => 'draft',
         ]));
 
@@ -104,9 +108,64 @@ test('expense validation requires core fields and same property lease', function
         'currency',
         'expense_date',
         'paid_by',
+        'responsible_party',
+        'settlement_type',
         'status',
     ]);
 });
+
+test('expenses default settlement fields to owner responsibility without settlement', function () {
+    $team = Team::factory()->create();
+    $property = Property::factory()->for($team)->create();
+
+    $expense = Expense::create([
+        'team_id' => $team->id,
+        'property_id' => $property->id,
+        'title' => 'Reparatie',
+        'category' => 'repairs',
+        'amount' => 100,
+        'currency' => 'RON',
+        'expense_date' => '2026-07-10',
+        'status' => 'paid',
+    ]);
+
+    expect($expense->paid_by)->toBe('owner')
+        ->and($expense->responsible_party)->toBe('owner')
+        ->and($expense->settlement_type)->toBe('none');
+});
+
+test('expense validation rejects invalid settlement combinations', function (array $overrides) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, $overrides));
+
+    $response->assertSessionHasErrors(['settlement_type']);
+})->with([
+    'tenant pays owner cost without settlement' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+    ]],
+    'tenant cost has settlement' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+    ]],
+    'owner cost has settlement' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+    ]],
+    'tenant responsible owner paid without reimbursement' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+    ]],
+]);
 
 test('workspace members can update and delete expenses', function () {
     $user = User::factory()->create();

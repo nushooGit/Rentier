@@ -7,7 +7,14 @@ export type ExpenseCategory =
     | 'repairs'
     | 'other';
 
-export type ExpensePaidBy = 'landlord' | 'renter' | 'other';
+export type ExpenseParty = 'owner' | 'tenant';
+export type ExpensePaidBy = ExpenseParty;
+export type ExpenseResponsibleParty = ExpenseParty;
+export type ExpenseSettlementType =
+    | 'none'
+    | 'deduct_from_rent'
+    | 'deduct_from_utilities'
+    | 'reimburse';
 export type ExpenseStatus = 'paid' | 'pending' | 'reimbursable' | 'cancelled';
 
 export type ExpenseOption<TValue extends string = string> = {
@@ -38,6 +45,9 @@ export type Expense = {
     currency: string;
     expense_date: string;
     paid_by: ExpensePaidBy;
+    responsible_party: ExpenseResponsibleParty;
+    settlement_type: ExpenseSettlementType;
+    affects_owner_profit: boolean;
     status: ExpenseStatus;
     notes: string | null;
     property: {

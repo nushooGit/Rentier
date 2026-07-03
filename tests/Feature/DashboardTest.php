@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Expense;
 use App\Models\Lease;
 use App\Models\Property;
 use App\Models\RentPayment;
@@ -59,7 +60,7 @@ test('dashboard includes current workspace financial summary', function () {
         'start_date' => '2026-01-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
-        'rent_due_day' => 5,
+        'rent_due_day' => 15,
     ]);
     Lease::factory()->for($team)->create([
         'property_id' => $overdueProperty->id,
@@ -127,6 +128,277 @@ test('dashboard includes current workspace financial summary', function () {
         ->where('upcomingPayments.0.remaining_amount', '800.00')
         ->has('propertiesWithoutActiveLease', 1)
         ->where('propertiesWithoutActiveLease.0.name', 'Vacant House'),
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard expense settlement numbers are correct for mixed current month activity', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 15,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 2000,
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 400,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 250,
+        'expense_date' => '2026-07-05',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-06',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 200,
+        'expense_date' => '2026-07-07',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'paid',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->where('summary.current_month_payments', '2000.00')
+        ->where('summary.current_month_rent_deductions', '300.00')
+        ->where('summary.current_month_covered_rent', '2300.00')
+        ->where('summary.remaining_rent', '200.00')
+        ->where('summary.current_month_expenses', '700.00')
+        ->where('summary.current_month_profit', '1600.00')
+        ->where('summary.recoverable_expenses', '200.00')
+        ->where('upcomingPayments.0.collected_amount', '2000.00')
+        ->where('upcomingPayments.0.rent_deduction_amount', '300.00')
+        ->where('upcomingPayments.0.remaining_amount', '200.00')
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard rent status treats rent deductions as coverage but not cash collected', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $paidLease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+    $partialLease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 15,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $paidLease->id,
+        'property_id' => $paidLease->property_id,
+        'renter_id' => $paidLease->renter_id,
+        'amount' => 2200,
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $paidLease->property_id,
+        'lease_id' => $paidLease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $partialLease->id,
+        'property_id' => $partialLease->property_id,
+        'renter_id' => $partialLease->renter_id,
+        'amount' => 1000,
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $partialLease->property_id,
+        'lease_id' => $partialLease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->where('summary.current_month_payments', '3200.00')
+        ->where('summary.current_month_rent_deductions', '600.00')
+        ->where('summary.remaining_rent', '1200.00')
+        ->has('overdueLeases', 0)
+        ->has('upcomingPayments', 1)
+        ->where('upcomingPayments.0.lease_id', $partialLease->id)
+        ->where('upcomingPayments.0.status_key', 'partial')
+        ->where('upcomingPayments.0.remaining_amount', '1200.00')
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard separates tenant paid owner expenses that are not rent deductions', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 15,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 150,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_utilities',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 250,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 200,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 400,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->where('summary.current_month_payments', '1000.00')
+        ->where('summary.current_month_rent_deductions', '0.00')
+        ->where('summary.current_month_covered_rent', '1000.00')
+        ->where('summary.remaining_rent', '1500.00')
+        ->where('summary.current_month_expenses', '850.00')
+        ->where('summary.tenant_reimbursement_expenses', '300.00')
+        ->where('summary.utility_deduction_expenses', '150.00')
+        ->where('summary.recoverable_expenses', '200.00')
+        ->where('summary.unsettled_tenant_paid_owner_expenses', '0.00')
+        ->where('upcomingPayments.0.collected_amount', '1000.00')
+        ->where('upcomingPayments.0.rent_deduction_amount', '0.00')
+        ->where('upcomingPayments.0.remaining_amount', '1500.00')
     );
 
     Carbon::setTestNow();

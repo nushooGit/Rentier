@@ -7,6 +7,8 @@ import { formatDateLong } from '@/lib/date';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
+    expenseResponsiblePartyLabel,
+    expenseSettlementTypeLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import { create, destroy, edit, index, show } from '@/routes/expenses';
@@ -96,6 +98,35 @@ export default function ExpensesIndex({ expenses }: Props) {
                                         {formatDateLong(expense.expense_date)} ·{' '}
                                         {expensePaidByLabel(expense.paid_by)}
                                     </span>
+                                </div>
+                                <div className="flex flex-wrap gap-1.5 text-xs">
+                                    <Badge variant="outline">
+                                        Platit de:{' '}
+                                        {expensePaidByLabel(expense.paid_by)}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        Suportat de:{' '}
+                                        {expenseResponsiblePartyLabel(
+                                            expense.responsible_party,
+                                        )}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        Decontare:{' '}
+                                        {expenseSettlementTypeLabel(
+                                            expense.settlement_type,
+                                        )}
+                                    </Badge>
+                                    <Badge
+                                        variant={
+                                            expense.affects_owner_profit
+                                                ? 'secondary'
+                                                : 'outline'
+                                        }
+                                    >
+                                        {expense.affects_owner_profit
+                                            ? 'Afecteaza profitul'
+                                            : 'Nu afecteaza profitul'}
+                                    </Badge>
                                 </div>
                                 <div className="mt-auto flex justify-end gap-2">
                                     <Button variant="ghost" size="sm" asChild>

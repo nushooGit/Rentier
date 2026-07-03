@@ -56,7 +56,9 @@ class SaveExpenseRequest extends FormRequest
             'amount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'expense_date' => ['required', 'date'],
-            'paid_by' => ['required', 'string', Rule::in(['landlord', 'renter', 'other'])],
+            'paid_by' => ['required', 'string', Rule::in(['owner', 'tenant'])],
+            'responsible_party' => ['required', 'string', Rule::in(['owner', 'tenant'])],
+            'settlement_type' => ['required', 'string', Rule::in(['none', 'deduct_from_rent', 'deduct_from_utilities', 'reimburse'])],
             'status' => ['required', 'string', Rule::in(['paid', 'pending', 'reimbursable', 'cancelled'])],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];
@@ -70,6 +72,25 @@ class SaveExpenseRequest extends FormRequest
         $validator->after(function (Validator $validator) {
             $leaseId = $this->input('lease_id');
             $propertyId = $this->input('property_id');
+            $paidBy = $this->input('paid_by');
+            $responsibleParty = $this->input('responsible_party');
+            $settlementType = $this->input('settlement_type');
+
+            if ($paidBy === 'tenant' && $responsibleParty === 'owner' && $settlementType === 'none') {
+                $validator->errors()->add('settlement_type', 'Alege o decontare: scadere din chirie, scadere din utilitati sau rambursare.');
+            }
+
+            if ($paidBy === 'tenant' && $responsibleParty === 'tenant' && $settlementType !== 'none') {
+                $validator->errors()->add('settlement_type', 'Cheltuielile platite si suportate de chirias nu se deconteaza.');
+            }
+
+            if ($paidBy === 'owner' && $responsibleParty === 'owner' && $settlementType !== 'none') {
+                $validator->errors()->add('settlement_type', 'Cheltuielile platite si suportate de proprietar nu se deconteaza.');
+            }
+
+            if ($paidBy === 'owner' && $responsibleParty === 'tenant' && $settlementType !== 'reimburse') {
+                $validator->errors()->add('settlement_type', 'Cheltuielile platite de proprietar, dar suportate de chirias, trebuie marcate ca rambursare separata.');
+            }
 
             if (! $leaseId || ! $propertyId) {
                 return;
@@ -95,6 +116,9 @@ class SaveExpenseRequest extends FormRequest
         return array_merge(
             [
                 'currency' => 'RON',
+                'paid_by' => 'owner',
+                'responsible_party' => 'owner',
+                'settlement_type' => 'none',
             ],
             $this->validated(),
         );

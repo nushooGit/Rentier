@@ -34,6 +34,8 @@ class ExpenseController extends Controller
             'expenses' => $expenses,
             'expenseCategories' => $this->expenseCategories(),
             'expensePaidByOptions' => $this->paidByOptions(),
+            'expenseResponsiblePartyOptions' => $this->responsiblePartyOptions(),
+            'expenseSettlementTypeOptions' => $this->settlementTypeOptions(),
             'expenseStatuses' => $this->expenseStatuses(),
         ]);
     }
@@ -50,6 +52,8 @@ class ExpenseController extends Controller
             'leases' => $this->leaseOptions($currentTeam),
             'expenseCategories' => $this->expenseCategories(),
             'expensePaidByOptions' => $this->paidByOptions(),
+            'expenseResponsiblePartyOptions' => $this->responsiblePartyOptions(),
+            'expenseSettlementTypeOptions' => $this->settlementTypeOptions(),
             'expenseStatuses' => $this->expenseStatuses(),
         ]);
     }
@@ -96,6 +100,8 @@ class ExpenseController extends Controller
             'leases' => $this->leaseOptions($currentTeam),
             'expenseCategories' => $this->expenseCategories(),
             'expensePaidByOptions' => $this->paidByOptions(),
+            'expenseResponsiblePartyOptions' => $this->responsiblePartyOptions(),
+            'expenseSettlementTypeOptions' => $this->settlementTypeOptions(),
             'expenseStatuses' => $this->expenseStatuses(),
         ]);
     }
@@ -154,9 +160,32 @@ class ExpenseController extends Controller
     private function paidByOptions(): array
     {
         return [
-            ['value' => 'landlord', 'label' => 'Landlord'],
-            ['value' => 'renter', 'label' => 'Renter'],
-            ['value' => 'other', 'label' => 'Other'],
+            ['value' => 'owner', 'label' => 'Owner'],
+            ['value' => 'tenant', 'label' => 'Tenant'],
+        ];
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function responsiblePartyOptions(): array
+    {
+        return [
+            ['value' => 'owner', 'label' => 'Owner'],
+            ['value' => 'tenant', 'label' => 'Tenant'],
+        ];
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string}>
+     */
+    private function settlementTypeOptions(): array
+    {
+        return [
+            ['value' => 'none', 'label' => 'None'],
+            ['value' => 'deduct_from_rent', 'label' => 'Deduct from rent'],
+            ['value' => 'deduct_from_utilities', 'label' => 'Deduct from utilities'],
+            ['value' => 'reimburse', 'label' => 'Reimburse'],
         ];
     }
 
@@ -224,6 +253,9 @@ class ExpenseController extends Controller
             'currency' => $expense->currency,
             'expense_date' => $expense->expense_date->toDateString(),
             'paid_by' => $expense->paid_by,
+            'responsible_party' => $expense->responsible_party,
+            'settlement_type' => $expense->settlement_type,
+            'affects_owner_profit' => $expense->responsible_party === 'owner',
             'status' => $expense->status,
             'notes' => $expense->notes,
             'property' => [

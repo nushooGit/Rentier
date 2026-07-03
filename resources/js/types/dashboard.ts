@@ -3,12 +3,18 @@ export type DashboardSummary = {
     active_lease_count: number;
     estimated_monthly_rent: string;
     current_month_payments: string;
+    current_month_rent_deductions: string;
+    current_month_covered_rent: string;
     remaining_rent: string;
     overdue_count: number;
     occupancy_label: string;
     occupancy_rate: number;
     current_month_expenses: string;
     current_month_profit: string;
+    tenant_reimbursement_expenses: string;
+    utility_deduction_expenses: string;
+    unsettled_tenant_paid_owner_expenses: string;
+    recoverable_expenses: string;
     currency: string;
 };
 
@@ -26,6 +32,8 @@ export type DashboardLeaseFinancialRow = {
     days: number | null;
     expected_amount: string;
     collected_amount: string;
+    rent_deduction_amount: string;
+    covered_amount: string;
     remaining_amount: string;
 };
 
