@@ -8,6 +8,7 @@ use App\Models\Property;
 use App\Models\RentPayment;
 use App\Models\Team;
 use App\Models\TeamInvitation;
+use App\Services\LeaseRentStatusCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Inertia\Inertia;
@@ -15,7 +16,7 @@ use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request, Team $currentTeam): Response
+    public function __invoke(Request $request, Team $currentTeam, LeaseRentStatusCalculator $rentStatusCalculator): Response
     {
         $email = strtolower($request->user()->email);
         $today = Carbon::today();
@@ -49,7 +50,8 @@ class DashboardController extends Controller
             ->filter(fn (Property $property) => $property->isOccupied($today))
             ->count();
 
-        $activeLeaseCount = Lease::query()
+        $activeLeases = Lease::query()
+            ->with(['property', 'renter'])
             ->whereBelongsTo($currentTeam)
             ->whereDate('start_date', '<=', $today)
             ->where(function ($query) use ($today) {
@@ -57,24 +59,67 @@ class DashboardController extends Controller
                     ->whereNull('end_date')
                     ->orWhereDate('end_date', '>=', $today);
             })
-            ->count();
+            ->orderBy('rent_due_day')
+            ->get();
 
-        $estimatedMonthlyRent = Lease::query()
-            ->whereBelongsTo($currentTeam)
-            ->whereDate('start_date', '<=', $today)
-            ->where(function ($query) use ($today) {
-                $query
-                    ->whereNull('end_date')
-                    ->orWhereDate('end_date', '>=', $today);
+        $activeLeaseCount = $activeLeases->count();
+
+        $leaseFinancialRows = $activeLeases
+            ->map(function (Lease $lease) use ($rentStatusCalculator, $today) {
+                $status = $rentStatusCalculator->forLease($lease, $today);
+
+                return [
+                    'lease_id' => $lease->id,
+                    'property_id' => $lease->property_id,
+                    'property_name' => $lease->property->name,
+                    'renter_name' => $lease->renter->name,
+                    'monthly_rent_amount' => $lease->monthly_rent_amount,
+                    'currency' => $lease->currency,
+                    'rent_due_day' => $lease->rent_due_day,
+                    'due_date' => $status['due_date'],
+                    'status_key' => $status['key'],
+                    'status_label' => $status['label'],
+                    'days' => $status['days'],
+                    'expected_amount' => $status['expected_amount'],
+                    'collected_amount' => $status['collected_amount'],
+                    'remaining_amount' => $status['remaining_amount'],
+                ];
             })
-            ->sum('monthly_rent_amount');
+            ->values();
 
-        $currentMonthPayments = RentPayment::query()
-            ->whereBelongsTo($currentTeam)
-            ->whereIn('status', ['paid', 'partial'])
-            ->where('period_month', $currentMonth)
-            ->where('period_year', $currentYear)
-            ->sum('amount');
+        $estimatedMonthlyRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['expected_amount']);
+        $currentMonthPayments = $leaseFinancialRows->sum(fn (array $row) => (float) $row['collected_amount']);
+        $remainingRent = max($estimatedMonthlyRent - $currentMonthPayments, 0);
+
+        $overdueLeases = $leaseFinancialRows
+            ->filter(fn (array $row) => $row['status_key'] === 'overdue')
+            ->values();
+
+        $upcomingPayments = $leaseFinancialRows
+            ->filter(function (array $row) use ($today) {
+                if ((float) $row['remaining_amount'] <= 0) {
+                    return false;
+                }
+
+                $dueDate = Carbon::parse($row['due_date']);
+
+                return $dueDate->isSameDay($today)
+                    || ($dueDate->isAfter($today) && $today->diffInDays($dueDate) <= 7);
+            })
+            ->values();
+
+        $propertiesWithoutActiveLease = $properties
+            ->filter(fn (Property $property) => ! $property->isOccupied($today))
+            ->sortBy('name')
+            ->values()
+            ->map(fn (Property $property) => [
+                'id' => $property->id,
+                'name' => $property->name,
+                'city' => $property->city,
+                'address_line' => $property->address_line,
+                'monthly_rent_amount' => $property->monthly_rent_amount,
+                'currency' => $property->currency,
+            ]);
 
         $currentMonthExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
@@ -136,8 +181,14 @@ class DashboardController extends Controller
             'summary' => [
                 'property_count' => $propertyCount,
                 'active_lease_count' => $activeLeaseCount,
-                'estimated_monthly_rent' => (string) $estimatedMonthlyRent,
-                'current_month_payments' => (string) $currentMonthPayments,
+                'estimated_monthly_rent' => $this->decimalString($estimatedMonthlyRent),
+                'current_month_payments' => $this->decimalString($currentMonthPayments),
+                'remaining_rent' => $this->decimalString($remainingRent),
+                'overdue_count' => $overdueLeases->count(),
+                'occupancy_label' => "{$occupiedPropertyCount}/{$propertyCount}",
+                'occupancy_rate' => $propertyCount > 0
+                    ? round(($occupiedPropertyCount / $propertyCount) * 100)
+                    : 0,
                 'current_month_expenses' => (string) $currentMonthExpenses,
                 'current_month_profit' => (string) ($currentMonthPayments - $currentMonthExpenses),
                 'currency' => 'RON',
@@ -146,9 +197,17 @@ class DashboardController extends Controller
                 'active' => $occupiedPropertyCount,
                 'available' => $propertyCount - $occupiedPropertyCount,
             ],
+            'overdueLeases' => $overdueLeases,
+            'upcomingPayments' => $upcomingPayments,
+            'propertiesWithoutActiveLease' => $propertiesWithoutActiveLease,
             'recentLeases' => $recentLeases,
             'recentPayments' => $recentPayments,
             'recentExpenses' => $recentExpenses,
         ]);
+    }
+
+    private function decimalString(float|int|string $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
     }
 }

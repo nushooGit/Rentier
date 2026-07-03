@@ -3,51 +3,21 @@ import { useState } from 'react';
 import Heading from '@/components/heading';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import { Badge } from '@/components/ui/badge';
+import { formatDateShort } from '@/lib/date';
+import { formatMoney } from '@/lib/money';
 import { expenseStatusLabel } from '@/pages/expenses/labels';
 import { leaseStatusLabel } from '@/pages/leases/labels';
 import { paymentStatusLabel } from '@/pages/payments/labels';
 import { dashboard } from '@/routes';
-import type { DashboardInvitation } from '@/types';
-
-type DashboardSummary = {
-    property_count: number;
-    active_lease_count: number;
-    estimated_monthly_rent: string;
-    current_month_payments: string;
-    current_month_expenses: string;
-    current_month_profit: string;
-    currency: string;
-};
-
-type RecentLease = {
-    id: number;
-    renter_name: string;
-    property_name: string;
-    status: 'upcoming' | 'active' | 'ended' | 'cancelled';
-    start_date: string;
-    monthly_rent_amount: string;
-    currency: string;
-};
-
-type RecentPayment = {
-    id: number;
-    renter_name: string;
-    property_name: string;
-    amount: string;
-    currency: string;
-    payment_date: string;
-    status: 'paid' | 'partial' | 'pending' | 'cancelled';
-};
-
-type RecentExpense = {
-    id: number;
-    title: string;
-    property_name: string;
-    amount: string;
-    currency: string;
-    expense_date: string;
-    status: 'paid' | 'pending' | 'reimbursable' | 'cancelled';
-};
+import type {
+    DashboardInvitation,
+    DashboardLeaseFinancialRow,
+    DashboardPropertyWithoutActiveLease,
+    DashboardRecentExpense,
+    DashboardRecentLease,
+    DashboardRecentPayment,
+    DashboardSummary,
+} from '@/types';
 
 type Props = {
     pendingInvitations?: DashboardInvitation[];
@@ -56,33 +26,32 @@ type Props = {
         active: number;
         available: number;
     };
-    recentLeases: RecentLease[];
-    recentPayments: RecentPayment[];
-    recentExpenses: RecentExpense[];
+    overdueLeases: DashboardLeaseFinancialRow[];
+    upcomingPayments: DashboardLeaseFinancialRow[];
+    propertiesWithoutActiveLease: DashboardPropertyWithoutActiveLease[];
+    recentLeases: DashboardRecentLease[];
+    recentPayments: DashboardRecentPayment[];
+    recentExpenses: DashboardRecentExpense[];
 };
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return `0 ${currency}`;
-    }
-
-    return `${Number(amount).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
-}
 
 function SummaryCard({
     label,
     value,
+    description,
 }: {
     label: string;
     value: string | number;
+    description?: string;
 }) {
     return (
         <section className="rounded-lg border p-3 sm:p-3.5">
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className="mt-1 text-lg font-semibold">{value}</p>
+            {description ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                    {description}
+                </p>
+            ) : null}
         </section>
     );
 }
@@ -91,10 +60,61 @@ function EmptyLine({ children }: { children: string }) {
     return <p className="text-sm text-muted-foreground">{children}</p>;
 }
 
+function FinancialLeaseLine({
+    lease,
+    tone = 'neutral',
+}: {
+    lease: DashboardLeaseFinancialRow;
+    tone?: 'neutral' | 'danger';
+}) {
+    return (
+        <div className="rounded-md bg-muted/40 p-2 text-sm">
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <p className="truncate font-medium">
+                        {lease.property_name}
+                    </p>
+                    <p className="text-muted-foreground">
+                        {lease.renter_name} · scadentă{' '}
+                        {formatDateShort(lease.due_date)}
+                    </p>
+                </div>
+                <Badge
+                    variant="outline"
+                    className={
+                        tone === 'danger'
+                            ? 'border-red-200 bg-red-50 text-red-700'
+                            : 'border-slate-200 bg-slate-50 text-slate-700'
+                    }
+                >
+                    {lease.days !== null && tone === 'danger'
+                        ? `${lease.days} ${
+                              lease.days === 1 ? 'zi' : 'zile'
+                          } întârziere`
+                        : lease.status_label}
+                </Badge>
+            </div>
+            <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                <span>
+                    Chirie: {formatMoney(lease.expected_amount, lease.currency)}
+                </span>
+                <span>
+                    Rest:{' '}
+                    <strong className="font-medium text-foreground">
+                        {formatMoney(lease.remaining_amount, lease.currency)}
+                    </strong>
+                </span>
+            </div>
+        </div>
+    );
+}
+
 export default function Dashboard({
     pendingInvitations = [],
     summary,
-    propertyStatusSummary,
+    overdueLeases,
+    upcomingPayments,
+    propertiesWithoutActiveLease,
     recentLeases,
     recentPayments,
     recentExpenses,
@@ -119,58 +139,117 @@ export default function Dashboard({
                     description="Rezumat financiar pentru workspace-ul curent"
                 />
 
-                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                     <SummaryCard
-                        label="Total proprietăți"
-                        value={summary.property_count}
-                    />
-                    <SummaryCard
-                        label="Contracte active"
-                        value={summary.active_lease_count}
-                    />
-                    <SummaryCard
-                        label="Chirie lunară estimată"
+                        label="Chirie estimată luna asta"
                         value={formatMoney(
                             summary.estimated_monthly_rent,
                             summary.currency,
                         )}
+                        description={`${summary.active_lease_count} contracte active`}
                     />
                     <SummaryCard
-                        label="Plăți încasate luna curentă"
+                        label="Încasat luna asta"
                         value={formatMoney(
                             summary.current_month_payments,
                             summary.currency,
                         )}
                     />
                     <SummaryCard
-                        label="Cheltuieli luna curentă"
+                        label="Rest de încasat"
                         value={formatMoney(
-                            summary.current_month_expenses,
+                            summary.remaining_rent,
                             summary.currency,
                         )}
                     />
                     <SummaryCard
-                        label="Profit estimat luna curentă"
-                        value={formatMoney(
-                            summary.current_month_profit,
-                            summary.currency,
-                        )}
+                        label="Chirii întârziate"
+                        value={summary.overdue_count}
+                    />
+                    <SummaryCard
+                        label="Grad de ocupare"
+                        value={summary.occupancy_label}
+                        description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
                     />
                 </div>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
-                    <h2 className="text-base font-medium">
-                        Proprietăți active/libere
-                    </h2>
-                    <div className="mt-2.5 grid gap-2 text-sm sm:grid-cols-2">
-                        <div className="rounded-md bg-muted/40 p-2">
-                            Active: {propertyStatusSummary.active}
+                <div className="grid gap-3 lg:grid-cols-3">
+                    <section className="rounded-lg border p-3 sm:p-3.5">
+                        <h2 className="text-base font-medium">
+                            Chirii întârziate
+                        </h2>
+                        <div className="mt-2.5 space-y-2">
+                            {overdueLeases.length > 0 ? (
+                                overdueLeases.map((lease) => (
+                                    <FinancialLeaseLine
+                                        key={lease.lease_id}
+                                        lease={lease}
+                                        tone="danger"
+                                    />
+                                ))
+                            ) : (
+                                <EmptyLine>
+                                    Nu există chirii întârziate luna asta.
+                                </EmptyLine>
+                            )}
                         </div>
-                        <div className="rounded-md bg-muted/40 p-2">
-                            Libere: {propertyStatusSummary.available}
+                    </section>
+
+                    <section className="rounded-lg border p-3 sm:p-3.5">
+                        <h2 className="text-base font-medium">
+                            Plăți care urmează
+                        </h2>
+                        <div className="mt-2.5 space-y-2">
+                            {upcomingPayments.length > 0 ? (
+                                upcomingPayments.map((lease) => (
+                                    <FinancialLeaseLine
+                                        key={lease.lease_id}
+                                        lease={lease}
+                                    />
+                                ))
+                            ) : (
+                                <EmptyLine>
+                                    Nu sunt plăți scadente în următoarele 7 zile.
+                                </EmptyLine>
+                            )}
                         </div>
-                    </div>
-                </section>
+                    </section>
+
+                    <section className="rounded-lg border p-3 sm:p-3.5">
+                        <h2 className="text-base font-medium">
+                            Proprietăți fără contract activ
+                        </h2>
+                        <div className="mt-2.5 space-y-2">
+                            {propertiesWithoutActiveLease.length > 0 ? (
+                                propertiesWithoutActiveLease.map((property) => (
+                                    <div
+                                        key={property.id}
+                                        className="rounded-md bg-muted/40 p-2 text-sm"
+                                    >
+                                        <p className="truncate font-medium">
+                                            {property.name}
+                                        </p>
+                                        <p className="text-muted-foreground">
+                                            {property.city} ·{' '}
+                                            {property.address_line}
+                                        </p>
+                                        <p className="mt-1 text-xs text-muted-foreground">
+                                            Chirie listată:{' '}
+                                            {formatMoney(
+                                                property.monthly_rent_amount,
+                                                property.currency,
+                                            )}
+                                        </p>
+                                    </div>
+                                ))
+                            ) : (
+                                <EmptyLine>
+                                    Toate proprietățile au contract activ.
+                                </EmptyLine>
+                            )}
+                        </div>
+                    </section>
+                </div>
 
                 <div className="grid gap-3 lg:grid-cols-3">
                     <section className="rounded-lg border p-3 sm:p-3.5">

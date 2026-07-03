@@ -1,4 +1,5 @@
 export type * from './auth';
+export type * from './dashboard';
 export type * from './expenses';
 export type * from './leases';
 export type * from './navigation';
