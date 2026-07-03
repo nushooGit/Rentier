@@ -240,7 +240,9 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="rent_due_day">Zi scadență</Label>
+                            <Label htmlFor="rent_due_day">
+                                Ziua scadentă a chiriei
+                            </Label>
                             <Input
                                 id="rent_due_day"
                                 name="rent_due_day"
@@ -249,8 +251,19 @@ export default function LeaseForm({
                                 min="1"
                                 max="31"
                                 step="1"
-                                defaultValue={fieldValue(lease?.rent_due_day)}
+                                defaultValue={fieldValue(
+                                    lease?.rent_due_day ?? 1,
+                                )}
+                                required
+                                aria-describedby="rent_due_day_help"
                             />
+                            <p
+                                id="rent_due_day_help"
+                                className="text-xs text-muted-foreground"
+                            >
+                                Ex: 5 înseamnă că plata este scadentă în
+                                fiecare lună pe data de 5.
+                            </p>
                             <InputError message={errors.rent_due_day} />
                         </Field>
 

@@ -233,7 +233,7 @@ class LeaseController extends Controller
             'end_date' => $validated['end_date'] ?? null,
             'monthly_rent_amount' => $property->monthly_rent_amount,
             'currency' => $validated['currency'],
-            'rent_due_day' => $validated['rent_due_day'] ?? null,
+            'rent_due_day' => $validated['rent_due_day'],
             'deposit_amount' => $validated['deposit_amount'] ?? null,
             'status' => Lease::computeStatusForDates(
                 $validated['start_date'],

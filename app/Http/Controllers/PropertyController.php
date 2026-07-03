@@ -172,6 +172,7 @@ class PropertyController extends Controller
             'monthly_rent_amount' => $property->monthly_rent_amount,
             'currency' => $property->currency,
             'rent_due_day' => $property->rent_due_day,
+            'rent_payment_status' => $property->currentRentPaymentStatus(),
             'deposit_amount' => $property->deposit_amount,
             'notes' => $property->notes,
             'created_at' => $property->created_at?->toISOString(),

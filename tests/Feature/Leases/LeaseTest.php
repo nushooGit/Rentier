@@ -81,7 +81,25 @@ test('workspace members can create leases with renter contact details', function
         'renter_id' => $renter->id,
         'status' => 'active',
         'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
     ]);
+});
+
+test('lease validation requires rent due day', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'rent_due_day' => null,
+        ]));
+
+    $response->assertSessionHasErrors(['rent_due_day']);
+    $this->assertDatabaseCount('leases', 0);
 });
 
 test('can create a lease when no other lease exists for the property', function () {

@@ -3,6 +3,7 @@
 use App\Enums\TeamRole;
 use App\Models\Lease;
 use App\Models\Property;
+use App\Models\RentPayment;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -148,6 +149,188 @@ test('property with active current lease shows occupied occupancy status', funct
         ->assertInertia(fn (Assert $page) => $page
             ->component('properties/index')
             ->where('properties.0.status', 'occupied')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows paid rent status for the current month', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $property->id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 2500,
+        'period_month' => 7,
+        'period_year' => 2026,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'paid')
+            ->where('properties.0.rent_payment_status.label', 'Plătită luna asta')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows partial rent status for the current month', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $property->id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'period_month' => 7,
+        'period_year' => 2026,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'partial')
+            ->where('properties.0.rent_payment_status.label', 'Plătită parțial')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows upcoming rent status before due date', function () {
+    Carbon::setTestNow('2026-07-03');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'upcoming')
+            ->where('properties.0.rent_payment_status.label', 'Mai sunt 2 zile până la plată')
+            ->where('properties.0.rent_payment_status.days', 2)
+            ->where('properties.0.rent_payment_status.due_date', '2026-07-05')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows due today rent status on due date', function () {
+    Carbon::setTestNow('2026-07-05');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'due_today')
+            ->where('properties.0.rent_payment_status.label', 'Scadentă azi')
+            ->where('properties.0.rent_payment_status.days', 0)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows overdue rent status after due date', function () {
+    Carbon::setTestNow('2026-07-08');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'overdue')
+            ->where('properties.0.rent_payment_status.label', 'Întârziată cu 3 zile')
+            ->where('properties.0.rent_payment_status.days', 3)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card uses last valid day when rent due day is missing from month', function () {
+    Carbon::setTestNow('2027-02-28');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2027-01-01',
+        'end_date' => '2028-01-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 31,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'due_today')
+            ->where('properties.0.rent_payment_status.due_date', '2027-02-28')
         );
 
     Carbon::setTestNow();

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\PropertyFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
@@ -126,6 +127,97 @@ class Property extends Model
     public function occupancyStatus(?Carbon $date = null): string
     {
         return $this->isOccupied($date) ? 'occupied' : 'available';
+    }
+
+    /**
+     * Get the current rent payment status for the active lease.
+     *
+     * @return array{key: string, label: string, days: int|null, due_date: string}|null
+     */
+    public function currentRentPaymentStatus(?CarbonInterface $date = null): ?array
+    {
+        $date ??= today();
+        $lease = $this->activeLease($date);
+
+        if (! $lease) {
+            return null;
+        }
+
+        $paidAmount = (float) RentPayment::query()
+            ->where('lease_id', $lease->id)
+            ->where('period_year', $date->year)
+            ->where('period_month', $date->month)
+            ->sum('amount');
+
+        $monthlyRentAmount = (float) $lease->monthly_rent_amount;
+
+        if ($paidAmount >= $monthlyRentAmount) {
+            return $this->rentPaymentStatus('paid', 'Plătită luna asta', null, $date);
+        }
+
+        if ($paidAmount > 0) {
+            return $this->rentPaymentStatus('partial', 'Plătită parțial', null, $date);
+        }
+
+        $dueDate = $this->rentDueDateForMonth($lease, $date);
+
+        if ($date->isSameDay($dueDate)) {
+            return $this->rentPaymentStatus('due_today', 'Scadentă azi', 0, $dueDate);
+        }
+
+        if ($date->isBefore($dueDate)) {
+            $days = (int) $date->diffInDays($dueDate);
+
+            return $this->rentPaymentStatus(
+                'upcoming',
+                "Mai sunt {$days} zile până la plată",
+                $days,
+                $dueDate,
+            );
+        }
+
+        $days = (int) $dueDate->diffInDays($date);
+
+        return $this->rentPaymentStatus(
+            'overdue',
+            "Întârziată cu {$days} zile",
+            $days,
+            $dueDate,
+        );
+    }
+
+    private function activeLease(CarbonInterface $date): ?Lease
+    {
+        return $this->leases()
+            ->whereDate('start_date', '<=', $date)
+            ->where(function ($query) use ($date) {
+                $query
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $date);
+            })
+            ->orderByDesc('start_date')
+            ->first();
+    }
+
+    private function rentDueDateForMonth(Lease $lease, CarbonInterface $date): CarbonInterface
+    {
+        $dueDate = $date->copy()->startOfMonth();
+        $dueDay = $lease->rent_due_day ?? $lease->start_date?->day ?? 1;
+
+        return $dueDate->setDay(min($dueDay, $dueDate->daysInMonth));
+    }
+
+    /**
+     * @return array{key: string, label: string, days: int|null, due_date: string}
+     */
+    private function rentPaymentStatus(string $key, string $label, ?int $days, CarbonInterface $dueDate): array
+    {
+        return [
+            'key' => $key,
+            'label' => $label,
+            'days' => $days,
+            'due_date' => $dueDate->toDateString(),
+        ];
     }
 
     /**

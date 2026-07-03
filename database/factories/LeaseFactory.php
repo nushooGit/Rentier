@@ -34,7 +34,7 @@ class LeaseFactory extends Factory
                 : null,
             'monthly_rent_amount' => fake()->randomFloat(2, 500, 5000),
             'currency' => 'RON',
-            'rent_due_day' => fake()->optional()->numberBetween(1, 31),
+            'rent_due_day' => fake()->numberBetween(1, 31),
             'deposit_amount' => fake()->optional()->randomFloat(2, 500, 5000),
             'status' => fake()->randomElement(['upcoming', 'active', 'ended', 'cancelled']),
             'notes' => fake()->optional()->sentence(),

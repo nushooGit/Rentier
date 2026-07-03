@@ -1,4 +1,4 @@
-export type LeaseStatus = 'upcoming' | 'active' | 'ended';
+export type LeaseStatus = 'upcoming' | 'active' | 'ended' | 'cancelled';
 
 export type LeaseOption<TValue extends string = string> = {
     value: TValue;
@@ -31,7 +31,7 @@ export type Lease = {
     end_date: string | null;
     monthly_rent_amount: string;
     currency: string;
-    rent_due_day: number | null;
+    rent_due_day: number;
     deposit_amount: string | null;
     status: LeaseStatus;
     notes: string | null;

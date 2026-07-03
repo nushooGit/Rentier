@@ -4,6 +4,16 @@ export type PropertyType =
 export type PropertyStatus =
     'available' | 'occupied' | 'renovation' | 'inactive';
 
+export type RentPaymentStatusKey =
+    'paid' | 'partial' | 'due_today' | 'upcoming' | 'overdue';
+
+export type RentPaymentStatus = {
+    key: RentPaymentStatusKey;
+    label: string;
+    days: number | null;
+    due_date: string;
+};
+
 export type Property = {
     id: number;
     team_id: number;
@@ -22,6 +32,7 @@ export type Property = {
     monthly_rent_amount?: string | null;
     currency: string;
     rent_due_day?: number | null;
+    rent_payment_status?: RentPaymentStatus | null;
     deposit_amount?: string | null;
     notes?: string | null;
     created_at?: string | null;

@@ -20,7 +20,7 @@ return new class extends Migration
             $table->date('end_date')->nullable();
             $table->decimal('monthly_rent_amount', 12, 2);
             $table->string('currency', 3)->default('RON');
-            $table->unsignedTinyInteger('rent_due_day')->nullable();
+            $table->unsignedTinyInteger('rent_due_day')->default(1);
             $table->decimal('deposit_amount', 12, 2)->nullable();
             $table->string('status')->default('upcoming');
             $table->text('notes')->nullable();

@@ -54,7 +54,7 @@ class SaveLeaseRequest extends FormRequest
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'monthly_rent_amount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
-            'rent_due_day' => ['nullable', 'integer', 'between:1,31'],
+            'rent_due_day' => ['required', 'integer', 'between:1,31'],
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];
