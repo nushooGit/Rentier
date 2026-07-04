@@ -8,19 +8,16 @@ import type {
     PaymentLeaseOption,
     PaymentMethod,
     PaymentOption,
-    PaymentStatus,
 } from '@/types';
 
 type Props = {
     leases: PaymentLeaseOption[];
     paymentMethods: PaymentOption<PaymentMethod>[];
-    paymentStatuses: PaymentOption<PaymentStatus>[];
 };
 
 export default function PaymentCreate({
     leases,
     paymentMethods,
-    paymentStatuses,
 }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -57,7 +54,6 @@ export default function PaymentCreate({
                     submitLabel="Salvează"
                     leases={leases}
                     paymentMethods={paymentMethods}
-                    paymentStatuses={paymentStatuses}
                 />
             </div>
         </>

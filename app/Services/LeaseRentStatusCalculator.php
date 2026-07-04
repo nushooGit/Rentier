@@ -73,6 +73,7 @@ class LeaseRentStatusCalculator
     {
         return (float) RentPayment::query()
             ->where('lease_id', $lease->id)
+            ->where('payment_type', 'rent')
             ->where('period_year', $date->year)
             ->where('period_month', $date->month)
             ->sum('amount');

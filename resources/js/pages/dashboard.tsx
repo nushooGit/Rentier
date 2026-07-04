@@ -167,27 +167,75 @@ export default function Dashboard({
                         description={`${summary.active_lease_count} contracte active`}
                     />
                     <SummaryCard
-                        label="Încasat luna asta"
+                        label="Profit estimat luna asta"
+                        value={formatMoney(
+                            summary.current_month_profit,
+                            summary.currency,
+                        )}
+                        description="Chirie estimată minus cheltuieli suportate de proprietar"
+                    />
+                    <SummaryCard
+                        label="Rezultat cash operațional"
+                        value={formatMoney(
+                            summary.operational_cash_result,
+                            summary.currency,
+                        )}
+                        description="Chirie încasată cash minus cheltuieli plătite efectiv de proprietar"
+                    />
+                    <SummaryCard
+                        label="Chirie încasată cash"
                         value={formatMoney(
                             summary.current_month_payments,
                             summary.currency,
                         )}
                     />
                     <SummaryCard
-                        label="Rest de încasat"
+                        label="Rest chirie de încasat"
                         value={formatMoney(
                             summary.remaining_rent,
                             summary.currency,
                         )}
                     />
+                </div>
+
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
                     <SummaryCard
-                        label="Chirii întârziate"
-                        value={summary.overdue_count}
+                        label="Total de încasat"
+                        value={formatMoney(
+                            summary.total_receivable,
+                            summary.currency,
+                        )}
+                        description="Chirie restantă + garanții restante + de recuperat"
                     />
                     <SummaryCard
-                        label="Grad de ocupare"
-                        value={summary.occupancy_label}
-                        description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
+                        label="Garanții de încasat"
+                        value={formatMoney(
+                            summary.expected_guarantees,
+                            summary.currency,
+                        )}
+                        description="Din contracte active, separat de chirie"
+                    />
+                    <SummaryCard
+                        label="Garanții încasate"
+                        value={formatMoney(
+                            summary.collected_guarantees,
+                            summary.currency,
+                        )}
+                        description="Nu intră în profit"
+                    />
+                    <SummaryCard
+                        label="Garanții restante"
+                        value={formatMoney(
+                            summary.remaining_guarantees,
+                            summary.currency,
+                        )}
+                    />
+                    <SummaryCard
+                        label="De recuperat de la chiriași"
+                        value={formatMoney(
+                            summary.recoverable_expenses,
+                            summary.currency,
+                        )}
                     />
                 </div>
 
@@ -201,7 +249,7 @@ export default function Dashboard({
                         description="Responsabilitate economica, nu cash platit"
                     />
                     <SummaryCard
-                        label="Scazut din chirie"
+                        label="Scăzut din chirie"
                         value={formatMoney(
                             summary.current_month_rent_deductions,
                             summary.currency,
@@ -209,25 +257,28 @@ export default function Dashboard({
                         description="Reduce restul de chirie"
                     />
                     <SummaryCard
-                        label="De rambursat catre chirias"
+                        label="De rambursat către chiriaș"
                         value={formatMoney(
                             summary.tenant_reimbursement_expenses,
                             summary.currency,
                         )}
+                        description="Datorie către chiriaș, nu de încasat"
                     />
                     <SummaryCard
-                        label="De scazut din utilitati"
+                        label="De scăzut din utilități"
                         value={formatMoney(
                             summary.utility_deduction_expenses,
                             summary.currency,
                         )}
                     />
                     <SummaryCard
-                        label="De recuperat de la chiriasi"
-                        value={formatMoney(
-                            summary.recoverable_expenses,
-                            summary.currency,
-                        )}
+                        label="Chirii întârziate"
+                        value={summary.overdue_count}
+                    />
+                    <SummaryCard
+                        label="Grad de ocupare"
+                        value={summary.occupancy_label}
+                        description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
                     />
                 </div>
 

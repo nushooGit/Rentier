@@ -17,9 +17,10 @@ use Illuminate\Support\Carbon;
  * @property int $renter_id
  * @property string $amount
  * @property string $currency
+ * @property string $payment_type
  * @property Carbon $payment_date
- * @property int $period_month
- * @property int $period_year
+ * @property int|null $period_month
+ * @property int|null $period_year
  * @property string|null $method
  * @property string $status
  * @property string|null $notes
@@ -37,6 +38,7 @@ use Illuminate\Support\Carbon;
     'renter_id',
     'amount',
     'currency',
+    'payment_type',
     'payment_date',
     'period_month',
     'period_year',

@@ -6,14 +6,13 @@ import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import {
     paymentMethodLabel,
-    paymentStatusLabel,
+    paymentTypeLabel,
 } from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
-import type { PaymentOption, PaymentStatus, RentPayment } from '@/types';
+import type { RentPayment } from '@/types';
 
 type Props = {
     payments: RentPayment[];
-    paymentStatuses: PaymentOption<PaymentStatus>[];
 };
 
 function formatMoney(amount?: string | null, currency = 'RON') {
@@ -42,8 +41,36 @@ const monthNames = [
     'Decembrie',
 ];
 
-function formatRentPeriod(month: number, year: number) {
+function formatRentPeriod(month: number | null, year: number | null) {
+    if (month === null || year === null) {
+        return 'Fără perioadă de chirie';
+    }
+
     return `${monthNames[month - 1] ?? month} ${year}`;
+}
+
+function paymentBadgeLabel(payment: RentPayment) {
+    return payment.status_summary.status_label;
+}
+
+function paymentContext(payment: RentPayment) {
+    if (payment.payment_type === 'guarantee' && payment.guarantee_summary) {
+        return `Garanție: ${formatMoney(
+            payment.guarantee_summary.collected_amount,
+            payment.currency,
+        )} / ${formatMoney(
+            payment.guarantee_summary.expected_amount,
+            payment.currency,
+        )}`;
+    }
+
+    return formatRentPeriod(payment.period_month, payment.period_year);
+}
+
+function paymentMetaLine(payment: RentPayment) {
+    return `${formatDateLong(payment.payment_date)} - ${paymentMethodLabel(
+        payment.method,
+    )} - ${paymentContext(payment)}`;
 }
 
 export default function PaymentsIndex({ payments }: Props) {
@@ -94,15 +121,15 @@ export default function PaymentsIndex({ payments }: Props) {
                                             {payment.renter.name}
                                         </h2>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            {payment.property.name} ·{' '}
-                                            {formatRentPeriod(
-                                                payment.period_month,
-                                                payment.period_year,
+                                            {payment.property.name} -{' '}
+                                            Tip:{' '}
+                                            {paymentTypeLabel(
+                                                payment.payment_type,
                                             )}
                                         </p>
                                     </div>
                                     <Badge variant="secondary">
-                                        {paymentStatusLabel(payment.status)}
+                                        {paymentBadgeLabel(payment)}
                                     </Badge>
                                 </div>
                                 <div className="grid gap-0.5 text-sm">
@@ -113,8 +140,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                         )}
                                     </span>
                                     <span className="text-muted-foreground">
-                                        {formatDateLong(payment.payment_date)} ·{' '}
-                                        {paymentMethodLabel(payment.method)}
+                                        {paymentMetaLine(payment)}
                                     </span>
                                 </div>
                                 <div className="mt-auto flex justify-end gap-2">

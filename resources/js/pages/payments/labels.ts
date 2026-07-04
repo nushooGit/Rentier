@@ -1,4 +1,9 @@
-import type { PaymentMethod, PaymentStatus } from '@/types';
+import type { PaymentMethod, PaymentStatus, PaymentType } from '@/types';
+
+export const paymentTypeLabels: Record<PaymentType, string> = {
+    rent: 'Chirie',
+    guarantee: 'Garanție',
+};
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
     paid: 'Achitată integral',
@@ -16,6 +21,10 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
 
 export function paymentStatusLabel(value: PaymentStatus) {
     return paymentStatusLabels[value] ?? value;
+}
+
+export function paymentTypeLabel(value: PaymentType) {
+    return paymentTypeLabels[value] ?? value;
 }
 
 export function paymentMethodLabel(value?: PaymentMethod | null) {

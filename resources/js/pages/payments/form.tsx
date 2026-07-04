@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -7,13 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     paymentMethodLabel,
-    paymentStatusLabel,
+    paymentTypeLabel,
 } from '@/pages/payments/labels';
 import type {
     PaymentLeaseOption,
     PaymentMethod,
     PaymentOption,
-    PaymentStatus,
+    PaymentType,
     RentPayment,
 } from '@/types';
 
@@ -26,7 +27,6 @@ type Props = {
     payment?: RentPayment;
     leases: PaymentLeaseOption[];
     paymentMethods: PaymentOption<PaymentMethod>[];
-    paymentStatuses: PaymentOption<PaymentStatus>[];
 };
 
 function fieldValue(value: string | number | null | undefined) {
@@ -74,9 +74,15 @@ export default function PaymentForm({
     payment,
     leases,
     paymentMethods,
-    paymentStatuses,
 }: Props) {
     const now = new Date();
+    const [paymentType, setPaymentType] = useState<PaymentType>(
+        payment?.payment_type ?? 'rent',
+    );
+    const paymentTypeOptions: PaymentOption<PaymentType>[] = [
+        { value: 'rent', label: 'Chirie' },
+        { value: 'guarantee', label: 'Garanție' },
+    ];
 
     return (
         <Form {...action} className="space-y-3.5">
@@ -106,25 +112,27 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="status">Status</Label>
+                            <Label htmlFor="payment_type">Tip plată</Label>
                             <select
-                                id="status"
-                                name="status"
+                                id="payment_type"
+                                name="payment_type"
                                 className={selectClassName}
-                                defaultValue={payment?.status ?? 'paid'}
+                                value={paymentType}
+                                onChange={(event) =>
+                                    setPaymentType(
+                                        event.target.value as PaymentType,
+                                    )
+                                }
                                 required
-                                data-test="payment-status-select"
+                                data-test="payment-type-select"
                             >
-                                {paymentStatuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {paymentStatusLabel(status.value)}
+                                {paymentTypeOptions.map((type) => (
+                                    <option key={type.value} value={type.value}>
+                                        {paymentTypeLabel(type.value)}
                                     </option>
                                 ))}
                             </select>
-                            <InputError message={errors.status} />
+                            <InputError message={errors.payment_type} />
                         </Field>
 
                         <Field>
@@ -149,7 +157,13 @@ export default function PaymentForm({
                         </Field>
                     </FormSection>
 
-                    <FormSection title="Sumă și perioada chiriei">
+                    <FormSection
+                        title={
+                            paymentType === 'rent'
+                                ? 'Sumă și perioada chiriei'
+                                : 'Sumă și garanție'
+                        }
+                    >
                         <Field>
                             <Label htmlFor="amount">Sumă</Label>
                             <Input
@@ -196,41 +210,62 @@ export default function PaymentForm({
                             <InputError message={errors.payment_date} />
                         </Field>
 
-                        <Field>
-                            <Label htmlFor="period_month">Luna chiriei</Label>
-                            <Input
-                                id="period_month"
-                                name="period_month"
-                                className={inputClassName}
-                                type="number"
-                                min="1"
-                                max="12"
-                                step="1"
-                                defaultValue={fieldValue(
-                                    payment?.period_month ?? now.getMonth() + 1,
-                                )}
-                                required
-                            />
-                            <InputError message={errors.period_month} />
-                        </Field>
+                        {paymentType === 'rent' ? (
+                            <>
+                                <Field>
+                                    <Label htmlFor="period_month">
+                                        Luna chiriei
+                                    </Label>
+                                    <Input
+                                        id="period_month"
+                                        name="period_month"
+                                        className={inputClassName}
+                                        type="number"
+                                        min="1"
+                                        max="12"
+                                        step="1"
+                                        defaultValue={fieldValue(
+                                            payment?.period_month ??
+                                                now.getMonth() + 1,
+                                        )}
+                                        required
+                                    />
+                                    <InputError
+                                        message={errors.period_month}
+                                    />
+                                </Field>
 
-                        <Field>
-                            <Label htmlFor="period_year">Anul chiriei</Label>
-                            <Input
-                                id="period_year"
-                                name="period_year"
-                                className={inputClassName}
-                                type="number"
-                                min="2000"
-                                max="2100"
-                                step="1"
-                                defaultValue={fieldValue(
-                                    payment?.period_year ?? now.getFullYear(),
-                                )}
-                                required
-                            />
-                            <InputError message={errors.period_year} />
-                        </Field>
+                                <Field>
+                                    <Label htmlFor="period_year">
+                                        Anul chiriei
+                                    </Label>
+                                    <Input
+                                        id="period_year"
+                                        name="period_year"
+                                        className={inputClassName}
+                                        type="number"
+                                        min="2000"
+                                        max="2100"
+                                        step="1"
+                                        defaultValue={fieldValue(
+                                            payment?.period_year ??
+                                                now.getFullYear(),
+                                        )}
+                                        required
+                                    />
+                                    <InputError message={errors.period_year} />
+                                </Field>
+                            </>
+                        ) : (
+                            <>
+                                <input name="period_month" type="hidden" />
+                                <input name="period_year" type="hidden" />
+                                <div className="text-xs text-muted-foreground md:col-span-2">
+                                    Garanția este urmărită separat de chiria
+                                    lunară și nu intră în profit.
+                                </div>
+                            </>
+                        )}
                     </FormSection>
 
                     <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">

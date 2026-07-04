@@ -8,7 +8,6 @@ import type {
     PaymentLeaseOption,
     PaymentMethod,
     PaymentOption,
-    PaymentStatus,
     RentPayment,
 } from '@/types';
 
@@ -16,14 +15,12 @@ type Props = {
     payment: RentPayment;
     leases: PaymentLeaseOption[];
     paymentMethods: PaymentOption<PaymentMethod>[];
-    paymentStatuses: PaymentOption<PaymentStatus>[];
 };
 
 export default function PaymentEdit({
     payment,
     leases,
     paymentMethods,
-    paymentStatuses,
 }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -36,7 +33,7 @@ export default function PaymentEdit({
                     <Heading
                         variant="small"
                         title="Editează plata"
-                        description={`${payment.renter.name} · ${payment.property.name}`}
+                        description={`${payment.renter.name} - ${payment.property.name}`}
                     />
                     <Button variant="outline" asChild>
                         <Link href={show([currentTeamSlug, payment.id])}>
@@ -54,7 +51,6 @@ export default function PaymentEdit({
                     payment={payment}
                     leases={leases}
                     paymentMethods={paymentMethods}
-                    paymentStatuses={paymentStatuses}
                 />
             </div>
         </>

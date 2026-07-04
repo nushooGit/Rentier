@@ -3,10 +3,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
-import {
-    paymentMethodLabel,
-    paymentStatusLabel,
-} from '@/pages/payments/labels';
+import { paymentMethodLabel } from '@/pages/payments/labels';
 import { destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
 
@@ -40,12 +37,16 @@ const monthNames = [
     'Decembrie',
 ];
 
-function formatRentPeriod(month: number, year: number) {
+function formatRentPeriod(month: number | null, year: number | null) {
+    if (month === null || year === null) {
+        return 'Fără perioadă de chirie';
+    }
+
     return `${monthNames[month - 1] ?? month} ${year}`;
 }
 
 function contractLabel(payment: RentPayment) {
-    return `${payment.property.name} · ${payment.renter.name}`;
+    return `${payment.property.name} - ${payment.renter.name}`;
 }
 
 function Detail({
@@ -89,7 +90,7 @@ export default function PaymentShow({ payment }: Props) {
                                 {formatMoney(payment.amount, payment.currency)}
                             </h1>
                             <Badge variant="secondary">
-                                {paymentStatusLabel(payment.status)}
+                                {payment.status_summary.status_label}
                             </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -142,7 +143,7 @@ export default function PaymentShow({ payment }: Props) {
                         />
                         <Detail
                             label="Status"
-                            value={paymentStatusLabel(payment.status)}
+                            value={payment.status_summary.status_label}
                         />
                     </dl>
                 </section>

@@ -6,15 +6,20 @@ export type DashboardSummary = {
     current_month_rent_deductions: string;
     current_month_covered_rent: string;
     remaining_rent: string;
+    expected_guarantees: string;
+    collected_guarantees: string;
+    remaining_guarantees: string;
     overdue_count: number;
     occupancy_label: string;
     occupancy_rate: number;
     current_month_expenses: string;
     current_month_profit: string;
+    operational_cash_result: string;
     tenant_reimbursement_expenses: string;
     utility_deduction_expenses: string;
     unsettled_tenant_paid_owner_expenses: string;
     recoverable_expenses: string;
+    total_receivable: string;
     currency: string;
 };
 
@@ -62,6 +67,7 @@ export type DashboardRecentPayment = {
     property_name: string;
     amount: string;
     currency: string;
+    payment_type: 'rent' | 'guarantee';
     payment_date: string;
     status: 'paid' | 'partial' | 'pending' | 'cancelled';
 };

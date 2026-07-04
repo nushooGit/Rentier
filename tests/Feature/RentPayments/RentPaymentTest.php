@@ -17,6 +17,7 @@ function validRentPaymentPayload(Lease $lease, array $overrides = []): array
         'lease_id' => $lease->id,
         'amount' => 2500,
         'currency' => 'RON',
+        'payment_type' => 'rent',
         'payment_date' => '2026-06-05',
         'period_month' => 6,
         'period_year' => 2026,
@@ -46,6 +47,116 @@ test('payments index shows payments for the current workspace', function () {
         );
 });
 
+test('payments index includes payment type label data for rent payments', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 2500,
+        'payment_type' => 'rent',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertDontSee(chr(195).chr(130), false)
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.payment_type', 'rent')
+            ->where('payments.0.guarantee_summary', null)
+            ->where('payments.0.status_summary.status_key', 'paid')
+        );
+});
+
+test('payments index includes guarantee type and partial aggregate guarantee status', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 100,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.payment_type', 'guarantee')
+            ->where('payments.0.status', 'paid')
+            ->where('payments.0.status_summary.status_key', 'partial')
+            ->where('payments.0.guarantee_summary.expected_amount', '1000.00')
+            ->where('payments.0.guarantee_summary.collected_amount', '100.00')
+            ->where('payments.0.guarantee_summary.remaining_amount', '900.00')
+            ->where('payments.0.guarantee_summary.status_key', 'partial')
+        );
+});
+
+test('payments index marks guarantee as fully paid when guarantee payments reach contract guarantee', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 400,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-06-01',
+        'status' => 'partial',
+    ]);
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 600,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-06-02',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.payment_type', 'guarantee')
+            ->where('payments.0.status_summary.status_key', 'paid')
+            ->where('payments.0.guarantee_summary.expected_amount', '1000.00')
+            ->where('payments.0.guarantee_summary.collected_amount', '1000.00')
+            ->where('payments.0.guarantee_summary.remaining_amount', '0.00')
+            ->where('payments.0.guarantee_summary.status_key', 'paid')
+        );
+});
+
 test('workspace members can create payments and derived property and renter are trusted from lease', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -71,6 +182,7 @@ test('workspace members can create payments and derived property and renter are 
         'property_id' => $lease->property_id,
         'renter_id' => $lease->renter_id,
         'amount' => 2500,
+        'payment_type' => 'rent',
     ]);
 });
 
@@ -103,11 +215,10 @@ test('payment validation requires core fields and workspace lease', function () 
         'period_month',
         'period_year',
         'method',
-        'status',
     ]);
 });
 
-test('fully paid payment cannot be created below the monthly rent amount', function () {
+test('rent payment partial amount is derived as partial even if submitted status says fully paid', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
@@ -121,14 +232,25 @@ test('fully paid payment cannot be created below the monthly rent amount', funct
             'status' => 'paid',
         ]));
 
-    $response->assertSessionHasErrors([
-        'amount' => 'Pentru o plată achitată integral, suma trebuie să fie egală cu chiria lunară.',
+    $response->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 1500,
+        'status' => 'partial',
     ]);
 
-    $this->assertDatabaseCount('rent_payments', 0);
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.status_summary.status_key', 'partial')
+        );
 });
 
-test('fully paid payment cannot be created above the monthly rent amount', function () {
+test('rent payment full amount is derived as fully paid even if submitted status says partial', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
@@ -138,15 +260,26 @@ test('fully paid payment cannot be created above the monthly rent amount', funct
     $response = $this
         ->actingAs($user)
         ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
-            'amount' => 2600,
-            'status' => 'paid',
+            'amount' => 2500,
+            'status' => 'partial',
         ]));
 
-    $response->assertSessionHasErrors([
-        'amount' => 'Suma introdusă depășește chiria lunară. Plățile în avans vor fi gestionate într-un modul viitor.',
+    $response->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 2500,
+        'status' => 'paid',
     ]);
 
-    $this->assertDatabaseCount('rent_payments', 0);
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.status_summary.status_key', 'paid')
+        );
 });
 
 test('partial payment can be created below the monthly rent amount', function () {
@@ -175,7 +308,7 @@ test('partial payment can be created below the monthly rent amount', function ()
     ]);
 });
 
-test('partial payment cannot be created when amount equals monthly rent amount', function () {
+test('manual partial status is ignored when rent amount reaches expected total', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
@@ -189,14 +322,16 @@ test('partial payment cannot be created when amount equals monthly rent amount',
             'status' => 'partial',
         ]));
 
-    $response->assertSessionHasErrors([
-        'amount' => 'O plată parțială trebuie să fie mai mică decât chiria lunară.',
-    ]);
+    $response->assertRedirect(route('payments.index', $team));
 
-    $this->assertDatabaseCount('rent_payments', 0);
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 2500,
+        'status' => 'paid',
+    ]);
 });
 
-test('partial payment cannot be created when amount is above monthly rent amount', function () {
+test('rent payment above monthly rent amount is saved as fully paid by derived total', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
@@ -210,11 +345,13 @@ test('partial payment cannot be created when amount is above monthly rent amount
             'status' => 'partial',
         ]));
 
-    $response->assertSessionHasErrors([
-        'amount' => 'Suma introdusă depășește chiria lunară. Plățile în avans vor fi gestionate într-un modul viitor.',
-    ]);
+    $response->assertRedirect(route('payments.index', $team));
 
-    $this->assertDatabaseCount('rent_payments', 0);
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 2600,
+        'status' => 'paid',
+    ]);
 });
 
 test('fully paid payment can be created when amount matches monthly rent amount', function () {
@@ -241,6 +378,77 @@ test('fully paid payment can be created when amount matches monthly rent amount'
         'amount' => 2500,
         'status' => 'paid',
     ]);
+});
+
+test('guarantee payment can be created without rent period', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 1000,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+            'status' => 'paid',
+        ]));
+
+    $response->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'team_id' => $team->id,
+        'lease_id' => $lease->id,
+        'amount' => 1000,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'status' => 'paid',
+    ]);
+});
+
+test('backend ignores manually submitted full status for partial guarantee payment', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 100,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+            'status' => 'paid',
+        ]));
+
+    $response->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'team_id' => $team->id,
+        'lease_id' => $lease->id,
+        'amount' => 100,
+        'payment_type' => 'guarantee',
+        'status' => 'partial',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('payments.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('payments/index')
+            ->where('payments.0.status_summary.status_key', 'partial')
+            ->where('payments.0.guarantee_summary.collected_amount', '100.00')
+            ->where('payments.0.guarantee_summary.expected_amount', '1000.00')
+        );
 });
 
 test('workspace members can update and delete payments', function () {
@@ -293,7 +501,7 @@ test('workspace members can update and delete payments', function () {
     ]);
 });
 
-test('payment update validates amount against monthly rent amount', function () {
+test('payment update ignores submitted status and stores derived status', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
@@ -314,14 +522,12 @@ test('payment update validates amount against monthly rent amount', function () 
             'status' => 'paid',
         ]));
 
-    $response->assertSessionHasErrors([
-        'amount' => 'Pentru o plată achitată integral, suma trebuie să fie egală cu chiria lunară.',
-    ]);
+    $response->assertRedirect(route('payments.show', [$team, $payment]));
 
     $this->assertDatabaseHas('rent_payments', [
         'id' => $payment->id,
-        'amount' => 2500,
-        'status' => 'paid',
+        'amount' => 1500,
+        'status' => 'partial',
     ]);
 });
 

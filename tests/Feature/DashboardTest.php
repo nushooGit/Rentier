@@ -212,7 +212,7 @@ test('dashboard expense settlement numbers are correct for mixed current month a
         ->where('summary.current_month_covered_rent', '2300.00')
         ->where('summary.remaining_rent', '200.00')
         ->where('summary.current_month_expenses', '700.00')
-        ->where('summary.current_month_profit', '1600.00')
+        ->where('summary.current_month_profit', '1800.00')
         ->where('summary.recoverable_expenses', '200.00')
         ->where('upcomingPayments.0.collected_amount', '2000.00')
         ->where('upcomingPayments.0.rent_deduction_amount', '300.00')
@@ -559,6 +559,342 @@ test('dashboard counts vacant owner expenses without expected rent', function ()
         ->where('summary.remaining_rent', '0.00')
         ->has('propertiesWithoutActiveLease', 1)
     );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard uses contract guarantee instead of property guarantee', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'deposit_amount' => 1000,
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.expected_guarantees', '500.00')
+            ->where('summary.remaining_guarantees', '500.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('guarantee payment does not count as rent', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 500,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 500,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-07-03',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '500.00')
+            ->where('summary.remaining_rent', '1000.00')
+            ->where('summary.remaining_guarantees', '0.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard tracks partial guarantee remaining', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 400,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-07-03',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.expected_guarantees', '1000.00')
+            ->where('summary.collected_guarantees', '400.00')
+            ->where('summary.remaining_guarantees', '600.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('rent payment still counts toward rent remaining', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 500,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 400,
+        'payment_type' => 'rent',
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '400.00')
+            ->where('summary.remaining_rent', '600.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('guarantee payments do not affect estimated profit', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-07-03',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 100,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_profit', '900.00')
+            ->where('summary.current_month_payments', '0.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('tenant responsible expenses do not reduce estimated profit', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_profit', '1000.00')
+            ->where('summary.recoverable_expenses', '300.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard operational cash excludes guarantees and subtracts owner paid expenses', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 700,
+        'payment_type' => 'rent',
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+        'status' => 'partial',
+    ]);
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-07-03',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 80,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 50,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '700.00')
+            ->where('summary.operational_cash_result', '500.00')
+            ->where('summary.collected_guarantees', '1000.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('rent deductions do not affect guarantee metrics or cash collected', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 500,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 200,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.current_month_rent_deductions', '200.00')
+            ->where('summary.remaining_rent', '800.00')
+            ->where('summary.expected_guarantees', '500.00')
+            ->where('summary.collected_guarantees', '0.00')
+            ->where('summary.remaining_guarantees', '500.00')
+        );
 
     Carbon::setTestNow();
 });

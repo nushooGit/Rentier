@@ -58,12 +58,13 @@ class RentPaymentController extends Controller
         $validated = $request->validatedWithDefaults();
         $lease = $this->findWorkspaceLease($currentTeam, $validated['lease_id']);
 
-        RentPayment::create([
+        $payment = RentPayment::create([
             ...$this->paymentAttributes($validated),
             'team_id' => $currentTeam->id,
             'property_id' => $lease->property_id,
             'renter_id' => $lease->renter_id,
         ]);
+        $payment->update(['status' => $this->persistedStatusKey($this->statusSummary($payment)['status_key'])]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment created.')]);
 
@@ -114,6 +115,7 @@ class RentPaymentController extends Controller
             'property_id' => $lease->property_id,
             'renter_id' => $lease->renter_id,
         ]);
+        $payment->update(['status' => $this->persistedStatusKey($this->statusSummary($payment->refresh())['status_key'])]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Payment updated.')]);
 
@@ -165,7 +167,7 @@ class RentPaymentController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, label: string, property: string, renter: string, monthly_rent_amount: string, currency: string}>
+     * @return array<int, array{id: int, label: string, property: string, renter: string, monthly_rent_amount: string, deposit_amount: string|null, currency: string}>
      */
     private function leaseOptions(Team $currentTeam): array
     {
@@ -176,10 +178,11 @@ class RentPaymentController extends Controller
             ->get()
             ->map(fn (Lease $lease) => [
                 'id' => $lease->id,
-                'label' => $lease->renter->name.' · '.$lease->property->name,
+                'label' => $lease->renter->name.' - '.$lease->property->name,
                 'property' => $lease->property->name,
                 'renter' => $lease->renter->name,
                 'monthly_rent_amount' => $lease->monthly_rent_amount,
+                'deposit_amount' => $lease->deposit_amount,
                 'currency' => $lease->currency,
             ])
             ->all();
@@ -190,6 +193,10 @@ class RentPaymentController extends Controller
      */
     private function serializePayment(RentPayment $payment): array
     {
+        $paymentType = $payment->payment_type ?? 'rent';
+        $statusSummary = $this->statusSummary($payment);
+        $guaranteeSummary = $paymentType === 'guarantee' ? $statusSummary : null;
+
         return [
             'id' => $payment->id,
             'team_id' => $payment->team_id,
@@ -198,12 +205,15 @@ class RentPaymentController extends Controller
             'renter_id' => $payment->renter_id,
             'amount' => $payment->amount,
             'currency' => $payment->currency,
+            'payment_type' => $paymentType,
             'payment_date' => $payment->payment_date->toDateString(),
             'period_month' => $payment->period_month,
             'period_year' => $payment->period_year,
             'method' => $payment->method,
             'status' => $payment->status,
+            'status_summary' => $statusSummary,
             'notes' => $payment->notes,
+            'guarantee_summary' => $guaranteeSummary,
             'lease' => [
                 'id' => $payment->lease->id,
                 'status' => $payment->lease->computedStatus(),
@@ -225,6 +235,89 @@ class RentPaymentController extends Controller
     }
 
     /**
+     * @return array{expected_amount: string, collected_amount: string, remaining_amount: string, status_key: string, status_label: string}
+     */
+    private function statusSummary(RentPayment $payment): array
+    {
+        return ($payment->payment_type ?? 'rent') === 'guarantee'
+            ? $this->guaranteeSummary($payment)
+            : $this->rentSummary($payment);
+    }
+
+    /**
+     * @return array{expected_amount: string, collected_amount: string, remaining_amount: string, status_key: string, status_label: string}
+     */
+    private function rentSummary(RentPayment $payment): array
+    {
+        $expectedAmount = (float) $payment->lease->monthly_rent_amount;
+        $collectedAmount = (float) RentPayment::query()
+            ->where('lease_id', $payment->lease_id)
+            ->where(function ($query) {
+                $query
+                    ->where('payment_type', 'rent')
+                    ->orWhereNull('payment_type');
+            })
+            ->where('period_month', $payment->period_month)
+            ->where('period_year', $payment->period_year)
+            ->sum('amount');
+        $remainingAmount = max($expectedAmount - $collectedAmount, 0);
+
+        if ($expectedAmount > 0 && $collectedAmount >= $expectedAmount) {
+            $statusKey = 'paid';
+            $statusLabel = 'Chirie achitată integral';
+        } elseif ($collectedAmount > 0) {
+            $statusKey = 'partial';
+            $statusLabel = 'Chirie parțial achitată';
+        } else {
+            $statusKey = 'pending';
+            $statusLabel = 'Chirie neîncasată';
+        }
+
+        return [
+            'expected_amount' => $this->decimalString($expectedAmount),
+            'collected_amount' => $this->decimalString($collectedAmount),
+            'remaining_amount' => $this->decimalString($remainingAmount),
+            'status_key' => $statusKey,
+            'status_label' => $statusLabel,
+        ];
+    }
+
+    /**
+     * @return array{expected_amount: string, collected_amount: string, remaining_amount: string, status_key: string, status_label: string}
+     */
+    private function guaranteeSummary(RentPayment $payment): array
+    {
+        $expectedAmount = (float) ($payment->lease->deposit_amount ?? 0);
+        $collectedAmount = (float) RentPayment::query()
+            ->where('lease_id', $payment->lease_id)
+            ->where('payment_type', 'guarantee')
+            ->sum('amount');
+        $remainingAmount = max($expectedAmount - $collectedAmount, 0);
+
+        if ($expectedAmount <= 0) {
+            $statusKey = 'not_configured';
+            $statusLabel = 'Garanție nesetată';
+        } elseif ($collectedAmount >= $expectedAmount) {
+            $statusKey = 'paid';
+            $statusLabel = 'Garanție achitată integral';
+        } elseif ($collectedAmount > 0) {
+            $statusKey = 'partial';
+            $statusLabel = 'Garanție parțial achitată';
+        } else {
+            $statusKey = 'unpaid';
+            $statusLabel = 'Garanție neîncasată';
+        }
+
+        return [
+            'expected_amount' => $this->decimalString($expectedAmount),
+            'collected_amount' => $this->decimalString($collectedAmount),
+            'remaining_amount' => $this->decimalString($remainingAmount),
+            'status_key' => $statusKey,
+            'status_label' => $statusLabel,
+        ];
+    }
+
+    /**
      * @param  array<string, mixed>  $validated
      * @return array<string, mixed>
      */
@@ -234,11 +327,12 @@ class RentPaymentController extends Controller
             'lease_id' => $validated['lease_id'],
             'amount' => $validated['amount'],
             'currency' => $validated['currency'],
+            'payment_type' => $validated['payment_type'],
             'payment_date' => $validated['payment_date'],
-            'period_month' => $validated['period_month'],
-            'period_year' => $validated['period_year'],
+            'period_month' => $validated['payment_type'] === 'rent' ? $validated['period_month'] : null,
+            'period_year' => $validated['payment_type'] === 'rent' ? $validated['period_year'] : null,
             'method' => $validated['method'] ?? null,
-            'status' => $validated['status'],
+            'status' => 'pending',
             'notes' => $validated['notes'] ?? null,
         ];
     }
@@ -254,5 +348,15 @@ class RentPaymentController extends Controller
             ->whereBelongsTo($currentTeam)
             ->whereKey($leaseId)
             ->firstOrFail();
+    }
+
+    private function decimalString(float|int|string $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
+    }
+
+    private function persistedStatusKey(string $statusKey): string
+    {
+        return in_array($statusKey, ['paid', 'partial'], true) ? $statusKey : 'pending';
     }
 }

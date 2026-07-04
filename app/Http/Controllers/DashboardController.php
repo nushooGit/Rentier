@@ -94,6 +94,16 @@ class DashboardController extends Controller
         $currentMonthRentDeductions = $leaseFinancialRows->sum(fn (array $row) => (float) $row['rent_deduction_amount']);
         $currentMonthCoveredRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['covered_amount']);
         $remainingRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['remaining_amount']);
+        $activeLeaseIds = $activeLeases->pluck('id');
+        $expectedGuarantees = $activeLeases->sum(fn (Lease $lease) => (float) ($lease->deposit_amount ?? 0));
+        $collectedGuarantees = $activeLeaseIds->isEmpty()
+            ? 0
+            : (float) RentPayment::query()
+                ->whereBelongsTo($currentTeam)
+                ->whereIn('lease_id', $activeLeaseIds)
+                ->where('payment_type', 'guarantee')
+                ->sum('amount');
+        $remainingGuarantees = max($expectedGuarantees - $collectedGuarantees, 0);
 
         $overdueLeases = $leaseFinancialRows
             ->filter(fn (array $row) => $row['status_key'] === 'overdue')
@@ -129,6 +139,14 @@ class DashboardController extends Controller
             ->whereBelongsTo($currentTeam)
             ->where('status', '!=', 'cancelled')
             ->where('responsible_party', 'owner')
+            ->whereYear('expense_date', $currentYear)
+            ->whereMonth('expense_date', $currentMonth)
+            ->sum('amount');
+
+        $ownerCashExpenses = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'owner')
             ->whereYear('expense_date', $currentYear)
             ->whereMonth('expense_date', $currentMonth)
             ->sum('amount');
@@ -201,6 +219,7 @@ class DashboardController extends Controller
                 'property_name' => $payment->property->name,
                 'amount' => $payment->amount,
                 'currency' => $payment->currency,
+                'payment_type' => $payment->payment_type,
                 'payment_date' => $payment->payment_date->toDateString(),
                 'status' => $payment->status,
             ]);
@@ -231,17 +250,22 @@ class DashboardController extends Controller
                 'current_month_rent_deductions' => $this->decimalString($currentMonthRentDeductions),
                 'current_month_covered_rent' => $this->decimalString($currentMonthCoveredRent),
                 'remaining_rent' => $this->decimalString($remainingRent),
+                'expected_guarantees' => $this->decimalString($expectedGuarantees),
+                'collected_guarantees' => $this->decimalString($collectedGuarantees),
+                'remaining_guarantees' => $this->decimalString($remainingGuarantees),
                 'overdue_count' => $overdueLeases->count(),
                 'occupancy_label' => "{$occupiedPropertyCount}/{$propertyCount}",
                 'occupancy_rate' => $propertyCount > 0
                     ? round(($occupiedPropertyCount / $propertyCount) * 100)
                     : 0,
                 'current_month_expenses' => $this->decimalString($ownerSupportedExpenses),
-                'current_month_profit' => $this->decimalString($currentMonthCoveredRent - $ownerSupportedExpenses),
+                'current_month_profit' => $this->decimalString($estimatedMonthlyRent - $ownerSupportedExpenses),
+                'operational_cash_result' => $this->decimalString($currentMonthPayments - $ownerCashExpenses),
                 'tenant_reimbursement_expenses' => $this->decimalString($tenantReimbursementExpenses),
                 'utility_deduction_expenses' => $this->decimalString($utilityDeductionExpenses),
                 'unsettled_tenant_paid_owner_expenses' => $this->decimalString($unsettledTenantPaidOwnerExpenses),
                 'recoverable_expenses' => $this->decimalString($recoverableExpenses),
+                'total_receivable' => $this->decimalString($remainingRent + $remainingGuarantees + $recoverableExpenses),
                 'currency' => 'RON',
             ],
             'propertyStatusSummary' => [

@@ -32,6 +32,7 @@ class RentPaymentFactory extends Factory
                 ->value('renter_id'),
             'amount' => fake()->randomFloat(2, 500, 5000),
             'currency' => 'RON',
+            'payment_type' => 'rent',
             'payment_date' => fake()->dateTimeBetween('-6 months', 'now')->format('Y-m-d'),
             'period_month' => fake()->numberBetween(1, 12),
             'period_year' => fake()->numberBetween(2024, 2026),
