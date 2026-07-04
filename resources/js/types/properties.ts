@@ -31,7 +31,6 @@ export type Property = {
     status: PropertyStatus;
     monthly_rent_amount?: string | null;
     currency: string;
-    rent_due_day?: number | null;
     rent_payment_status?: RentPaymentStatus | null;
     deposit_amount?: string | null;
     notes?: string | null;

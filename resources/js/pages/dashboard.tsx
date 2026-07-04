@@ -1,5 +1,5 @@
-import { Head } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import { Badge } from '@/components/ui/badge';
@@ -127,9 +127,19 @@ export default function Dashboard({
     recentPayments,
     recentExpenses,
 }: Props) {
+    const hasRefreshed = useRef(false);
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
     );
+
+    useEffect(() => {
+        if (hasRefreshed.current) {
+            return;
+        }
+
+        hasRefreshed.current = true;
+        router.reload();
+    }, []);
 
     return (
         <>

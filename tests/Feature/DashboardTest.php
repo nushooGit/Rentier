@@ -442,6 +442,127 @@ test('dashboard uses last valid month day for rent due day 31', function () {
     Carbon::setTestNow();
 });
 
+test('dashboard rent status uses local calendar days for upcoming rent', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-04 02:20:00', 'Europe/Bucharest'));
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->has('upcomingPayments', 1)
+        ->where('upcomingPayments.0.lease_id', $lease->id)
+        ->where('upcomingPayments.0.status_key', 'upcoming')
+        ->where('upcomingPayments.0.due_date', '2026-07-05')
+        ->where('upcomingPayments.0.days', 1)
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard rent status marks due today using local calendar date', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-05 02:20:00', 'Europe/Bucharest'));
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->has('upcomingPayments', 1)
+        ->where('upcomingPayments.0.lease_id', $lease->id)
+        ->where('upcomingPayments.0.status_key', 'due_today')
+        ->where('upcomingPayments.0.days', 0)
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard rent status marks overdue after local due date', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-06 02:20:00', 'Europe/Bucharest'));
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->has('overdueLeases', 1)
+        ->where('overdueLeases.0.lease_id', $lease->id)
+        ->where('overdueLeases.0.status_key', 'overdue')
+        ->where('overdueLeases.0.days', 1)
+    );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard counts vacant owner expenses without expected rent', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 3000,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => null,
+        'amount' => 900,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->where('summary.estimated_monthly_rent', '0.00')
+        ->where('summary.current_month_expenses', '900.00')
+        ->where('summary.remaining_rent', '0.00')
+        ->has('propertiesWithoutActiveLease', 1)
+    );
+
+    Carbon::setTestNow();
+});
+
 test('dashboard includes pending invitations for the authenticated user', function () {
     $owner = User::factory()->create(['name' => 'Taylor Otwell']);
     $invitedUser = User::factory()->create(['email' => 'invited@example.com']);

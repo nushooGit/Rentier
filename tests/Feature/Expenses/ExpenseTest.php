@@ -55,6 +55,8 @@ test('workspace members can create expenses', function () {
     $property = Property::factory()->for($team)->create();
     $lease = Lease::factory()->for($team)->create([
         'property_id' => $property->id,
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
     ]);
 
     $response = $this
@@ -97,7 +99,6 @@ test('expense validation requires core fields and same property lease', function
             'paid_by' => 'nobody',
             'responsible_party' => 'nobody',
             'settlement_type' => 'unknown',
-            'status' => 'draft',
         ]));
 
     $response->assertSessionHasErrors([
@@ -110,7 +111,6 @@ test('expense validation requires core fields and same property lease', function
         'paid_by',
         'responsible_party',
         'settlement_type',
-        'status',
     ]);
 });
 
@@ -188,7 +188,7 @@ test('workspace members can update and delete expenses', function () {
     $this->assertDatabaseHas('expenses', [
         'id' => $expense->id,
         'title' => 'Actualizat',
-        'status' => 'reimbursable',
+        'status' => 'paid',
     ]);
 
     $this
@@ -199,6 +199,202 @@ test('workspace members can update and delete expenses', function () {
     $this->assertDatabaseMissing('expenses', [
         'id' => $expense->id,
     ]);
+});
+
+test('expense status is derived from settlement context', function (array $overrides, string $expectedStatus) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            ...$overrides,
+            'status' => 'cancelled',
+        ]));
+
+    $response->assertRedirect(route('expenses.index', $team));
+
+    expect(Expense::latest()->first()->status)->toBe($expectedStatus);
+})->with([
+    'owner pays owner expense' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+    ], 'paid'],
+    'tenant pays own expense' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+    ], 'paid'],
+    'tenant pays owner expense with rent deduction' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+    ], 'paid'],
+    'tenant pays owner expense with utility deduction' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_utilities',
+    ], 'paid'],
+    'tenant pays owner expense with reimbursement' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+    ], 'reimbursable'],
+    'owner pays tenant expense' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+    ], 'reimbursable'],
+]);
+
+test('vacant property rejects tenant paid expense', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]));
+
+    $response->assertSessionHasErrors(['paid_by']);
+});
+
+test('vacant property rejects tenant responsible expense', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'paid_by' => 'owner',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'reimburse',
+        ]));
+
+    $response->assertSessionHasErrors(['responsible_party']);
+});
+
+test('tenant paid expense is allowed only inside an active contract interval', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $lease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $lease->id,
+            'expense_date' => '2026-07-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id', 'paid_by', 'responsible_party']);
+});
+
+test('vacant property accepts owner paid owner expense', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => null,
+            'paid_by' => 'owner',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'none',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    $this->assertDatabaseHas('expenses', [
+        'property_id' => $property->id,
+        'lease_id' => null,
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+});
+
+test('active contract allows owner paid tenant responsible reimbursement', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $lease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'owner',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'reimburse',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    $this->assertDatabaseHas('expenses', [
+        'property_id' => $property->id,
+        'lease_id' => $lease->id,
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+});
+
+test('property with contract outside expense date rejects tenant responsibility', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-05-01',
+        'end_date' => '2026-05-31',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $lease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'owner',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'reimburse',
+        ]))
+        ->assertSessionHasErrors(['lease_id', 'responsible_party']);
 });
 
 test('users cannot access expenses owned by another workspace', function () {

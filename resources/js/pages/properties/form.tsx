@@ -318,23 +318,6 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="rent_due_day">Zi scadență</Label>
-                            <Input
-                                id="rent_due_day"
-                                name="rent_due_day"
-                                className={inputClassName}
-                                type="number"
-                                min="1"
-                                max="31"
-                                step="1"
-                                defaultValue={fieldValue(
-                                    property?.rent_due_day,
-                                )}
-                            />
-                            <InputError message={errors.rent_due_day} />
-                        </Field>
-
-                        <Field>
                             <Label htmlFor="deposit_amount">Garanție</Label>
                             <Input
                                 id="deposit_amount"

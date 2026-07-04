@@ -220,7 +220,7 @@ class ExpenseController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, property_id: int, label: string}>
+     * @return array<int, array{id: int, property_id: int, label: string, start_date: string, end_date: string|null}>
      */
     private function leaseOptions(Team $currentTeam): array
     {
@@ -233,6 +233,8 @@ class ExpenseController extends Controller
                 'id' => $lease->id,
                 'property_id' => $lease->property_id,
                 'label' => $lease->renter->name.' · '.$lease->property->name,
+                'start_date' => $lease->start_date->toDateString(),
+                'end_date' => $lease->end_date?->toDateString(),
             ])
             ->all();
     }

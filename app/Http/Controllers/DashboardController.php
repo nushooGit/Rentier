@@ -19,7 +19,7 @@ class DashboardController extends Controller
     public function __invoke(Request $request, Team $currentTeam, LeaseRentStatusCalculator $rentStatusCalculator): Response
     {
         $email = strtolower($request->user()->email);
-        $today = Carbon::today();
+        $today = Carbon::today(config('app.timezone'));
         $currentMonth = (int) $today->month;
         $currentYear = (int) $today->year;
 

@@ -6,6 +6,7 @@ use App\Models\Expense;
 use App\Models\Lease;
 use App\Models\RentPayment;
 use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 
 class LeaseRentStatusCalculator
 {
@@ -14,7 +15,7 @@ class LeaseRentStatusCalculator
      */
     public function forLease(Lease $lease, ?CarbonInterface $date = null): array
     {
-        $date ??= today();
+        $date = $this->localCalendarDate($date);
         $expectedAmount = (float) $lease->monthly_rent_amount;
         $collectedAmount = $this->collectedAmountForCurrentMonth($lease, $date);
         $rentDeductionAmount = $this->rentDeductionAmountForCurrentMonth($lease, $date);
@@ -36,10 +37,13 @@ class LeaseRentStatusCalculator
 
         if ($date->isBefore($dueDate)) {
             $days = (int) $date->diffInDays($dueDate);
+            $label = $days === 1
+                ? 'Mai este 1 zi până la plată'
+                : "Mai sunt {$days} zile până la plată";
 
             return $this->rentPaymentStatus(
                 'upcoming',
-                "Mai sunt {$days} zile până la plată",
+                $label,
                 $days,
                 $dueDate,
                 $expectedAmount,
@@ -97,9 +101,19 @@ class LeaseRentStatusCalculator
 
     public function dueDateForMonth(Lease $lease, CarbonInterface $date): CarbonInterface
     {
-        $dueDate = $date->copy()->startOfMonth();
+        $dueDate = $this->localCalendarDate($date)->startOfMonth();
 
         return $dueDate->setDay(min($lease->rent_due_day, $dueDate->daysInMonth));
+    }
+
+    private function localCalendarDate(?CarbonInterface $date = null): CarbonInterface
+    {
+        $timezone = config('app.timezone');
+
+        return ($date instanceof CarbonInterface
+            ? Carbon::instance($date->toDateTime())->timezone($timezone)
+            : Carbon::today($timezone))
+            ->startOfDay();
     }
 
     /**

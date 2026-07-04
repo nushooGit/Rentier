@@ -88,7 +88,6 @@ test('property validation requires core fields', function () {
             'name' => '',
             'city' => '',
             'address_line' => '',
-            'rent_due_day' => 32,
             'monthly_rent_amount' => -1,
         ]));
 
@@ -96,7 +95,6 @@ test('property validation requires core fields', function () {
         'name',
         'city',
         'address_line',
-        'rent_due_day',
         'monthly_rent_amount',
     ]);
 });

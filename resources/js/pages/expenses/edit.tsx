@@ -13,7 +13,6 @@ import type {
     ExpensePropertyOption,
     ExpenseResponsibleParty,
     ExpenseSettlementType,
-    ExpenseStatus,
 } from '@/types';
 
 type Props = {
@@ -24,7 +23,6 @@ type Props = {
     expensePaidByOptions: ExpenseOption<ExpensePaidBy>[];
     expenseResponsiblePartyOptions: ExpenseOption<ExpenseResponsibleParty>[];
     expenseSettlementTypeOptions: ExpenseOption<ExpenseSettlementType>[];
-    expenseStatuses: ExpenseOption<ExpenseStatus>[];
 };
 
 export default function ExpenseEdit({
@@ -35,7 +33,6 @@ export default function ExpenseEdit({
     expensePaidByOptions,
     expenseResponsiblePartyOptions,
     expenseSettlementTypeOptions,
-    expenseStatuses,
 }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -72,7 +69,6 @@ export default function ExpenseEdit({
                         expenseResponsiblePartyOptions
                     }
                     expenseSettlementTypeOptions={expenseSettlementTypeOptions}
-                    expenseStatuses={expenseStatuses}
                 />
             </div>
         </>

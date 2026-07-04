@@ -159,10 +159,6 @@ export default function PropertyShow({ property }: Props) {
                         />
                         <Detail label="Monedă" value={property.currency} />
                         <Detail
-                            label="Zi scadență"
-                            value={property.rent_due_day}
-                        />
-                        <Detail
                             label="Garanție"
                             value={formatMoney(
                                 property.deposit_amount,

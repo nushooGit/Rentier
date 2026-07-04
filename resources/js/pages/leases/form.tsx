@@ -211,16 +211,8 @@ export default function LeaseForm({
                                 value={selectedPropertyRent}
                                 readOnly
                                 required
-                                aria-describedby="monthly_rent_amount_help"
                                 data-test="lease-monthly-rent-input"
                             />
-                            <p
-                                id="monthly_rent_amount_help"
-                                className="text-xs text-muted-foreground"
-                            >
-                                Chiria este preluată automat din proprietatea
-                                selectată.
-                            </p>
                             <InputError message={errors.monthly_rent_amount} />
                         </Field>
 
@@ -255,15 +247,7 @@ export default function LeaseForm({
                                     lease?.rent_due_day ?? 1,
                                 )}
                                 required
-                                aria-describedby="rent_due_day_help"
                             />
-                            <p
-                                id="rent_due_day_help"
-                                className="text-xs text-muted-foreground"
-                            >
-                                Ex: 5 înseamnă că plata este scadentă în
-                                fiecare lună pe data de 5.
-                            </p>
                             <InputError message={errors.rent_due_day} />
                         </Field>
 
@@ -280,6 +264,17 @@ export default function LeaseForm({
                             />
                             <InputError message={errors.deposit_amount} />
                         </Field>
+
+                        <div className="space-y-1 text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
+                            <p>
+                                Chiria este preluată automat din proprietatea
+                                selectată.
+                            </p>
+                            <p>
+                                Ex: 5 înseamnă că plata este scadentă în
+                                fiecare lună pe data de 5.
+                            </p>
+                        </div>
                     </FormSection>
 
                     <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">

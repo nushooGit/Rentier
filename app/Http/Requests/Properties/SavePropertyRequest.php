@@ -50,7 +50,6 @@ class SavePropertyRequest extends FormRequest
             'status' => ['required', 'string', Rule::in(['available', 'occupied', 'renovation', 'inactive'])],
             'monthly_rent_amount' => ['nullable', 'numeric', 'min:0'],
             'currency' => ['nullable', 'string', 'size:3'],
-            'rent_due_day' => ['nullable', 'integer', 'between:1,31'],
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];

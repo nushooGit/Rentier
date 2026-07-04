@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,6 @@ import {
     expensePaidByLabel,
     expenseResponsiblePartyLabel,
     expenseSettlementTypeLabel,
-    expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import type {
     Expense,
@@ -22,7 +21,6 @@ import type {
     ExpensePropertyOption,
     ExpenseResponsibleParty,
     ExpenseSettlementType,
-    ExpenseStatus,
 } from '@/types';
 
 type Props = {
@@ -38,7 +36,6 @@ type Props = {
     expensePaidByOptions: ExpenseOption<ExpensePaidBy>[];
     expenseResponsiblePartyOptions: ExpenseOption<ExpenseResponsibleParty>[];
     expenseSettlementTypeOptions: ExpenseOption<ExpenseSettlementType>[];
-    expenseStatuses: ExpenseOption<ExpenseStatus>[];
 };
 
 function fieldValue(value: string | number | null | undefined) {
@@ -95,6 +92,13 @@ function allowedSettlementTypes(
     return ['none'];
 }
 
+function dateIsInsideLease(date: string, lease: ExpenseLeaseOption): boolean {
+    return (
+        lease.start_date <= date &&
+        (lease.end_date === null || lease.end_date >= date)
+    );
+}
+
 export default function ExpenseForm({
     action,
     submitLabel,
@@ -105,9 +109,14 @@ export default function ExpenseForm({
     expensePaidByOptions,
     expenseResponsiblePartyOptions,
     expenseSettlementTypeOptions,
-    expenseStatuses,
 }: Props) {
     const now = new Date();
+    const initialExpenseDate =
+        expense?.expense_date ?? now.toISOString().slice(0, 10);
+    const [selectedPropertyId, setSelectedPropertyId] = useState(
+        fieldValue(expense?.property_id).toString(),
+    );
+    const [expenseDate, setExpenseDate] = useState(initialExpenseDate);
     const [paidBy, setPaidBy] = useState<ExpensePaidBy>(
         expense?.paid_by ?? 'owner',
     );
@@ -115,6 +124,30 @@ export default function ExpenseForm({
         useState<ExpenseResponsibleParty>(expense?.responsible_party ?? 'owner');
     const [settlementType, setSettlementType] =
         useState<ExpenseSettlementType>(expense?.settlement_type ?? 'none');
+    const propertyLeases = useMemo(
+        () =>
+            leases.filter(
+                (lease) => lease.property_id.toString() === selectedPropertyId,
+            ),
+        [leases, selectedPropertyId],
+    );
+    const hasActiveTenantContext = useMemo(
+        () =>
+            selectedPropertyId !== '' &&
+            expenseDate !== '' &&
+            propertyLeases.some((lease) =>
+                dateIsInsideLease(expenseDate, lease),
+            ),
+        [expenseDate, propertyLeases, selectedPropertyId],
+    );
+    const visiblePaidByOptions = hasActiveTenantContext
+        ? expensePaidByOptions
+        : expensePaidByOptions.filter((option) => option.value === 'owner');
+    const visibleResponsiblePartyOptions = hasActiveTenantContext
+        ? expenseResponsiblePartyOptions
+        : expenseResponsiblePartyOptions.filter(
+              (option) => option.value === 'owner',
+          );
     const allowedSettlements = allowedSettlementTypes(
         paidBy,
         responsibleParty,
@@ -126,6 +159,24 @@ export default function ExpenseForm({
         (settlementTypeOption) =>
             allowedSettlements.includes(settlementTypeOption.value),
     );
+
+    useEffect(() => {
+        if (hasActiveTenantContext) {
+            return;
+        }
+
+        setPaidBy('owner');
+        setResponsibleParty('owner');
+        setSettlementType('none');
+    }, [hasActiveTenantContext]);
+
+    useEffect(() => {
+        if (allowedSettlements.includes(settlementType)) {
+            return;
+        }
+
+        setSettlementType(allowedSettlements[0]);
+    }, [allowedSettlements, settlementType]);
 
     return (
         <Form {...action} className="space-y-3.5">
@@ -169,27 +220,6 @@ export default function ExpenseForm({
                             <InputError message={errors.category} />
                         </Field>
 
-                        <Field>
-                            <Label htmlFor="status">Status</Label>
-                            <select
-                                id="status"
-                                name="status"
-                                className={selectClassName}
-                                defaultValue={expense?.status ?? 'paid'}
-                                required
-                                data-test="expense-status-select"
-                            >
-                                {expenseStatuses.map((status) => (
-                                    <option
-                                        key={status.value}
-                                        value={status.value}
-                                    >
-                                        {expenseStatusLabel(status.value)}
-                                    </option>
-                                ))}
-                            </select>
-                            <InputError message={errors.status} />
-                        </Field>
                     </FormSection>
 
                     <FormSection title="Proprietate și contract">
@@ -199,7 +229,10 @@ export default function ExpenseForm({
                                 id="property_id"
                                 name="property_id"
                                 className={selectClassName}
-                                defaultValue={fieldValue(expense?.property_id)}
+                                value={selectedPropertyId}
+                                onChange={(event) =>
+                                    setSelectedPropertyId(event.target.value)
+                                }
                                 required
                                 data-test="expense-property-select"
                             >
@@ -227,7 +260,7 @@ export default function ExpenseForm({
                                 defaultValue={fieldValue(expense?.lease_id)}
                             >
                                 <option value="">Fără contract</option>
-                                {leases.map((lease) => (
+                                {propertyLeases.map((lease) => (
                                     <option key={lease.id} value={lease.id}>
                                         {lease.label}
                                     </option>
@@ -277,9 +310,9 @@ export default function ExpenseForm({
                                 id="expense_date"
                                 name="expense_date"
                                 className={inputClassName}
-                                defaultValue={
-                                    expense?.expense_date ??
-                                    now.toISOString().slice(0, 10)
+                                defaultValue={initialExpenseDate}
+                                onChange={(event) =>
+                                    setExpenseDate(event.target.value)
                                 }
                                 required
                             />
@@ -300,7 +333,7 @@ export default function ExpenseForm({
                                 }
                                 required
                             >
-                                {expensePaidByOptions.map((paidBy) => (
+                                {visiblePaidByOptions.map((paidBy) => (
                                     <option
                                         key={paidBy.value}
                                         value={paidBy.value}
@@ -329,7 +362,7 @@ export default function ExpenseForm({
                                 }
                                 required
                             >
-                                {expenseResponsiblePartyOptions.map(
+                                {visibleResponsiblePartyOptions.map(
                                     (responsibleParty) => (
                                         <option
                                             key={responsibleParty.value}
@@ -377,6 +410,14 @@ export default function ExpenseForm({
                         </Field>
 
                         <div className="space-y-1 text-xs text-muted-foreground md:col-span-2">
+                            {!hasActiveTenantContext ? (
+                                <p>
+                                    Nu există contract activ pentru această
+                                    proprietate la data cheltuielii. Poți
+                                    înregistra doar cheltuieli plătite și
+                                    suportate de proprietar.
+                                </p>
+                            ) : null}
                             <p>
                                 Cheltuielile suportate de chirias nu afecteaza
                                 profitul proprietarului.

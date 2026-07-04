@@ -8,6 +8,7 @@ use App\Models\Team;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
 
@@ -59,7 +60,6 @@ class SaveExpenseRequest extends FormRequest
             'paid_by' => ['required', 'string', Rule::in(['owner', 'tenant'])],
             'responsible_party' => ['required', 'string', Rule::in(['owner', 'tenant'])],
             'settlement_type' => ['required', 'string', Rule::in(['none', 'deduct_from_rent', 'deduct_from_utilities', 'reimburse'])],
-            'status' => ['required', 'string', Rule::in(['paid', 'pending', 'reimbursable', 'cancelled'])],
             'notes' => ['nullable', 'string', 'max:10000'],
         ];
     }
@@ -75,6 +75,7 @@ class SaveExpenseRequest extends FormRequest
             $paidBy = $this->input('paid_by');
             $responsibleParty = $this->input('responsible_party');
             $settlementType = $this->input('settlement_type');
+            $expenseDate = $this->input('expense_date');
 
             if ($paidBy === 'tenant' && $responsibleParty === 'owner' && $settlementType === 'none') {
                 $validator->errors()->add('settlement_type', 'Alege o decontare: scadere din chirie, scadere din utilitati sau rambursare.');
@@ -92,16 +93,54 @@ class SaveExpenseRequest extends FormRequest
                 $validator->errors()->add('settlement_type', 'Cheltuielile platite de proprietar, dar suportate de chirias, trebuie marcate ca rambursare separata.');
             }
 
-            if (! $leaseId || ! $propertyId) {
+            $team = $this->route('current_team');
+            $teamId = $team instanceof Team ? $team->id : null;
+            $lease = null;
+
+            if ($leaseId && $propertyId && ! $validator->errors()->has('property_id')) {
+                $lease = Lease::query()
+                    ->where('team_id', $teamId)
+                    ->whereKey($leaseId)
+                    ->first();
+
+                if ($lease && (int) $lease->property_id !== (int) $propertyId) {
+                    $validator->errors()->add('lease_id', __('The selected lease does not belong to the selected property.'));
+                }
+            }
+
+            if (
+                ! $propertyId
+                || ! $expenseDate
+                || $validator->errors()->has('property_id')
+                || $validator->errors()->has('expense_date')
+            ) {
                 return;
             }
 
-            $leasePropertyId = Lease::query()
-                ->whereKey($leaseId)
-                ->value('property_id');
+            $expenseDate = Carbon::parse($expenseDate, config('app.timezone'))->toDateString();
 
-            if ($leasePropertyId && (int) $leasePropertyId !== (int) $propertyId) {
-                $validator->errors()->add('lease_id', __('The selected lease does not belong to the selected property.'));
+            if ($lease) {
+                if (
+                    $lease->start_date->toDateString() > $expenseDate
+                    || ($lease->end_date && $lease->end_date->toDateString() < $expenseDate)
+                ) {
+                    $validator->errors()->add('lease_id', 'Contractul selectat nu este activ la data cheltuielii.');
+                }
+            }
+
+            if (
+                ($paidBy === 'tenant' || $responsibleParty === 'tenant')
+                && ! $this->activeLeaseExists($teamId, (int) $propertyId, $expenseDate)
+            ) {
+                $message = 'Nu există contract activ pentru această proprietate la data cheltuielii. Nu poți selecta chiriașul ca plătitor sau responsabil.';
+
+                if ($paidBy === 'tenant') {
+                    $validator->errors()->add('paid_by', $message);
+                }
+
+                if ($responsibleParty === 'tenant') {
+                    $validator->errors()->add('responsible_party', $message);
+                }
             }
         });
     }
@@ -113,7 +152,7 @@ class SaveExpenseRequest extends FormRequest
      */
     public function validatedWithDefaults(): array
     {
-        return array_merge(
+        $validated = array_merge(
             [
                 'currency' => 'RON',
                 'paid_by' => 'owner',
@@ -122,5 +161,39 @@ class SaveExpenseRequest extends FormRequest
             ],
             $this->validated(),
         );
+
+        $validated['status'] = $this->derivedStatus(
+            $validated['paid_by'],
+            $validated['responsible_party'],
+            $validated['settlement_type'],
+        );
+
+        return $validated;
+    }
+
+    private function activeLeaseExists(?int $teamId, int $propertyId, string $expenseDate): bool
+    {
+        return Lease::query()
+            ->where('team_id', $teamId)
+            ->where('property_id', $propertyId)
+            ->whereDate('start_date', '<=', $expenseDate)
+            ->where(function ($query) use ($expenseDate) {
+                $query
+                    ->whereNull('end_date')
+                    ->orWhereDate('end_date', '>=', $expenseDate);
+            })
+            ->exists();
+    }
+
+    private function derivedStatus(string $paidBy, string $responsibleParty, string $settlementType): string
+    {
+        if (
+            ($paidBy === 'owner' && $responsibleParty === 'tenant')
+            || ($paidBy === 'tenant' && $responsibleParty === 'owner' && $settlementType === 'reimburse')
+        ) {
+            return 'reimbursable';
+        }
+
+        return 'paid';
     }
 }
