@@ -404,6 +404,114 @@ test('dashboard separates tenant paid owner expenses that are not rent deduction
     Carbon::setTestNow();
 });
 
+test('dashboard excludes settled reimbursements and recoveries from outstanding totals', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 0,
+    ]);
+
+    $reimbursement = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 150,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+    $recovery = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '150.00')
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.total_receivable', '1120.00')
+        );
+
+    $this->actingAs($user)->patch(route('expenses.mark-reimbursed', [$team, $reimbursement]));
+    $this->actingAs($user)->patch(route('expenses.mark-recovered', [$team, $recovery]));
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.total_receivable', '1000.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('settled reimbursement and recovery affect operational cash in settlement month without changing rent collected', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 0,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 150,
+        'expense_date' => '2026-06-20',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'status' => 'paid',
+        'settled_at' => '2026-07-04 10:00:00',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-06-20',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'status' => 'paid',
+        'settled_at' => '2026-07-04 10:00:00',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.operational_cash_result', '-30.00')
+        );
+
+    Carbon::setTestNow();
+});
+
 test('dashboard uses last valid month day for rent due day 31', function () {
     Carbon::setTestNow('2027-02-28');
 

@@ -10,6 +10,7 @@ use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -28,7 +29,7 @@ class ExpenseController extends Controller
             ->latest('expense_date')
             ->latest()
             ->get()
-            ->map(fn (Expense $expense) => $this->serializeExpense($expense));
+            ->map(fn (Expense $expense) => $this->serializeExpense($expense, $currentTeam));
 
         return Inertia::render('expenses/index', [
             'expenses' => $expenses,
@@ -82,7 +83,7 @@ class ExpenseController extends Controller
         $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
 
         return Inertia::render('expenses/show', [
-            'expense' => $this->serializeExpense($expense->load(['property', 'lease.renter'])),
+            'expense' => $this->serializeExpense($expense->load(['property', 'lease.renter']), $currentTeam),
         ]);
     }
 
@@ -95,7 +96,7 @@ class ExpenseController extends Controller
         $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
 
         return Inertia::render('expenses/edit', [
-            'expense' => $this->serializeExpense($expense->load(['property', 'lease.renter'])),
+            'expense' => $this->serializeExpense($expense->load(['property', 'lease.renter']), $currentTeam),
             'properties' => $this->propertyOptions($currentTeam),
             'leases' => $this->leaseOptions($currentTeam),
             'expenseCategories' => $this->expenseCategories(),
@@ -136,6 +137,60 @@ class ExpenseController extends Controller
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Expense deleted.')]);
 
         return to_route('expenses.index', ['current_team' => $currentTeam]);
+    }
+
+    public function markReimbursed(Team $currentTeam, Expense $expense): RedirectResponse
+    {
+        Gate::authorize('update', $expense);
+        $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+
+        if (! $expense->requiresOwnerReimbursement()) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială nu poate fi marcată ca rambursată.',
+            ]);
+        }
+
+        if ($expense->settled_at !== null) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială este deja închisă.',
+            ]);
+        }
+
+        $expense->update([
+            'settled_at' => now(),
+            'status' => 'paid',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Rambursarea a fost marcată ca efectuată.']);
+
+        return back();
+    }
+
+    public function markRecovered(Team $currentTeam, Expense $expense): RedirectResponse
+    {
+        Gate::authorize('update', $expense);
+        $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+
+        if (! $expense->requiresTenantRecovery()) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială nu poate fi marcată ca recuperată.',
+            ]);
+        }
+
+        if ($expense->settled_at !== null) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială este deja închisă.',
+            ]);
+        }
+
+        $expense->update([
+            'settled_at' => now(),
+            'status' => 'paid',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Suma a fost marcată ca recuperată.']);
+
+        return back();
     }
 
     /**
@@ -242,8 +297,10 @@ class ExpenseController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function serializeExpense(Expense $expense): array
+    private function serializeExpense(Expense $expense, Team $currentTeam): array
     {
+        $settlementState = $this->settlementState($expense, $currentTeam);
+
         return [
             'id' => $expense->id,
             'team_id' => $expense->team_id,
@@ -257,6 +314,8 @@ class ExpenseController extends Controller
             'paid_by' => $expense->paid_by,
             'responsible_party' => $expense->responsible_party,
             'settlement_type' => $expense->settlement_type,
+            'settled_at' => $expense->settled_at?->toISOString(),
+            'settlement_state' => $settlementState,
             'affects_owner_profit' => $expense->responsible_party === 'owner',
             'status' => $expense->status,
             'notes' => $expense->notes,
@@ -274,6 +333,40 @@ class ExpenseController extends Controller
             ] : null,
             'created_at' => $expense->created_at?->toISOString(),
             'updated_at' => $expense->updated_at?->toISOString(),
+        ];
+    }
+
+    /**
+     * @return array{kind: string, label: string|null, action_label: string|null, action_route: string|null, settled_label: string|null}
+     */
+    private function settlementState(Expense $expense, Team $currentTeam): array
+    {
+        if ($expense->requiresOwnerReimbursement()) {
+            return [
+                'kind' => $expense->settled_at ? 'reimbursed' : 'reimbursement_due',
+                'label' => $expense->settled_at ? 'Rambursat' : 'De rambursat',
+                'action_label' => $expense->settled_at ? null : 'Marchează ca rambursat',
+                'action_route' => $expense->settled_at ? null : route('expenses.mark-reimbursed', [$currentTeam, $expense], false),
+                'settled_label' => $expense->settled_at ? 'Rambursat la '.$expense->settled_at->translatedFormat('j F Y') : null,
+            ];
+        }
+
+        if ($expense->requiresTenantRecovery()) {
+            return [
+                'kind' => $expense->settled_at ? 'recovered' : 'recovery_due',
+                'label' => $expense->settled_at ? 'Recuperat' : 'De recuperat',
+                'action_label' => $expense->settled_at ? null : 'Marchează ca recuperat',
+                'action_route' => $expense->settled_at ? null : route('expenses.mark-recovered', [$currentTeam, $expense], false),
+                'settled_label' => $expense->settled_at ? 'Recuperat la '.$expense->settled_at->translatedFormat('j F Y') : null,
+            ];
+        }
+
+        return [
+            'kind' => 'none',
+            'label' => null,
+            'action_label' => null,
+            'action_route' => null,
+            'settled_label' => null,
         ];
     }
 

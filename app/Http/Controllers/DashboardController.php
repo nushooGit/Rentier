@@ -151,14 +151,35 @@ class DashboardController extends Controller
             ->whereMonth('expense_date', $currentMonth)
             ->sum('amount');
 
+        $settledOwnerReimbursements = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'tenant')
+            ->where('responsible_party', 'owner')
+            ->where('settlement_type', 'reimburse')
+            ->whereNotNull('settled_at')
+            ->whereYear('settled_at', $currentYear)
+            ->whereMonth('settled_at', $currentMonth)
+            ->sum('amount');
+
+        $settledTenantRecoveries = Expense::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', '!=', 'cancelled')
+            ->where('paid_by', 'owner')
+            ->where('responsible_party', 'tenant')
+            ->where('settlement_type', 'reimburse')
+            ->whereNotNull('settled_at')
+            ->whereYear('settled_at', $currentYear)
+            ->whereMonth('settled_at', $currentMonth)
+            ->sum('amount');
+
         $tenantReimbursementExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
             ->where('status', '!=', 'cancelled')
             ->where('paid_by', 'tenant')
             ->where('responsible_party', 'owner')
             ->where('settlement_type', 'reimburse')
-            ->whereYear('expense_date', $currentYear)
-            ->whereMonth('expense_date', $currentMonth)
+            ->whereNull('settled_at')
             ->sum('amount');
 
         $utilityDeductionExpenses = Expense::query()
@@ -187,8 +208,7 @@ class DashboardController extends Controller
             ->where('paid_by', 'owner')
             ->where('responsible_party', 'tenant')
             ->where('settlement_type', 'reimburse')
-            ->whereYear('expense_date', $currentYear)
-            ->whereMonth('expense_date', $currentMonth)
+            ->whereNull('settled_at')
             ->sum('amount');
 
         $recentLeases = Lease::query()
@@ -260,7 +280,7 @@ class DashboardController extends Controller
                     : 0,
                 'current_month_expenses' => $this->decimalString($ownerSupportedExpenses),
                 'current_month_profit' => $this->decimalString($estimatedMonthlyRent - $ownerSupportedExpenses),
-                'operational_cash_result' => $this->decimalString($currentMonthPayments - $ownerCashExpenses),
+                'operational_cash_result' => $this->decimalString($currentMonthPayments - $ownerCashExpenses - $settledOwnerReimbursements + $settledTenantRecoveries),
                 'tenant_reimbursement_expenses' => $this->decimalString($tenantReimbursementExpenses),
                 'utility_deduction_expenses' => $this->decimalString($utilityDeductionExpenses),
                 'unsettled_tenant_paid_owner_expenses' => $this->decimalString($unsettledTenantPaidOwnerExpenses),

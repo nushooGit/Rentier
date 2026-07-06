@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
@@ -55,6 +55,16 @@ export default function ExpenseShow({ expense }: Props) {
         router.delete(destroy([currentTeamSlug, expense.id]).url);
     };
 
+    const settleExpense = () => {
+        if (!expense.settlement_state.action_route) {
+            return;
+        }
+
+        router.patch(expense.settlement_state.action_route, undefined, {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <>
             <Head title={expense.title} />
@@ -69,7 +79,8 @@ export default function ExpenseShow({ expense }: Props) {
                                 {formatMoney(expense.amount, expense.currency)}
                             </h1>
                             <Badge variant="secondary">
-                                {expenseStatusLabel(expense.status)}
+                                {expense.settlement_state.label ??
+                                    expenseStatusLabel(expense.status)}
                             </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -82,6 +93,12 @@ export default function ExpenseShow({ expense }: Props) {
                                 <ArrowLeft /> Înapoi
                             </Link>
                         </Button>
+                        {expense.settlement_state.action_label ? (
+                            <Button variant="outline" onClick={settleExpense}>
+                                <CheckCircle2 />
+                                {expense.settlement_state.action_label}
+                            </Button>
+                        ) : null}
                         <Button asChild>
                             <Link href={edit([currentTeamSlug, expense.id])}>
                                 <Pencil /> Editează
@@ -144,7 +161,14 @@ export default function ExpenseShow({ expense }: Props) {
                         />
                         <Detail
                             label="Status"
-                            value={expenseStatusLabel(expense.status)}
+                            value={
+                                expense.settlement_state.label ??
+                                expenseStatusLabel(expense.status)
+                            }
+                        />
+                        <Detail
+                            label="Decontare închisă"
+                            value={expense.settlement_state.settled_label}
                         />
                     </dl>
                 </section>

@@ -18,6 +18,8 @@ Route::prefix('{current_team}')
         Route::resource('properties', PropertyController::class);
         Route::resource('leases', LeaseController::class);
         Route::resource('payments', RentPaymentController::class);
+        Route::patch('expenses/{expense}/mark-reimbursed', [ExpenseController::class, 'markReimbursed'])->name('expenses.mark-reimbursed');
+        Route::patch('expenses/{expense}/mark-recovered', [ExpenseController::class, 'markRecovered'])->name('expenses.mark-recovered');
         Route::resource('expenses', ExpenseController::class);
     });
 

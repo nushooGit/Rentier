@@ -22,6 +22,7 @@ use Illuminate\Support\Carbon;
  * @property string $paid_by
  * @property string $responsible_party
  * @property string $settlement_type
+ * @property Carbon|null $settled_at
  * @property string $status
  * @property string|null $notes
  * @property Carbon|null $created_at
@@ -42,6 +43,7 @@ use Illuminate\Support\Carbon;
     'paid_by',
     'responsible_party',
     'settlement_type',
+    'settled_at',
     'status',
     'notes',
 ])]
@@ -89,6 +91,26 @@ class Expense extends Model
         return $this->belongsTo(Lease::class);
     }
 
+    public function requiresOwnerReimbursement(): bool
+    {
+        return $this->paid_by === 'tenant'
+            && $this->responsible_party === 'owner'
+            && $this->settlement_type === 'reimburse';
+    }
+
+    public function requiresTenantRecovery(): bool
+    {
+        return $this->paid_by === 'owner'
+            && $this->responsible_party === 'tenant'
+            && $this->settlement_type === 'reimburse';
+    }
+
+    public function isSettlementOpen(): bool
+    {
+        return $this->settled_at === null
+            && ($this->requiresOwnerReimbursement() || $this->requiresTenantRecovery());
+    }
+
     /**
      * Get the attributes that should be cast.
      *
@@ -99,6 +121,7 @@ class Expense extends Model
         return [
             'amount' => 'decimal:2',
             'expense_date' => 'date',
+            'settled_at' => 'datetime',
         ];
     }
 }

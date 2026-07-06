@@ -1,5 +1,5 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { Eye, Pencil, Plus, ReceiptText, Trash2 } from 'lucide-react';
+import { CheckCircle2, Eye, Pencil, Plus, ReceiptText, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -46,6 +46,16 @@ export default function ExpensesIndex({ expenses }: Props) {
         router.delete(destroy([currentTeamSlug, expense.id]).url);
     };
 
+    const settleExpense = (expense: Expense) => {
+        if (!expense.settlement_state.action_route) {
+            return;
+        }
+
+        router.patch(expense.settlement_state.action_route, undefined, {
+            preserveScroll: true,
+        });
+    };
+
     return (
         <>
             <Head title="Cheltuieli" />
@@ -84,7 +94,8 @@ export default function ExpensesIndex({ expenses }: Props) {
                                         </p>
                                     </div>
                                     <Badge variant="secondary">
-                                        {expenseStatusLabel(expense.status)}
+                                        {expense.settlement_state.label ??
+                                            expenseStatusLabel(expense.status)}
                                     </Badge>
                                 </div>
                                 <div className="grid gap-0.5 text-sm">
@@ -116,6 +127,17 @@ export default function ExpensesIndex({ expenses }: Props) {
                                             expense.settlement_type,
                                         )}
                                     </Badge>
+                                    {expense.settlement_state.label ? (
+                                        <Badge
+                                            variant={
+                                                expense.settled_at
+                                                    ? 'secondary'
+                                                    : 'outline'
+                                            }
+                                        >
+                                            {expense.settlement_state.label}
+                                        </Badge>
+                                    ) : null}
                                     <Badge
                                         variant={
                                             expense.affects_owner_profit
@@ -128,7 +150,25 @@ export default function ExpensesIndex({ expenses }: Props) {
                                             : 'Nu afecteaza profitul'}
                                     </Badge>
                                 </div>
+                                {expense.settlement_state.settled_label ? (
+                                    <p className="text-xs text-muted-foreground">
+                                        {expense.settlement_state.settled_label}
+                                    </p>
+                                ) : null}
                                 <div className="mt-auto flex justify-end gap-2">
+                                    {expense.settlement_state.action_label ? (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            type="button"
+                                            onClick={() =>
+                                                settleExpense(expense)
+                                            }
+                                        >
+                                            <CheckCircle2 className="h-4 w-4" />
+                                            {expense.settlement_state.action_label}
+                                        </Button>
+                                    ) : null}
                                     <Button variant="ghost" size="sm" asChild>
                                         <Link
                                             href={show([

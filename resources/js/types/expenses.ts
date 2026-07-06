@@ -49,6 +49,19 @@ export type Expense = {
     paid_by: ExpensePaidBy;
     responsible_party: ExpenseResponsibleParty;
     settlement_type: ExpenseSettlementType;
+    settled_at: string | null;
+    settlement_state: {
+        kind:
+            | 'none'
+            | 'reimbursement_due'
+            | 'reimbursed'
+            | 'recovery_due'
+            | 'recovered';
+        label: string | null;
+        action_label: string | null;
+        action_route: string | null;
+        settled_label: string | null;
+    };
     affects_owner_profit: boolean;
     status: ExpenseStatus;
     notes: string | null;
