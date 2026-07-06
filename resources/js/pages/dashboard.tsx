@@ -12,6 +12,7 @@ import { dashboard } from '@/routes';
 import type {
     DashboardInvitation,
     DashboardLeaseFinancialRow,
+    DashboardPaymentMethodBreakdown,
     DashboardPropertyWithoutActiveLease,
     DashboardRecentExpense,
     DashboardRecentLease,
@@ -32,6 +33,7 @@ type Props = {
     recentLeases: DashboardRecentLease[];
     recentPayments: DashboardRecentPayment[];
     recentExpenses: DashboardRecentExpense[];
+    rentPaymentMethodBreakdown: DashboardPaymentMethodBreakdown[];
 };
 
 function SummaryCard({
@@ -58,6 +60,51 @@ function SummaryCard({
 
 function EmptyLine({ children }: { children: string }) {
     return <p className="text-sm text-muted-foreground">{children}</p>;
+}
+
+function PaymentMethodBreakdownCard({
+    methods,
+    currency,
+}: {
+    methods: DashboardPaymentMethodBreakdown[];
+    currency: string;
+}) {
+    const total = methods.reduce(
+        (sum, method) => sum + Number(method.amount),
+        0,
+    );
+
+    return (
+        <section className="rounded-lg border p-3 sm:p-3.5">
+            <p className="text-xs text-muted-foreground">
+                Încasări chirie pe metode
+            </p>
+            <div className="mt-2 space-y-1.5 text-sm">
+                {methods.length > 0 ? (
+                    methods.map((method) => (
+                        <div
+                            key={method.method ?? 'unset'}
+                            className="flex items-center justify-between gap-3"
+                        >
+                            <span className="text-muted-foreground">
+                                {method.label}
+                            </span>
+                            <span className="font-medium">
+                                {formatMoney(method.amount, method.currency)}
+                            </span>
+                        </div>
+                    ))
+                ) : (
+                    <span className="text-muted-foreground">
+                        Nu există chirii încasate luna asta.
+                    </span>
+                )}
+            </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+                Total: {formatMoney(String(total), currency)}
+            </p>
+        </section>
+    );
 }
 
 function FinancialLeaseLine({
@@ -99,7 +146,7 @@ function FinancialLeaseLine({
                     Chirie: {formatMoney(lease.expected_amount, lease.currency)}
                 </span>
                 <span>
-                    Incasat cash:{' '}
+                    Încasat:{' '}
                     {formatMoney(lease.collected_amount, lease.currency)}
                 </span>
                 <span>
@@ -126,6 +173,7 @@ export default function Dashboard({
     recentLeases,
     recentPayments,
     recentExpenses,
+    rentPaymentMethodBreakdown,
 }: Props) {
     const hasRefreshed = useRef(false);
     const [showInvitations, setShowInvitations] = useState(
@@ -175,19 +223,20 @@ export default function Dashboard({
                         description="Chirie estimată minus cheltuieli suportate de proprietar"
                     />
                     <SummaryCard
-                        label="Rezultat cash operațional"
+                        label="Rezultat operațional"
                         value={formatMoney(
                             summary.operational_cash_result,
                             summary.currency,
                         )}
-                        description="Chirie încasată cash minus cheltuieli plătite efectiv de proprietar"
+                        description="Chirie încasată minus cheltuieli plătite efectiv de proprietar"
                     />
                     <SummaryCard
-                        label="Chirie încasată cash"
+                        label="Chirie încasată"
                         value={formatMoney(
                             summary.current_month_payments,
                             summary.currency,
                         )}
+                        description="Plăți de chirie încasate luna asta, fără garanții"
                     />
                     <SummaryCard
                         label="Rest chirie de încasat"
@@ -195,6 +244,13 @@ export default function Dashboard({
                             summary.remaining_rent,
                             summary.currency,
                         )}
+                    />
+                </div>
+
+                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
+                    <PaymentMethodBreakdownCard
+                        methods={rentPaymentMethodBreakdown}
+                        currency={summary.currency}
                     />
                 </div>
 
@@ -246,7 +302,7 @@ export default function Dashboard({
                             summary.current_month_expenses,
                             summary.currency,
                         )}
-                        description="Responsabilitate economica, nu cash platit"
+                        description="Responsabilitate economică, nu plată efectivă"
                     />
                     <SummaryCard
                         label="Scăzut din chirie"

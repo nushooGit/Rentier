@@ -451,6 +451,197 @@ test('backend ignores manually submitted full status for partial guarantee payme
         );
 });
 
+test('cannot create guarantee payment that exceeds contract guarantee', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 100,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertSessionHasErrors(['amount']);
+
+    expect((float) RentPayment::query()->where('lease_id', $lease->id)->where('payment_type', 'guarantee')->sum('amount'))->toBe(1000.0);
+});
+
+test('can create guarantee payment up to remaining contract guarantee', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 900,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 100,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 100,
+        'payment_type' => 'guarantee',
+    ]);
+});
+
+test('cannot update guarantee payment to exceed contract guarantee', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 900,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+    $payment = RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 50,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('payments.update', [$team, $payment]), validRentPaymentPayload($lease, [
+            'amount' => 200,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertSessionHasErrors(['amount']);
+
+    expect($payment->refresh()->amount)->toBe('50.00');
+});
+
+test('updating guarantee payment excludes itself from existing total', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 1000,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 400,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+    $payment = RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 600,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('payments.update', [$team, $payment]), validRentPaymentPayload($lease, [
+            'amount' => 600,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertRedirect(route('payments.show', [$team, $payment]));
+
+    expect($payment->refresh()->amount)->toBe('600.00');
+});
+
+test('cannot create guarantee payment when contract has no guarantee', function (?int $depositAmount) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => $depositAmount,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 100,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertSessionHasErrors(['amount']);
+})->with([
+    'zero guarantee' => 0,
+    'null guarantee' => null,
+]);
+
+test('rent payment validation is not affected by guarantee cap', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 0,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 2600,
+            'payment_type' => 'rent',
+        ]))
+        ->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 2600,
+        'payment_type' => 'rent',
+    ]);
+});
+
 test('workspace members can update and delete payments', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;

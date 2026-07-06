@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { formatMoney } from '@/lib/money';
 import { paymentMethodLabel } from '@/pages/payments/labels';
 import { destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
@@ -10,17 +11,6 @@ import type { RentPayment } from '@/types';
 type Props = {
     payment: RentPayment;
 };
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
-
-    return `${Number(amount).toLocaleString('ro-RO', {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
-}
 
 const monthNames = [
     'Ianuarie',

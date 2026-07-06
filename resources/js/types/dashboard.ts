@@ -23,6 +23,13 @@ export type DashboardSummary = {
     currency: string;
 };
 
+export type DashboardPaymentMethodBreakdown = {
+    method: string | null;
+    label: string;
+    amount: string;
+    currency: string;
+};
+
 export type DashboardLeaseFinancialRow = {
     lease_id: number;
     property_id: number;

@@ -11,6 +11,7 @@ use App\Models\TeamInvitation;
 use App\Services\LeaseRentStatusCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -104,6 +105,7 @@ class DashboardController extends Controller
                 ->where('payment_type', 'guarantee')
                 ->sum('amount');
         $remainingGuarantees = max($expectedGuarantees - $collectedGuarantees, 0);
+        $rentPaymentMethodBreakdown = $this->rentPaymentMethodBreakdown($currentTeam, $activeLeaseIds->all(), $currentYear, $currentMonth);
 
         $overdueLeases = $leaseFinancialRows
             ->filter(fn (array $row) => $row['status_key'] === 'overdue')
@@ -298,7 +300,56 @@ class DashboardController extends Controller
             'recentLeases' => $recentLeases,
             'recentPayments' => $recentPayments,
             'recentExpenses' => $recentExpenses,
+            'rentPaymentMethodBreakdown' => $rentPaymentMethodBreakdown,
         ]);
+    }
+
+    /**
+     * @param  array<int, int>  $activeLeaseIds
+     * @return array<int, array{method: string|null, label: string, amount: string, currency: string}>
+     */
+    private function rentPaymentMethodBreakdown(Team $currentTeam, array $activeLeaseIds, int $year, int $month): array
+    {
+        if ($activeLeaseIds === []) {
+            return [];
+        }
+
+        return DB::table('rent_payments')
+            ->where('team_id', $currentTeam->id)
+            ->whereIn('lease_id', $activeLeaseIds)
+            ->where('payment_type', 'rent')
+            ->where('period_year', $year)
+            ->where('period_month', $month)
+            ->selectRaw('method, SUM(amount) as total_amount')
+            ->groupBy('method')
+            ->orderByRaw('method IS NULL')
+            ->orderBy('method')
+            ->get()
+            ->map(function (object $payment) {
+                $method = is_string($payment->method) ? $payment->method : null;
+                $amount = is_numeric($payment->total_amount) ? (string) $payment->total_amount : '0';
+
+                return [
+                    'method' => $method,
+                    'label' => $this->paymentMethodLabel($method),
+                    'amount' => $this->decimalString($amount),
+                    'currency' => 'RON',
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    private function paymentMethodLabel(?string $method): string
+    {
+        return match ($method) {
+            null, '' => 'Nesetat',
+            'cash', 'numerar' => 'Numerar',
+            'bank_transfer', 'transfer', 'transfer bancar' => 'Transfer bancar',
+            'card' => 'Card',
+            'other' => 'Altă metodă',
+            default => str((string) $method)->replace(['_', '-'], ' ')->ucfirst()->toString(),
+        };
     }
 
     private function decimalString(float|int|string $amount): string

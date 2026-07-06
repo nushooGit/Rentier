@@ -6,6 +6,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { formatMoney } from '@/lib/money';
 import {
     paymentMethodLabel,
     paymentTypeLabel,
@@ -79,10 +80,34 @@ export default function PaymentForm({
     const [paymentType, setPaymentType] = useState<PaymentType>(
         payment?.payment_type ?? 'rent',
     );
+    const [selectedLeaseId, setSelectedLeaseId] = useState(
+        String(fieldValue(payment?.lease_id)),
+    );
     const paymentTypeOptions: PaymentOption<PaymentType>[] = [
         { value: 'rent', label: 'Chirie' },
         { value: 'guarantee', label: 'Garanție' },
     ];
+    const selectedLease = leases.find(
+        (lease) => String(lease.id) === selectedLeaseId,
+    );
+    const currentPaymentAmount =
+        paymentType === 'guarantee' && payment?.payment_type === 'guarantee'
+            ? Number(payment.amount)
+            : 0;
+    const collectedGuaranteeExcludingCurrent = Math.max(
+        Number(selectedLease?.guarantee_collected_amount ?? 0) -
+            currentPaymentAmount,
+        0,
+    );
+    const expectedGuarantee = Number(selectedLease?.deposit_amount ?? 0);
+    const remainingGuarantee = Math.max(
+        expectedGuarantee - collectedGuaranteeExcludingCurrent,
+        0,
+    );
+    const guaranteeIsBlocked =
+        paymentType === 'guarantee' &&
+        selectedLease !== undefined &&
+        remainingGuarantee <= 0;
 
     return (
         <Form {...action} className="space-y-3.5">
@@ -95,7 +120,10 @@ export default function PaymentForm({
                                 id="lease_id"
                                 name="lease_id"
                                 className={selectClassName}
-                                defaultValue={fieldValue(payment?.lease_id)}
+                                value={selectedLeaseId}
+                                onChange={(event) =>
+                                    setSelectedLeaseId(event.target.value)
+                                }
                                 required
                                 data-test="payment-lease-select"
                             >
@@ -172,6 +200,11 @@ export default function PaymentForm({
                                 className={inputClassName}
                                 type="number"
                                 min="0"
+                                max={
+                                    paymentType === 'guarantee'
+                                        ? remainingGuarantee
+                                        : undefined
+                                }
                                 step="0.01"
                                 defaultValue={fieldValue(payment?.amount)}
                                 required
@@ -261,8 +294,37 @@ export default function PaymentForm({
                                 <input name="period_month" type="hidden" />
                                 <input name="period_year" type="hidden" />
                                 <div className="text-xs text-muted-foreground md:col-span-2">
-                                    Garanția este urmărită separat de chiria
-                                    lunară și nu intră în profit.
+                                    <div className="space-y-1">
+                                        <p>
+                                            Garanție contract:{' '}
+                                            {formatMoney(
+                                                selectedLease?.deposit_amount,
+                                                selectedLease?.currency,
+                                            )}
+                                        </p>
+                                        <p>
+                                            Încasat deja:{' '}
+                                            {formatMoney(
+                                                String(
+                                                    collectedGuaranteeExcludingCurrent,
+                                                ),
+                                                selectedLease?.currency,
+                                            )}
+                                        </p>
+                                        <p>
+                                            Rămas de încasat:{' '}
+                                            {formatMoney(
+                                                String(remainingGuarantee),
+                                                selectedLease?.currency,
+                                            )}
+                                        </p>
+                                        {guaranteeIsBlocked ? (
+                                            <p className="font-medium text-destructive">
+                                                Acest contract nu mai are garanție
+                                                de încasat.
+                                            </p>
+                                        ) : null}
+                                    </div>
                                 </div>
                             </>
                         )}
@@ -288,7 +350,11 @@ export default function PaymentForm({
                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                         <Button
                             type="submit"
-                            disabled={processing || leases.length === 0}
+                            disabled={
+                                processing ||
+                                leases.length === 0 ||
+                                guaranteeIsBlocked
+                            }
                             data-test="payment-save-button"
                         >
                             {submitLabel}

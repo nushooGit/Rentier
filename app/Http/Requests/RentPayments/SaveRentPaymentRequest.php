@@ -3,11 +3,13 @@
 namespace App\Http\Requests\RentPayments;
 
 use App\Models\RentPayment;
+use App\Models\Lease;
 use App\Models\Team;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SaveRentPaymentRequest extends FormRequest
 {
@@ -55,6 +57,46 @@ class SaveRentPaymentRequest extends FormRequest
         ];
     }
 
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if ($validator->errors()->isNotEmpty() || $this->input('payment_type') !== 'guarantee') {
+                return;
+            }
+
+            $team = $this->route('current_team');
+            $teamId = $team instanceof Team ? $team->id : null;
+            $lease = Lease::query()
+                ->where('team_id', $teamId)
+                ->find($this->integer('lease_id'));
+
+            if (! $lease) {
+                return;
+            }
+
+            $expectedGuarantee = (float) ($lease->deposit_amount ?? 0);
+
+            if ($expectedGuarantee <= 0) {
+                $validator->errors()->add('amount', 'Acest contract nu are garanție de încasat.');
+
+                return;
+            }
+
+            $payment = $this->route('payment');
+            $existingTotal = (float) RentPayment::query()
+                ->where('lease_id', $lease->id)
+                ->where('payment_type', 'guarantee')
+                ->when($payment instanceof RentPayment, fn ($query) => $query->whereKeyNot($payment->id))
+                ->sum('amount');
+            $newTotalCents = $this->moneyToCents($existingTotal) + $this->moneyToCents((float) $this->input('amount'));
+            $expectedGuaranteeCents = $this->moneyToCents($expectedGuarantee);
+
+            if ($newTotalCents > $expectedGuaranteeCents) {
+                $validator->errors()->add('amount', 'Suma garanției depășește garanția stabilită în contract.');
+            }
+        });
+    }
+
     /**
      * Get the validated data with field defaults.
      *
@@ -70,4 +112,10 @@ class SaveRentPaymentRequest extends FormRequest
             $this->validated(),
         );
     }
+
+    private function moneyToCents(float $amount): int
+    {
+        return (int) round($amount * 100);
+    }
 }
+

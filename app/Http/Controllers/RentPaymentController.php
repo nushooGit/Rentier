@@ -146,10 +146,10 @@ class RentPaymentController extends Controller
     private function paymentMethods(): array
     {
         return [
-            ['value' => 'cash', 'label' => 'Cash'],
-            ['value' => 'bank_transfer', 'label' => 'Bank transfer'],
+            ['value' => 'cash', 'label' => 'Numerar'],
+            ['value' => 'bank_transfer', 'label' => 'Transfer bancar'],
             ['value' => 'card', 'label' => 'Card'],
-            ['value' => 'other', 'label' => 'Other'],
+            ['value' => 'other', 'label' => 'Altă metodă'],
         ];
     }
 
@@ -167,7 +167,7 @@ class RentPaymentController extends Controller
     }
 
     /**
-     * @return array<int, array{id: int, label: string, property: string, renter: string, monthly_rent_amount: string, deposit_amount: string|null, currency: string}>
+     * @return array<int, array{id: int, label: string, property: string, renter: string, monthly_rent_amount: string, deposit_amount: string|null, guarantee_collected_amount: string, guarantee_remaining_amount: string, currency: string}>
      */
     private function leaseOptions(Team $currentTeam): array
     {
@@ -176,15 +176,25 @@ class RentPaymentController extends Controller
             ->whereBelongsTo($currentTeam)
             ->latest('start_date')
             ->get()
-            ->map(fn (Lease $lease) => [
-                'id' => $lease->id,
-                'label' => $lease->renter->name.' - '.$lease->property->name,
-                'property' => $lease->property->name,
-                'renter' => $lease->renter->name,
-                'monthly_rent_amount' => $lease->monthly_rent_amount,
-                'deposit_amount' => $lease->deposit_amount,
-                'currency' => $lease->currency,
-            ])
+            ->map(function (Lease $lease) {
+                $expectedGuarantee = (float) ($lease->deposit_amount ?? 0);
+                $collectedGuarantee = (float) RentPayment::query()
+                    ->where('lease_id', $lease->id)
+                    ->where('payment_type', 'guarantee')
+                    ->sum('amount');
+
+                return [
+                    'id' => $lease->id,
+                    'label' => $lease->renter->name.' - '.$lease->property->name,
+                    'property' => $lease->property->name,
+                    'renter' => $lease->renter->name,
+                    'monthly_rent_amount' => $lease->monthly_rent_amount,
+                    'deposit_amount' => $lease->deposit_amount,
+                    'guarantee_collected_amount' => $this->decimalString($collectedGuarantee),
+                    'guarantee_remaining_amount' => $this->decimalString(max($expectedGuarantee - $collectedGuarantee, 0)),
+                    'currency' => $lease->currency,
+                ];
+            })
             ->all();
     }
 
@@ -297,6 +307,9 @@ class RentPaymentController extends Controller
         if ($expectedAmount <= 0) {
             $statusKey = 'not_configured';
             $statusLabel = 'Garanție nesetată';
+        } elseif ($collectedAmount > $expectedAmount) {
+            $statusKey = 'paid';
+            $statusLabel = 'Garanție depășită';
         } elseif ($collectedAmount >= $expectedAmount) {
             $statusKey = 'paid';
             $statusLabel = 'Garanție achitată integral';
@@ -360,3 +373,4 @@ class RentPaymentController extends Controller
         return in_array($statusKey, ['paid', 'partial'], true) ? $statusKey : 'pending';
     }
 }
+

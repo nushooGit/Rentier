@@ -463,6 +463,86 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
     Carbon::setTestNow();
 });
 
+test('dashboard groups current month rent payments by payment method', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 3000,
+        'deposit_amount' => 0,
+        'rent_due_day' => 15,
+    ]);
+
+    foreach ([
+        ['amount' => 1000, 'method' => 'cash'],
+        ['amount' => 750, 'method' => 'bank_transfer'],
+        ['amount' => 250, 'method' => 'card'],
+        ['amount' => 125, 'method' => null],
+    ] as $payment) {
+        RentPayment::factory()->for($team)->create([
+            'lease_id' => $lease->id,
+            'property_id' => $lease->property_id,
+            'renter_id' => $lease->renter_id,
+            'amount' => $payment['amount'],
+            'payment_type' => 'rent',
+            'period_month' => 7,
+            'period_year' => 2026,
+            'payment_date' => '2026-07-05',
+            'method' => $payment['method'],
+        ]);
+    }
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 900,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+        'payment_date' => '2026-07-05',
+        'method' => 'cash',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 300,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '2125.00')
+            ->where('summary.current_month_rent_deductions', '300.00')
+            ->where('rentPaymentMethodBreakdown.0.method', 'bank_transfer')
+            ->where('rentPaymentMethodBreakdown.0.label', 'Transfer bancar')
+            ->where('rentPaymentMethodBreakdown.0.amount', '750.00')
+            ->where('rentPaymentMethodBreakdown.1.method', 'card')
+            ->where('rentPaymentMethodBreakdown.1.label', 'Card')
+            ->where('rentPaymentMethodBreakdown.1.amount', '250.00')
+            ->where('rentPaymentMethodBreakdown.2.method', 'cash')
+            ->where('rentPaymentMethodBreakdown.2.label', 'Numerar')
+            ->where('rentPaymentMethodBreakdown.2.amount', '1000.00')
+            ->where('rentPaymentMethodBreakdown.3.method', null)
+            ->where('rentPaymentMethodBreakdown.3.label', 'Nesetat')
+            ->where('rentPaymentMethodBreakdown.3.amount', '125.00')
+            ->has('rentPaymentMethodBreakdown', 4)
+        );
+
+    Carbon::setTestNow();
+});
+
 test('settled reimbursement and recovery affect operational cash in settlement month without changing rent collected', function () {
     Carbon::setTestNow('2026-07-10');
 

@@ -14,6 +14,8 @@ export type PaymentLeaseOption = {
     renter: string;
     monthly_rent_amount: string;
     deposit_amount: string | null;
+    guarantee_collected_amount: string;
+    guarantee_remaining_amount: string;
     currency: string;
 };
 

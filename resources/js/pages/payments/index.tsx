@@ -4,6 +4,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { formatMoney } from '@/lib/money';
 import {
     paymentMethodLabel,
     paymentTypeLabel,
@@ -14,17 +15,6 @@ import type { RentPayment } from '@/types';
 type Props = {
     payments: RentPayment[];
 };
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
-
-    return `${Number(amount).toLocaleString('ro-RO', {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
-}
 
 const monthNames = [
     'Ianuarie',
@@ -55,7 +45,14 @@ function paymentBadgeLabel(payment: RentPayment) {
 
 function paymentContext(payment: RentPayment) {
     if (payment.payment_type === 'guarantee' && payment.guarantee_summary) {
-        return `Garanție: ${formatMoney(
+        const collectedAmount = Number(payment.guarantee_summary.collected_amount);
+        const expectedAmount = Number(payment.guarantee_summary.expected_amount);
+        const prefix =
+            expectedAmount > 0 && collectedAmount > expectedAmount
+                ? 'Garanție depășită'
+                : 'Garanție';
+
+        return `${prefix}: ${formatMoney(
             payment.guarantee_summary.collected_amount,
             payment.currency,
         )} / ${formatMoney(
@@ -121,8 +118,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                             {payment.renter.name}
                                         </h2>
                                         <p className="mt-1 text-sm text-muted-foreground">
-                                            {payment.property.name} -{' '}
-                                            Tip:{' '}
+                                            {payment.property.name} - Tip:{' '}
                                             {paymentTypeLabel(
                                                 payment.payment_type,
                                             )}

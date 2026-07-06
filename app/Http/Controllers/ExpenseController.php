@@ -347,7 +347,7 @@ class ExpenseController extends Controller
                 'label' => $expense->settled_at ? 'Rambursat' : 'De rambursat',
                 'action_label' => $expense->settled_at ? null : 'Marchează ca rambursat',
                 'action_route' => $expense->settled_at ? null : route('expenses.mark-reimbursed', [$currentTeam, $expense], false),
-                'settled_label' => $expense->settled_at ? 'Rambursat la '.$expense->settled_at->translatedFormat('j F Y') : null,
+                'settled_label' => $expense->settled_at ? 'Rambursat la '.$this->romanianDate($expense->settled_at) : null,
             ];
         }
 
@@ -357,7 +357,7 @@ class ExpenseController extends Controller
                 'label' => $expense->settled_at ? 'Recuperat' : 'De recuperat',
                 'action_label' => $expense->settled_at ? null : 'Marchează ca recuperat',
                 'action_route' => $expense->settled_at ? null : route('expenses.mark-recovered', [$currentTeam, $expense], false),
-                'settled_label' => $expense->settled_at ? 'Recuperat la '.$expense->settled_at->translatedFormat('j F Y') : null,
+                'settled_label' => $expense->settled_at ? 'Recuperat la '.$this->romanianDate($expense->settled_at) : null,
             ];
         }
 
@@ -373,5 +373,25 @@ class ExpenseController extends Controller
     private function abortIfExpenseIsOutsideWorkspace(Team $currentTeam, Expense $expense): void
     {
         abort_unless($expense->team_id === $currentTeam->id, 404);
+    }
+
+    private function romanianDate(\DateTimeInterface $date): string
+    {
+        $months = [
+            1 => 'ianuarie',
+            2 => 'februarie',
+            3 => 'martie',
+            4 => 'aprilie',
+            5 => 'mai',
+            6 => 'iunie',
+            7 => 'iulie',
+            8 => 'august',
+            9 => 'septembrie',
+            10 => 'octombrie',
+            11 => 'noiembrie',
+            12 => 'decembrie',
+        ];
+
+        return (int) $date->format('j').' '.$months[(int) $date->format('n')].' '.$date->format('Y');
     }
 }
