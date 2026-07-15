@@ -17,23 +17,60 @@ use Inertia\Response;
 class ExpenseController extends Controller
 {
     /**
+     * @var array<string, string>
+     */
+    private const EXPENSE_CATEGORIES = [
+        'repairs' => 'Reparații',
+        'maintenance' => 'Întreținere',
+        'utilities' => 'Utilități',
+        'renovation' => 'Zugrăvit / renovări',
+        'taxes' => 'Taxe',
+        'other' => 'Altele',
+    ];
+
+    /**
      * Display a listing of expenses for the current workspace.
      */
     public function index(Request $request, Team $currentTeam): Response
     {
         Gate::authorize('viewAny', [Expense::class, $currentTeam]);
 
-        $expenses = Expense::query()
+        $selectedCategory = $this->selectedCategory($request->query('category'));
+
+        $expenseQuery = Expense::query()
             ->with(['property', 'lease.renter'])
-            ->whereBelongsTo($currentTeam)
+            ->whereBelongsTo($currentTeam);
+
+        if ($selectedCategory !== null) {
+            $expenseQuery->where(function ($query) use ($selectedCategory) {
+                if ($selectedCategory === 'other') {
+                    $query
+                        ->whereIn('category', ['other', 'insurance', 'admin'])
+                        ->orWhereNull('category')
+                        ->orWhere('category', '');
+
+                    return;
+                }
+
+                $query->where('category', $selectedCategory);
+            });
+        }
+
+        $expenseModels = $expenseQuery
             ->latest('expense_date')
             ->latest()
-            ->get()
+            ->get();
+
+        $expenses = $expenseModels
             ->map(fn (Expense $expense) => $this->serializeExpense($expense, $currentTeam));
 
         return Inertia::render('expenses/index', [
             'expenses' => $expenses,
             'expenseCategories' => $this->expenseCategories(),
+            'filters' => [
+                'category' => $selectedCategory,
+            ],
+            'summary' => $this->expenseSummary($expenseModels),
             'expensePaidByOptions' => $this->paidByOptions(),
             'expenseResponsiblePartyOptions' => $this->responsiblePartyOptions(),
             'expenseSettlementTypeOptions' => $this->settlementTypeOptions(),
@@ -198,15 +235,10 @@ class ExpenseController extends Controller
      */
     private function expenseCategories(): array
     {
-        return [
-            ['value' => 'maintenance', 'label' => 'Maintenance'],
-            ['value' => 'utilities', 'label' => 'Utilities'],
-            ['value' => 'taxes', 'label' => 'Taxes'],
-            ['value' => 'insurance', 'label' => 'Insurance'],
-            ['value' => 'admin', 'label' => 'Admin'],
-            ['value' => 'repairs', 'label' => 'Repairs'],
-            ['value' => 'other', 'label' => 'Other'],
-        ];
+        return collect(self::EXPENSE_CATEGORIES)
+            ->map(fn (string $label, string $value) => ['value' => $value, 'label' => $label])
+            ->values()
+            ->all();
     }
 
     /**
@@ -307,7 +339,7 @@ class ExpenseController extends Controller
             'property_id' => $expense->property_id,
             'lease_id' => $expense->lease_id,
             'title' => $expense->title,
-            'category' => $expense->category,
+            'category' => $this->normalizeExpenseCategory($expense->category),
             'amount' => $expense->amount,
             'currency' => $expense->currency,
             'expense_date' => $expense->expense_date->toDateString(),
@@ -393,5 +425,62 @@ class ExpenseController extends Controller
         ];
 
         return (int) $date->format('j').' '.$months[(int) $date->format('n')].' '.$date->format('Y');
+    }
+
+    private function selectedCategory(mixed $category): ?string
+    {
+        if (! is_string($category) || $category === '' || $category === 'all') {
+            return null;
+        }
+
+        return array_key_exists($category, self::EXPENSE_CATEGORIES) ? $category : null;
+    }
+
+    private function normalizeExpenseCategory(?string $category): string
+    {
+        return is_string($category) && array_key_exists($category, self::EXPENSE_CATEGORIES)
+            ? $category
+            : 'other';
+    }
+
+    /**
+     * @param  \Illuminate\Support\Collection<int, Expense>  $expenses
+     * @return array{total: string, owner_supported: string, tenant_supported: string, owner_paid: string, tenant_paid: string, by_category: array<string, string>}
+     */
+    private function expenseSummary(\Illuminate\Support\Collection $expenses): array
+    {
+        $activeExpenses = $expenses->reject(fn (Expense $expense) => $expense->status === 'cancelled');
+        $categoryTotals = collect(array_keys(self::EXPENSE_CATEGORIES))
+            ->mapWithKeys(fn (string $category) => [$category => 0.0])
+            ->all();
+
+        foreach ($activeExpenses as $expense) {
+            $category = $this->normalizeExpenseCategory($expense->category);
+            $categoryTotals[$category] += (float) $expense->amount;
+        }
+
+        return [
+            'total' => $this->decimalString($activeExpenses->sum(fn (Expense $expense) => (float) $expense->amount)),
+            'owner_supported' => $this->decimalString($activeExpenses
+                ->where('responsible_party', 'owner')
+                ->sum(fn (Expense $expense) => (float) $expense->amount)),
+            'tenant_supported' => $this->decimalString($activeExpenses
+                ->where('responsible_party', 'tenant')
+                ->sum(fn (Expense $expense) => (float) $expense->amount)),
+            'owner_paid' => $this->decimalString($activeExpenses
+                ->where('paid_by', 'owner')
+                ->sum(fn (Expense $expense) => (float) $expense->amount)),
+            'tenant_paid' => $this->decimalString($activeExpenses
+                ->where('paid_by', 'tenant')
+                ->sum(fn (Expense $expense) => (float) $expense->amount)),
+            'by_category' => collect($categoryTotals)
+                ->map(fn (float $amount) => $this->decimalString($amount))
+                ->all(),
+        ];
+    }
+
+    private function decimalString(float|int|string $amount): string
+    {
+        return number_format((float) $amount, 2, '.', '');
     }
 }

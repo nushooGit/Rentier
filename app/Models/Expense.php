@@ -56,6 +56,7 @@ class Expense extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
+        'category' => 'other',
         'paid_by' => 'owner',
         'responsible_party' => 'owner',
         'settlement_type' => 'none',

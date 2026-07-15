@@ -53,7 +53,7 @@ class SaveExpenseRequest extends FormRequest
                 Rule::exists('leases', 'id')->where(fn ($query) => $query->where('team_id', $teamId)),
             ],
             'title' => ['required', 'string', 'max:255'],
-            'category' => ['required', 'string', Rule::in(['maintenance', 'utilities', 'taxes', 'insurance', 'admin', 'repairs', 'other'])],
+            'category' => ['required', 'string', Rule::in(['repairs', 'maintenance', 'utilities', 'renovation', 'taxes', 'other', 'insurance', 'admin'])],
             'amount' => ['required', 'numeric', 'min:0'],
             'currency' => ['required', 'string', 'size:3'],
             'expense_date' => ['required', 'date'],
@@ -161,6 +161,10 @@ class SaveExpenseRequest extends FormRequest
             ],
             $this->validated(),
         );
+
+        if (in_array($validated['category'], ['insurance', 'admin'], true)) {
+            $validated['category'] = 'other';
+        }
 
         $validated['status'] = $this->derivedStatus(
             $validated['paid_by'],

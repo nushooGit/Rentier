@@ -26,7 +26,7 @@ class ExpenseFactory extends Factory
             ]),
             'lease_id' => null,
             'title' => fake()->randomElement(['Reparație instalație', 'Întreținere lunară', 'Asigurare locuință']),
-            'category' => fake()->randomElement(['maintenance', 'utilities', 'taxes', 'insurance', 'admin', 'repairs', 'other']),
+            'category' => fake()->randomElement(['repairs', 'maintenance', 'utilities', 'renovation', 'taxes', 'other']),
             'amount' => fake()->randomFloat(2, 100, 2500),
             'currency' => 'RON',
             'expense_date' => fake()->dateTimeBetween('-6 months', 'now')->format('Y-m-d'),

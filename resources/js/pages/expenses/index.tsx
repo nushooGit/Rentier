@@ -1,9 +1,17 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { CheckCircle2, Eye, Pencil, Plus, ReceiptText, Trash2 } from 'lucide-react';
+import {
+    CheckCircle2,
+    Eye,
+    Pencil,
+    Plus,
+    ReceiptText,
+    Trash2,
+} from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { formatMoney } from '@/lib/money';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
@@ -12,27 +20,41 @@ import {
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import { create, destroy, edit, index, show } from '@/routes/expenses';
-import type { Expense, ExpenseOption, ExpenseStatus } from '@/types';
+import type {
+    Expense,
+    ExpenseCategory,
+    ExpenseOption,
+    ExpenseStatus,
+    ExpenseSummary,
+} from '@/types';
 
 type Props = {
     expenses: Expense[];
+    expenseCategories: ExpenseOption<ExpenseCategory>[];
     expenseStatuses: ExpenseOption<ExpenseStatus>[];
+    filters: {
+        category: ExpenseCategory | null;
+    };
+    summary: ExpenseSummary;
 };
 
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
+const summaryItems = [
+    ['Total cheltuieli', 'total'],
+    ['Suportate de proprietar', 'owner_supported'],
+    ['Suportate de chiriaș', 'tenant_supported'],
+    ['Plătite de proprietar', 'owner_paid'],
+    ['Plătite de chiriaș', 'tenant_paid'],
+] as const;
 
-    return `${Number(amount).toLocaleString('ro-RO', {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
-}
-
-export default function ExpensesIndex({ expenses }: Props) {
+export default function ExpensesIndex({
+    expenses,
+    expenseCategories,
+    filters,
+    summary,
+}: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
+    const selectedCategory = filters.category;
 
     const deleteExpense = (expense: Expense) => {
         if (
@@ -56,6 +78,11 @@ export default function ExpensesIndex({ expenses }: Props) {
         });
     };
 
+    const categoryHref = (category: ExpenseCategory | null) =>
+        category
+            ? index(currentTeamSlug, { query: { category } })
+            : index(currentTeamSlug);
+
     return (
         <>
             <Head title="Cheltuieli" />
@@ -72,6 +99,66 @@ export default function ExpensesIndex({ expenses }: Props) {
                         </Link>
                     </Button>
                 </div>
+
+                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                    <Button
+                        variant={
+                            selectedCategory === null ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        asChild
+                    >
+                        <Link href={categoryHref(null)}>Toate</Link>
+                    </Button>
+                    {expenseCategories.map((category) => (
+                        <Button
+                            key={category.value}
+                            variant={
+                                selectedCategory === category.value
+                                    ? 'default'
+                                    : 'outline'
+                            }
+                            size="sm"
+                            asChild
+                        >
+                            <Link href={categoryHref(category.value)}>
+                                {expenseCategoryLabel(category.value)}
+                            </Link>
+                        </Button>
+                    ))}
+                </div>
+
+                <section className="grid gap-2.5 rounded-lg border p-3 sm:p-3.5 lg:grid-cols-[1fr_1.1fr]">
+                    <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
+                        {summaryItems.map(([label, key]) => (
+                            <div key={key} className="rounded-md border p-2.5">
+                                <p className="text-xs text-muted-foreground">
+                                    {label}
+                                </p>
+                                <p className="mt-1 text-sm font-medium">
+                                    {formatMoney(summary[key])}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="grid gap-x-4 gap-y-1.5 text-sm sm:grid-cols-2 lg:border-l lg:pl-3">
+                        {expenseCategories.map((category) => (
+                            <div
+                                key={category.value}
+                                className="flex items-center justify-between gap-3"
+                            >
+                                <span className="text-muted-foreground">
+                                    {expenseCategoryLabel(category.value)}
+                                </span>
+                                <span className="font-medium">
+                                    {formatMoney(
+                                        summary.by_category[category.value],
+                                    )}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
                 {expenses.length > 0 ? (
                     <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
@@ -112,7 +199,7 @@ export default function ExpensesIndex({ expenses }: Props) {
                                 </div>
                                 <div className="flex flex-wrap gap-1.5 text-xs">
                                     <Badge variant="outline">
-                                        Platit de:{' '}
+                                        Plătit de:{' '}
                                         {expensePaidByLabel(expense.paid_by)}
                                     </Badge>
                                     <Badge variant="outline">
@@ -146,8 +233,8 @@ export default function ExpensesIndex({ expenses }: Props) {
                                         }
                                     >
                                         {expense.affects_owner_profit
-                                            ? 'Afecteaza profitul'
-                                            : 'Nu afecteaza profitul'}
+                                            ? 'Afectează profitul'
+                                            : 'Nu afectează profitul'}
                                     </Badge>
                                 </div>
                                 {expense.settlement_state.settled_label ? (
@@ -166,7 +253,10 @@ export default function ExpensesIndex({ expenses }: Props) {
                                             }
                                         >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            {expense.settlement_state.action_label}
+                                            {
+                                                expense.settlement_state
+                                                    .action_label
+                                            }
                                         </Button>
                                     ) : null}
                                     <Button variant="ghost" size="sm" asChild>
@@ -207,7 +297,7 @@ export default function ExpensesIndex({ expenses }: Props) {
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <ReceiptText className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există cheltuieli încă
+                            Nu există cheltuieli
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Adaugă prima cheltuială pentru o proprietate.

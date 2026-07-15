@@ -1,20 +1,11 @@
 export type ExpenseCategory =
-    | 'maintenance'
-    | 'utilities'
-    | 'taxes'
-    | 'insurance'
-    | 'admin'
-    | 'repairs'
-    | 'other';
+    'repairs' | 'maintenance' | 'utilities' | 'renovation' | 'taxes' | 'other';
 
 export type ExpenseParty = 'owner' | 'tenant';
 export type ExpensePaidBy = ExpenseParty;
 export type ExpenseResponsibleParty = ExpenseParty;
 export type ExpenseSettlementType =
-    | 'none'
-    | 'deduct_from_rent'
-    | 'deduct_from_utilities'
-    | 'reimburse';
+    'none' | 'deduct_from_rent' | 'deduct_from_utilities' | 'reimburse';
 export type ExpenseStatus = 'paid' | 'pending' | 'reimbursable' | 'cancelled';
 
 export type ExpenseOption<TValue extends string = string> = {
@@ -79,4 +70,13 @@ export type Expense = {
     } | null;
     created_at: string | null;
     updated_at: string | null;
+};
+
+export type ExpenseSummary = {
+    total: string;
+    owner_supported: string;
+    tenant_supported: string;
+    owner_paid: string;
+    tenant_paid: string;
+    by_category: Record<ExpenseCategory, string>;
 };

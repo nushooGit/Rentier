@@ -121,9 +121,12 @@ export default function ExpenseForm({
         expense?.paid_by ?? 'owner',
     );
     const [responsibleParty, setResponsibleParty] =
-        useState<ExpenseResponsibleParty>(expense?.responsible_party ?? 'owner');
-    const [settlementType, setSettlementType] =
-        useState<ExpenseSettlementType>(expense?.settlement_type ?? 'none');
+        useState<ExpenseResponsibleParty>(
+            expense?.responsible_party ?? 'owner',
+        );
+    const [settlementType, setSettlementType] = useState<ExpenseSettlementType>(
+        expense?.settlement_type ?? 'none',
+    );
     const propertyLeases = useMemo(
         () =>
             leases.filter(
@@ -148,10 +151,7 @@ export default function ExpenseForm({
         : expenseResponsiblePartyOptions.filter(
               (option) => option.value === 'owner',
           );
-    const allowedSettlements = allowedSettlementTypes(
-        paidBy,
-        responsibleParty,
-    );
+    const allowedSettlements = allowedSettlementTypes(paidBy, responsibleParty);
     const effectiveSettlementType = allowedSettlements.includes(settlementType)
         ? settlementType
         : allowedSettlements[0];
@@ -202,9 +202,7 @@ export default function ExpenseForm({
                                 id="category"
                                 name="category"
                                 className={selectClassName}
-                                defaultValue={
-                                    expense?.category ?? 'maintenance'
-                                }
+                                defaultValue={expense?.category ?? 'other'}
                                 required
                                 data-test="expense-category-select"
                             >
@@ -219,7 +217,6 @@ export default function ExpenseForm({
                             </select>
                             <InputError message={errors.category} />
                         </Field>
-
                     </FormSection>
 
                     <FormSection title="Proprietate și contract">

@@ -115,6 +115,60 @@ test('expense validation requires core fields and same property lease', function
     ]);
 });
 
+test('expense category is required on create and update', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'category' => 'repairs',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'category' => '',
+        ]))
+        ->assertSessionHasErrors(['category']);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.update', [$team, $expense]), validExpensePayload($property, [
+            'category' => '',
+        ]))
+        ->assertSessionHasErrors(['category']);
+});
+
+test('expenses without an explicit category default safely to other', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $expense = Expense::create([
+        'team_id' => $team->id,
+        'property_id' => $property->id,
+        'title' => 'Cheltuiala veche',
+        'amount' => 100,
+        'currency' => 'RON',
+        'expense_date' => '2026-07-10',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    expect($expense->category)->toBe('other');
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.category', 'other')
+            ->where('summary.by_category.other', '100.00')
+        );
+});
+
 test('expenses default settlement fields to owner responsibility without settlement', function () {
     $team = Team::factory()->create();
     $property = Property::factory()->for($team)->create();
@@ -133,6 +187,159 @@ test('expenses default settlement fields to owner responsibility without settlem
     expect($expense->paid_by)->toBe('owner')
         ->and($expense->responsible_party)->toBe('owner')
         ->and($expense->settlement_type)->toBe('none');
+});
+
+test('expenses index can filter by repairs', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'title' => 'Reparatie centrala',
+        'category' => 'repairs',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'title' => 'Intretinere bloc',
+        'category' => 'maintenance',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', [$team, 'category' => 'repairs']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.category', 'repairs')
+            ->has('expenses', 1)
+            ->where('expenses.0.category', 'repairs')
+            ->where('expenses.0.title', 'Reparatie centrala')
+        );
+});
+
+test('expenses index can filter by maintenance', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'title' => 'Reparatie usa',
+        'category' => 'repairs',
+    ]);
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'title' => 'Intretinere luna iulie',
+        'category' => 'maintenance',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', [$team, 'category' => 'maintenance']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.category', 'maintenance')
+            ->has('expenses', 1)
+            ->where('expenses.0.category', 'maintenance')
+            ->where('expenses.0.title', 'Intretinere luna iulie')
+        );
+});
+
+test('expense summary totals categories and separates paid from supported parties', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+    ]);
+
+    foreach ([
+        ['category' => 'repairs', 'amount' => 100, 'paid_by' => 'owner', 'responsible_party' => 'owner', 'settlement_type' => 'none'],
+        ['category' => 'maintenance', 'amount' => 50, 'paid_by' => 'tenant', 'responsible_party' => 'tenant', 'settlement_type' => 'none'],
+        ['category' => 'utilities', 'amount' => 70, 'paid_by' => 'tenant', 'responsible_party' => 'tenant', 'settlement_type' => 'none'],
+        ['category' => 'renovation', 'amount' => 30, 'paid_by' => 'owner', 'responsible_party' => 'tenant', 'settlement_type' => 'reimburse'],
+        ['category' => 'taxes', 'amount' => 20, 'paid_by' => 'tenant', 'responsible_party' => 'owner', 'settlement_type' => 'reimburse'],
+    ] as $expense) {
+        Expense::factory()->for($team)->create([
+            ...$expense,
+            'property_id' => $lease->property_id,
+            'lease_id' => $lease->id,
+            'expense_date' => '2026-07-10',
+            'status' => $expense['settlement_type'] === 'reimburse' ? 'reimbursable' : 'paid',
+        ]);
+    }
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.total', '270.00')
+            ->where('summary.owner_supported', '120.00')
+            ->where('summary.tenant_supported', '150.00')
+            ->where('summary.owner_paid', '130.00')
+            ->where('summary.tenant_paid', '140.00')
+            ->where('summary.by_category.repairs', '100.00')
+            ->where('summary.by_category.maintenance', '50.00')
+            ->where('summary.by_category.utilities', '70.00')
+            ->where('summary.by_category.renovation', '30.00')
+            ->where('summary.by_category.taxes', '20.00')
+            ->where('summary.by_category.other', '0.00')
+        );
+});
+
+test('tenant responsible utilities do not count as owner supported expenses', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'category' => 'utilities',
+        'amount' => 70,
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.owner_supported', '0.00')
+            ->where('summary.tenant_supported', '70.00')
+        );
+});
+
+test('owner responsible repairs count as owner supported expenses', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'category' => 'repairs',
+        'amount' => 120,
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.owner_supported', '120.00')
+            ->where('summary.tenant_supported', '0.00')
+        );
 });
 
 test('expense validation rejects invalid settlement combinations', function (array $overrides) {

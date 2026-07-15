@@ -7,18 +7,17 @@ import type {
 } from '@/types';
 
 export const expenseCategoryLabels: Record<ExpenseCategory, string> = {
+    repairs: 'Reparații',
     maintenance: 'Întreținere',
     utilities: 'Utilități',
+    renovation: 'Zugrăvit / renovări',
     taxes: 'Taxe',
-    insurance: 'Asigurare',
-    admin: 'Administrare',
-    repairs: 'Reparații',
-    other: 'Altă categorie',
+    other: 'Altele',
 };
 
 export const expensePaidByLabels: Record<string, string> = {
     owner: 'Proprietar',
-    tenant: 'Chirias',
+    tenant: 'Chiriaș',
     landlord: 'Proprietar',
     renter: 'Chiriaș',
     other: 'Altul',
@@ -36,17 +35,17 @@ export const expenseResponsiblePartyLabels: Record<
     string
 > = {
     owner: 'Proprietar',
-    tenant: 'Chirias',
+    tenant: 'Chiriaș',
 };
 
 export const expenseSettlementTypeLabels: Record<
     ExpenseSettlementType,
     string
 > = {
-    none: 'Nu se deconteaza',
+    none: 'Nu se decontează',
     deduct_from_rent: 'Se scade din chirie',
-    deduct_from_utilities: 'Se scade din utilitati',
-    reimburse: 'Se ramburseaza separat',
+    deduct_from_utilities: 'Se scade din utilități',
+    reimburse: 'Se rambursează separat',
 };
 
 export function expenseCategoryLabel(value: ExpenseCategory) {
