@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\TeamRole;
+use App\Models\Expense;
 use App\Models\Lease;
 use App\Models\Property;
 use App\Models\RentPayment;
@@ -181,13 +182,15 @@ test('property card shows paid rent status for the current month', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'paid')
-            ->where('properties.0.rent_payment_status.label', 'Plătită luna asta')
+            ->where('properties.0.rent_payment_status.label', 'Chirie plătită luna asta')
+            ->where('properties.0.rent_payment_status.collected_amount', '2500.00')
+            ->where('properties.0.rent_payment_status.rent_deduction_amount', '0.00')
         );
 
     Carbon::setTestNow();
 });
 
-test('property card shows partial rent status for the current month', function () {
+test('property card shows partial paid rent status for the current month', function () {
     Carbon::setTestNow('2026-07-15');
 
     $user = User::factory()->create();
@@ -216,7 +219,96 @@ test('property card shows partial rent status for the current month', function (
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'partial')
-            ->where('properties.0.rent_payment_status.label', 'Plătită parțial')
+            ->where('properties.0.rent_payment_status.label', 'Chirie plătită parțial')
+            ->where('properties.0.rent_payment_status.collected_amount', '1000.00')
+            ->where('properties.0.rent_payment_status.rent_deduction_amount', '0.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows partial covered rent status for rent deductions without payments', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $lease->id,
+        'amount' => 1000,
+        'expense_date' => '2026-07-10',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'partial')
+            ->where('properties.0.rent_payment_status.label', 'Chirie acoperită parțial')
+            ->where('properties.0.rent_payment_status.collected_amount', '0.00')
+            ->where('properties.0.rent_payment_status.rent_deduction_amount', '1000.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property card shows covered rent status when payments and deductions cover rent', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $property->id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 2000,
+        'period_month' => 7,
+        'period_year' => 2026,
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $lease->id,
+        'amount' => 500,
+        'expense_date' => '2026-07-10',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'paid')
+            ->where('properties.0.rent_payment_status.label', 'Chirie acoperită luna asta')
+            ->where('properties.0.rent_payment_status.collected_amount', '2000.00')
+            ->where('properties.0.rent_payment_status.rent_deduction_amount', '500.00')
         );
 
     Carbon::setTestNow();
@@ -243,7 +335,7 @@ test('property card shows upcoming rent status before due date', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'upcoming')
-            ->where('properties.0.rent_payment_status.label', 'Mai sunt 2 zile până la plată')
+            ->where('properties.0.rent_payment_status.label', 'Mai sunt 2 zile până la chirie')
             ->where('properties.0.rent_payment_status.days', 2)
             ->where('properties.0.rent_payment_status.due_date', '2026-07-05')
         );
@@ -272,7 +364,7 @@ test('property card shows due today rent status on due date', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'due_today')
-            ->where('properties.0.rent_payment_status.label', 'Scadentă azi')
+            ->where('properties.0.rent_payment_status.label', 'Chirie scadentă azi')
             ->where('properties.0.rent_payment_status.days', 0)
         );
 
@@ -300,7 +392,7 @@ test('property card shows overdue rent status after due date', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'overdue')
-            ->where('properties.0.rent_payment_status.label', 'Întârziată cu 3 zile')
+            ->where('properties.0.rent_payment_status.label', 'Chirie întârziată cu 3 zile')
             ->where('properties.0.rent_payment_status.days', 3)
         );
 

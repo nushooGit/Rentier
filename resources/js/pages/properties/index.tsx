@@ -39,6 +39,10 @@ function formatMoney(amount?: string | null, currency = 'RON') {
     })} ${currency}`;
 }
 
+function hasPositiveAmount(amount?: string | null) {
+    return Number(amount ?? 0) > 0;
+}
+
 const rentStatusClassNames: Record<RentPaymentStatusKey, string> = {
     paid: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     partial: 'border-amber-200 bg-amber-50 text-amber-700',
@@ -121,12 +125,45 @@ export default function PropertiesIndex({ properties }: Props) {
                                         {property.address_line}
                                     </span>
                                     {property.rent_payment_status ? (
-                                        <Badge
-                                            variant="outline"
-                                            className={`mt-1 ${rentStatusClassNames[property.rent_payment_status.key]}`}
-                                        >
-                                            {property.rent_payment_status.label}
-                                        </Badge>
+                                        <div className="mt-1 grid gap-1">
+                                            <Badge
+                                                variant="outline"
+                                                className={`w-fit ${rentStatusClassNames[property.rent_payment_status.key]}`}
+                                            >
+                                                {
+                                                    property.rent_payment_status
+                                                        .label
+                                                }
+                                            </Badge>
+                                            {hasPositiveAmount(
+                                                property.rent_payment_status
+                                                    .rent_deduction_amount,
+                                            ) ? (
+                                                <span className="text-xs text-muted-foreground">
+                                                    Scăzut din chirie:{' '}
+                                                    {formatMoney(
+                                                        property
+                                                            .rent_payment_status
+                                                            .rent_deduction_amount,
+                                                        property.currency,
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                            {hasPositiveAmount(
+                                                property.rent_payment_status
+                                                    .collected_amount,
+                                            ) ? (
+                                                <span className="text-xs text-muted-foreground">
+                                                    Încasat:{' '}
+                                                    {formatMoney(
+                                                        property
+                                                            .rent_payment_status
+                                                            .collected_amount,
+                                                        property.currency,
+                                                    )}
+                                                </span>
+                                            ) : null}
+                                        </div>
                                     ) : null}
                                 </div>
 

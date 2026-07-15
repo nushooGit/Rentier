@@ -133,7 +133,7 @@ class Property extends Model
     /**
      * Get the current rent payment status for the active lease.
      *
-     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, remaining_amount: string}|null
+     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string}|null
      */
     public function currentRentPaymentStatus(?CarbonInterface $date = null): ?array
     {

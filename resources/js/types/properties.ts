@@ -12,6 +12,11 @@ export type RentPaymentStatus = {
     label: string;
     days: number | null;
     due_date: string;
+    expected_amount: string;
+    collected_amount: string;
+    rent_deduction_amount: string;
+    covered_amount: string;
+    remaining_amount: string;
 };
 
 export type Property = {

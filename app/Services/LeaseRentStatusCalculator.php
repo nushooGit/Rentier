@@ -24,22 +24,30 @@ class LeaseRentStatusCalculator
         $dueDate = $this->dueDateForMonth($lease, $date);
 
         if ($coveredAmount >= $expectedAmount) {
-            return $this->rentPaymentStatus('paid', 'Plătită luna asta', null, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
+            $label = $rentDeductionAmount > 0
+                ? 'Chirie acoperită luna asta'
+                : 'Chirie plătită luna asta';
+
+            return $this->rentPaymentStatus('paid', $label, null, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
         }
 
         if ($coveredAmount > 0) {
-            return $this->rentPaymentStatus('partial', 'Plătită parțial', null, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
+            $label = $rentDeductionAmount > 0
+                ? 'Chirie acoperită parțial'
+                : 'Chirie plătită parțial';
+
+            return $this->rentPaymentStatus('partial', $label, null, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
         }
 
         if ($date->isSameDay($dueDate)) {
-            return $this->rentPaymentStatus('due_today', 'Scadentă azi', 0, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
+            return $this->rentPaymentStatus('due_today', 'Chirie scadentă azi', 0, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
         }
 
         if ($date->isBefore($dueDate)) {
             $days = (int) $date->diffInDays($dueDate);
             $label = $days === 1
-                ? 'Mai este 1 zi până la plată'
-                : "Mai sunt {$days} zile până la plată";
+                ? 'Mai este 1 zi până la chirie'
+                : "Mai sunt {$days} zile până la chirie";
 
             return $this->rentPaymentStatus(
                 'upcoming',
@@ -58,7 +66,7 @@ class LeaseRentStatusCalculator
 
         return $this->rentPaymentStatus(
             'overdue',
-            "Întârziată cu {$days} zile",
+            "Chirie întârziată cu {$days} zile",
             $days,
             $dueDate,
             $expectedAmount,
