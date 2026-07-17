@@ -166,6 +166,39 @@ export default function PropertyShow({ property }: Props) {
                             )}
                         />
                     </dl>
+                    {property.active_contract_guarantee_notice ? (
+                        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-sm text-amber-900">
+                            <p className="font-medium">
+                                {
+                                    property.active_contract_guarantee_notice
+                                        .message
+                                }
+                            </p>
+                            <div className="mt-1 grid gap-1 text-xs sm:grid-cols-2">
+                                {property.active_contract_guarantee_notice
+                                    .property_guarantee ? (
+                                    <span>
+                                        Garanție informativă proprietate:{' '}
+                                        {formatMoney(
+                                            property
+                                                .active_contract_guarantee_notice
+                                                .property_guarantee,
+                                            property.currency,
+                                        )}
+                                    </span>
+                                ) : null}
+                                <span>
+                                    Garanție contract activ:{' '}
+                                    {formatMoney(
+                                        property
+                                            .active_contract_guarantee_notice
+                                            .contract_guarantee,
+                                        property.currency,
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                    ) : null}
                 </section>
 
                 {property.notes ? (

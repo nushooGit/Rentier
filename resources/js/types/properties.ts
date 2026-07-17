@@ -38,6 +38,11 @@ export type Property = {
     currency: string;
     rent_payment_status?: RentPaymentStatus | null;
     deposit_amount?: string | null;
+    active_contract_guarantee_notice?: {
+        message: string;
+        property_guarantee: string | null;
+        contract_guarantee: string;
+    } | null;
     notes?: string | null;
     created_at?: string | null;
     updated_at?: string | null;

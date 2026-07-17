@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Properties\SavePropertyRequest;
+use App\Models\Lease;
 use App\Models\Property;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
@@ -154,6 +155,8 @@ class PropertyController extends Controller
      */
     private function serializeProperty(Property $property): array
     {
+        $activeLease = $property->activeLease();
+
         return [
             'id' => $property->id,
             'team_id' => $property->team_id,
@@ -173,10 +176,48 @@ class PropertyController extends Controller
             'currency' => $property->currency,
             'rent_payment_status' => $property->currentRentPaymentStatus(),
             'deposit_amount' => $property->deposit_amount,
+            'active_contract_guarantee_notice' => $this->activeContractGuaranteeNotice($property, $activeLease),
             'notes' => $property->notes,
             'created_at' => $property->created_at?->toISOString(),
             'updated_at' => $property->updated_at?->toISOString(),
         ];
+    }
+
+    /**
+     * @return array{message: string, property_guarantee: string|null, contract_guarantee: string}|null
+     */
+    private function activeContractGuaranteeNotice(Property $property, ?Lease $activeLease): ?array
+    {
+        if (! $activeLease || (float) ($activeLease->deposit_amount ?? 0) <= 0) {
+            return null;
+        }
+
+        $contractGuarantee = $this->decimalString($activeLease->deposit_amount);
+        $propertyGuarantee = (float) ($property->deposit_amount ?? 0) > 0
+            ? $this->decimalString($property->deposit_amount)
+            : null;
+
+        if ($propertyGuarantee !== null && $propertyGuarantee === $contractGuarantee) {
+            return null;
+        }
+
+        return [
+            'message' => $propertyGuarantee === null
+                ? 'În contractul actual, garanția este '.$this->formatMoney($contractGuarantee, $property->currency).'.'
+                : 'În contractul actual, garanția a fost negociată la '.$this->formatMoney($contractGuarantee, $property->currency).'.',
+            'property_guarantee' => $propertyGuarantee,
+            'contract_guarantee' => $contractGuarantee,
+        ];
+    }
+
+    private function decimalString(float|int|string|null $amount): string
+    {
+        return number_format((float) ($amount ?? 0), 2, '.', '');
+    }
+
+    private function formatMoney(string $amount, string $currency): string
+    {
+        return number_format((float) $amount, 0, ',', '.').' '.$currency;
     }
 
     private function abortIfPropertyIsOutsideWorkspace(Team $currentTeam, Property $property): void

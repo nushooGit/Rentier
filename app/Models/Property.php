@@ -147,8 +147,10 @@ class Property extends Model
         return app(LeaseRentStatusCalculator::class)->forLease($lease, $date);
     }
 
-    private function activeLease(CarbonInterface $date): ?Lease
+    public function activeLease(?CarbonInterface $date = null): ?Lease
     {
+        $date ??= today();
+
         return $this->leases()
             ->whereDate('start_date', '<=', $date)
             ->where(function ($query) use ($date) {

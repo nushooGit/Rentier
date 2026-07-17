@@ -482,6 +482,120 @@ test('property with expired lease shows available occupancy status', function ()
     Carbon::setTestNow();
 });
 
+test('property details includes negotiated active contract guarantee notice when it differs from property guarantee', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'deposit_amount' => 2000,
+        'currency' => 'RON',
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'deposit_amount' => 500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.active_contract_guarantee_notice.message', 'În contractul actual, garanția a fost negociată la 500 RON.')
+            ->where('property.active_contract_guarantee_notice.property_guarantee', '2000.00')
+            ->where('property.active_contract_guarantee_notice.contract_guarantee', '500.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property details does not include guarantee notice when active contract guarantee equals property guarantee', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'deposit_amount' => 500,
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'deposit_amount' => 500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.active_contract_guarantee_notice', null)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property details does not include guarantee notice without active contract', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'deposit_amount' => 2000,
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-08-01',
+        'end_date' => '2027-07-01',
+        'deposit_amount' => 500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.active_contract_guarantee_notice', null)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('property details includes active contract guarantee notice when property guarantee is null', function () {
+    Carbon::setTestNow('2026-07-15');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'deposit_amount' => null,
+        'currency' => 'RON',
+    ]);
+
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'deposit_amount' => 500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.active_contract_guarantee_notice.message', 'În contractul actual, garanția este 500 RON.')
+            ->where('property.active_contract_guarantee_notice.property_guarantee', null)
+            ->where('property.active_contract_guarantee_notice.contract_guarantee', '500.00')
+        );
+
+    Carbon::setTestNow();
+});
+
 test('workspace members can view and update properties regardless of team role', function () {
     $owner = User::factory()->create();
     $member = User::factory()->create();
