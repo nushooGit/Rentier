@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -143,6 +143,10 @@ export default function ExpenseForm({
             ),
         [expenseDate, propertyLeases, selectedPropertyId],
     );
+    const effectivePaidBy = hasActiveTenantContext ? paidBy : 'owner';
+    const effectiveResponsibleParty = hasActiveTenantContext
+        ? responsibleParty
+        : 'owner';
     const visiblePaidByOptions = hasActiveTenantContext
         ? expensePaidByOptions
         : expensePaidByOptions.filter((option) => option.value === 'owner');
@@ -151,7 +155,10 @@ export default function ExpenseForm({
         : expenseResponsiblePartyOptions.filter(
               (option) => option.value === 'owner',
           );
-    const allowedSettlements = allowedSettlementTypes(paidBy, responsibleParty);
+    const allowedSettlements = allowedSettlementTypes(
+        effectivePaidBy,
+        effectiveResponsibleParty,
+    );
     const effectiveSettlementType = allowedSettlements.includes(settlementType)
         ? settlementType
         : allowedSettlements[0];
@@ -160,29 +167,12 @@ export default function ExpenseForm({
             allowedSettlements.includes(settlementTypeOption.value),
     );
     const settlementHelpText =
-        paidBy === 'owner' && responsibleParty === 'tenant'
+        effectivePaidBy === 'owner' && effectiveResponsibleParty === 'tenant'
             ? 'Dacă proprietarul plătește o cheltuială suportată de chiriaș, aceasta se recuperează de la chiriaș.'
-            : paidBy === 'tenant' && responsibleParty === 'owner'
+            : effectivePaidBy === 'tenant' &&
+                effectiveResponsibleParty === 'owner'
               ? 'Dacă chiriașul plătește o cheltuială suportată de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
               : null;
-
-    useEffect(() => {
-        if (hasActiveTenantContext) {
-            return;
-        }
-
-        setPaidBy('owner');
-        setResponsibleParty('owner');
-        setSettlementType('none');
-    }, [hasActiveTenantContext]);
-
-    useEffect(() => {
-        if (allowedSettlements.includes(settlementType)) {
-            return;
-        }
-
-        setSettlementType(allowedSettlements[0]);
-    }, [allowedSettlements, settlementType]);
 
     return (
         <Form {...action} className="space-y-3.5">
@@ -328,7 +318,7 @@ export default function ExpenseForm({
                                 id="paid_by"
                                 name="paid_by"
                                 className={selectClassName}
-                                value={paidBy}
+                                value={effectivePaidBy}
                                 onChange={(event) =>
                                     setPaidBy(
                                         event.target.value as ExpensePaidBy,
@@ -356,7 +346,7 @@ export default function ExpenseForm({
                                 id="responsible_party"
                                 name="responsible_party"
                                 className={selectClassName}
-                                value={responsibleParty}
+                                value={effectiveResponsibleParty}
                                 onChange={(event) =>
                                     setResponsibleParty(
                                         event.target
@@ -404,8 +394,8 @@ export default function ExpenseForm({
                                         >
                                             {expenseSettlementTypeLabel(
                                                 settlementType.value,
-                                                paidBy,
-                                                responsibleParty,
+                                                effectivePaidBy,
+                                                effectiveResponsibleParty,
                                             )}
                                         </option>
                                     ),

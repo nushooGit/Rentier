@@ -4,21 +4,14 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import PaymentForm from '@/pages/payments/form';
 import { index, store } from '@/routes/payments';
-import type {
-    PaymentLeaseOption,
-    PaymentMethod,
-    PaymentOption,
-} from '@/types';
+import type { PaymentLeaseOption, PaymentMethod, PaymentOption } from '@/types';
 
 type Props = {
     leases: PaymentLeaseOption[];
     paymentMethods: PaymentOption<PaymentMethod>[];
 };
 
-export default function PaymentCreate({
-    leases,
-    paymentMethods,
-}: Props) {
+export default function PaymentCreate({ leases, paymentMethods }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
 

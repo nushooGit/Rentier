@@ -37,7 +37,8 @@ export type RentPayment = {
         expected_amount: string;
         collected_amount: string;
         remaining_amount: string;
-        status_key: 'paid' | 'partial' | 'pending' | 'not_configured' | 'unpaid';
+        status_key:
+            'paid' | 'partial' | 'pending' | 'not_configured' | 'unpaid';
         status_label: string;
     };
     guarantee_summary: {

@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\RentPayments;
 
-use App\Models\RentPayment;
 use App\Models\Lease;
+use App\Models\RentPayment;
 use App\Models\Team;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
@@ -118,4 +118,3 @@ class SaveRentPaymentRequest extends FormRequest
         return (int) round($amount * 100);
     }
 }
-

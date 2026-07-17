@@ -373,4 +373,3 @@ class RentPaymentController extends Controller
         return in_array($statusKey, ['paid', 'partial'], true) ? $statusKey : 'pending';
     }
 }
-

@@ -271,8 +271,8 @@ export default function LeaseForm({
                                 selectată.
                             </p>
                             <p>
-                                Ex: 5 înseamnă că plata este scadentă în
-                                fiecare lună pe data de 5.
+                                Ex: 5 înseamnă că plata este scadentă în fiecare
+                                lună pe data de 5.
                             </p>
                         </div>
                     </FormSection>

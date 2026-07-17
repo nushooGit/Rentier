@@ -3,13 +3,13 @@ import { Eye, FileText, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatDateRangeLong } from '@/lib/date';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { formatDateRangeLong } from '@/lib/date';
 import { leaseStatusLabel } from '@/pages/leases/labels';
 import { create, destroy, edit, index, show } from '@/routes/leases';
 import type { Lease, LeaseOption, LeaseStatus } from '@/types';

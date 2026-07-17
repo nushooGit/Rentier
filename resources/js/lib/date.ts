@@ -54,10 +54,7 @@ function createUtcDate(date?: string | null) {
     );
 }
 
-export function formatDateShort(
-    date?: string | null,
-    locale = DEFAULT_LOCALE,
-) {
+export function formatDateShort(date?: string | null, locale = DEFAULT_LOCALE) {
     if (!date) {
         return 'Nesetat';
     }
@@ -82,10 +79,7 @@ export function formatDateShort(
     }).format(parsedDate);
 }
 
-export function formatDateLong(
-    date?: string | null,
-    locale = DEFAULT_LOCALE,
-) {
+export function formatDateLong(date?: string | null, locale = DEFAULT_LOCALE) {
     if (!date) {
         return 'Nesetat';
     }

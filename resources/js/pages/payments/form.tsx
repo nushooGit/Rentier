@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatMoney } from '@/lib/money';
-import {
-    paymentMethodLabel,
-    paymentTypeLabel,
-} from '@/pages/payments/labels';
+import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
 import type {
     PaymentLeaseOption,
     PaymentMethod,
@@ -263,9 +260,7 @@ export default function PaymentForm({
                                         )}
                                         required
                                     />
-                                    <InputError
-                                        message={errors.period_month}
-                                    />
+                                    <InputError message={errors.period_month} />
                                 </Field>
 
                                 <Field>
@@ -320,8 +315,8 @@ export default function PaymentForm({
                                         </p>
                                         {guaranteeIsBlocked ? (
                                             <p className="font-medium text-destructive">
-                                                Acest contract nu mai are garanție
-                                                de încasat.
+                                                Acest contract nu mai are
+                                                garanție de încasat.
                                             </p>
                                         ) : null}
                                     </div>

@@ -9,6 +9,7 @@ use App\Models\Property;
 use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -502,10 +503,10 @@ class ExpenseController extends Controller
     }
 
     /**
-     * @param  \Illuminate\Support\Collection<int, Expense>  $expenses
+     * @param  Collection<int, Expense>  $expenses
      * @return array{total: string, owner_supported: string, tenant_supported: string, owner_paid: string, tenant_paid: string, by_category: array<string, string>}
      */
-    private function expenseSummary(\Illuminate\Support\Collection $expenses): array
+    private function expenseSummary(Collection $expenses): array
     {
         $activeExpenses = $expenses->reject(fn (Expense $expense) => $expense->status === 'cancelled');
         $categoryTotals = collect(array_keys(self::EXPENSE_CATEGORIES))
