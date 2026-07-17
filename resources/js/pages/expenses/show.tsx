@@ -149,6 +149,8 @@ export default function ExpenseShow({ expense }: Props) {
                             label="Decontare"
                             value={expenseSettlementTypeLabel(
                                 expense.settlement_type,
+                                expense.paid_by,
+                                expense.responsible_party,
                             )}
                         />
                         <Detail

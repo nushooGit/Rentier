@@ -404,6 +404,347 @@ test('dashboard separates tenant paid owner expenses that are not rent deduction
     Carbon::setTestNow();
 });
 
+test('dashboard keeps unsettled recoveries outstanding until they are marked recovered', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 1000,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 150,
+        'payment_type' => 'rent',
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 500,
+        'expense_date' => '2026-07-05',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 200,
+        'expense_date' => '2026-07-05',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'status' => 'paid',
+    ]);
+
+    $recovery = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-07-06',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $recovery->id)
+            ->where('expenses.0.settlement_state.kind', 'recovery_due')
+            ->where('expenses.0.settlement_state.label', 'De recuperat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '150.00')
+            ->where('summary.current_month_rent_deductions', '200.00')
+            ->where('summary.remaining_rent', '650.00')
+            ->where('summary.remaining_guarantees', '1000.00')
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.total_receivable', '1770.00')
+            ->where('summary.operational_cash_result', '-470.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.mark-recovered', [$team, $recovery]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $recovery->id)
+            ->where('expenses.0.settlement_state.kind', 'recovered')
+            ->where('expenses.0.settlement_state.label', 'Recuperat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.total_receivable', '1650.00')
+            ->where('summary.operational_cash_result', '-350.00')
+            ->where('summary.current_month_payments', '150.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-recovered', [$team, $recovery]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.total_receivable', '1770.00')
+            ->where('summary.operational_cash_result', '-470.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard keeps reimbursements outstanding until they are marked reimbursed', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $reimbursement = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 80,
+        'expense_date' => '2026-07-06',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $reimbursement->id)
+            ->where('expenses.0.settlement_state.kind', 'reimbursement_due')
+            ->where('expenses.0.settlement_state.label', 'De rambursat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '80.00')
+            ->where('summary.operational_cash_result', '0.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.mark-reimbursed', [$team, $reimbursement]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $reimbursement->id)
+            ->where('expenses.0.settlement_state.kind', 'reimbursed')
+            ->where('expenses.0.settlement_state.label', 'Rambursat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.operational_cash_result', '-80.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-reimbursed', [$team, $reimbursement]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '80.00')
+            ->where('summary.operational_cash_result', '0.00')
+        );
+
+    Carbon::setTestNow();
+});
+
+test('dashboard does not subtract unsettled reimbursement cash before owner reimburses tenant', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 1000,
+        'deposit_amount' => 0,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 150,
+        'payment_type' => 'rent',
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-03',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 500,
+        'expense_date' => '2026-07-05',
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-07-06',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+        'status' => 'reimbursable',
+    ]);
+
+    $reimbursement = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 200,
+        'expense_date' => '2026-07-07',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+        'status' => 'reimbursable',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $reimbursement->id)
+            ->where('expenses.0.settlement_state.kind', 'reimbursement_due')
+            ->where('expenses.0.settlement_state.label', 'De rambursat')
+            ->where('expenses.0.settlement_state.action_label', 'Marchează ca rambursat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_payments', '150.00')
+            ->where('summary.tenant_reimbursement_expenses', '200.00')
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.operational_cash_result', '-470.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.mark-reimbursed', [$team, $reimbursement]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.id', $reimbursement->id)
+            ->where('expenses.0.settlement_state.kind', 'reimbursed')
+            ->where('expenses.0.settlement_state.label', 'Rambursat')
+        );
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.operational_cash_result', '-670.00')
+            ->where('summary.current_month_payments', '150.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-reimbursed', [$team, $reimbursement]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '200.00')
+            ->where('summary.operational_cash_result', '-470.00')
+        );
+
+    Carbon::setTestNow();
+});
+
 test('dashboard excludes settled reimbursements and recoveries from outstanding totals', function () {
     Carbon::setTestNow('2026-07-10');
 

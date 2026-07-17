@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\ExpenseFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
@@ -110,6 +111,60 @@ class Expense extends Model
     {
         return $this->settled_at === null
             && ($this->requiresOwnerReimbursement() || $this->requiresTenantRecovery());
+    }
+
+    /**
+     * @param  Builder<Expense>  $query
+     * @return Builder<Expense>
+     */
+    public function scopeActiveForDashboard(Builder $query): Builder
+    {
+        return $query->where('status', '!=', 'cancelled');
+    }
+
+    /**
+     * @param  Builder<Expense>  $query
+     * @return Builder<Expense>
+     */
+    public function scopeOwnerReimbursements(Builder $query): Builder
+    {
+        return $query
+            ->where('paid_by', 'tenant')
+            ->where('responsible_party', 'owner')
+            ->where('settlement_type', 'reimburse');
+    }
+
+    /**
+     * @param  Builder<Expense>  $query
+     * @return Builder<Expense>
+     */
+    public function scopeTenantRecoveries(Builder $query): Builder
+    {
+        return $query
+            ->where('paid_by', 'owner')
+            ->where('responsible_party', 'tenant')
+            ->where('settlement_type', 'reimburse');
+    }
+
+    /**
+     * @param  Builder<Expense>  $query
+     * @return Builder<Expense>
+     */
+    public function scopeUnsettledSettlement(Builder $query): Builder
+    {
+        return $query->whereNull('settled_at');
+    }
+
+    /**
+     * @param  Builder<Expense>  $query
+     * @return Builder<Expense>
+     */
+    public function scopeSettledInMonth(Builder $query, int $year, int $month): Builder
+    {
+        return $query
+            ->whereNotNull('settled_at')
+            ->whereYear('settled_at', $year)
+            ->whereMonth('settled_at', $month);
     }
 
     /**

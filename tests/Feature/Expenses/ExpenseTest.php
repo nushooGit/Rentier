@@ -533,13 +533,111 @@ test('expense can be marked as reimbursed once and remains visible as settled', 
             ->has('expenses', 1)
             ->where('expenses.0.settlement_state.kind', 'reimbursed')
             ->where('expenses.0.settlement_state.label', 'Rambursat')
-            ->where('expenses.0.settlement_state.action_label', null)
+            ->where('expenses.0.settlement_state.action_label', 'Anulează rambursarea')
+            ->where('expenses.0.settlement_state.action_route', route('expenses.undo-reimbursed', [$team, $expense], false))
         );
 
     $this
         ->actingAs($user)
         ->patch(route('expenses.mark-reimbursed', [$team, $expense]))
         ->assertSessionHasErrors(['expense']);
+
+    Carbon::setTestNow();
+});
+
+test('undo reimbursed sets expense back to outstanding reimbursement', function () {
+    Carbon::setTestNow('2026-07-04 10:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $lease->id,
+        'amount' => 150,
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'settled_at' => now(),
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-reimbursed', [$team, $expense]))
+        ->assertRedirect();
+
+    expect($expense->refresh()->settled_at)->toBeNull()
+        ->and($expense->status)->toBe('reimbursable');
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.settlement_state.kind', 'reimbursement_due')
+            ->where('expenses.0.settlement_state.label', 'De rambursat')
+            ->where('expenses.0.settlement_state.action_label', 'Marchează ca rambursat')
+            ->where('expenses.0.settlement_state.settled_label', null)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('undo reimbursed makes amount outstanding again on dashboard', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 150,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'settled_at' => now(),
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.operational_cash_result', '-150.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-reimbursed', [$team, $expense]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '150.00')
+            ->where('summary.operational_cash_result', '0.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
 
     Carbon::setTestNow();
 });
@@ -588,7 +686,105 @@ test('expenses index exposes outstanding recovery action state and closes it', f
         ->assertInertia(fn (Assert $page) => $page
             ->where('expenses.0.settlement_state.kind', 'recovered')
             ->where('expenses.0.settlement_state.label', 'Recuperat')
-            ->where('expenses.0.settlement_state.action_label', null)
+            ->where('expenses.0.settlement_state.action_label', 'Anulează recuperarea')
+            ->where('expenses.0.settlement_state.action_route', route('expenses.undo-recovered', [$team, $expense], false))
+        );
+
+    Carbon::setTestNow();
+});
+
+test('undo recovered sets expense back to outstanding recovery', function () {
+    Carbon::setTestNow('2026-07-04 10:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'settled_at' => now(),
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-recovered', [$team, $expense]))
+        ->assertRedirect();
+
+    expect($expense->refresh()->settled_at)->toBeNull()
+        ->and($expense->status)->toBe('reimbursable');
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('expenses.0.settlement_state.kind', 'recovery_due')
+            ->where('expenses.0.settlement_state.label', 'De recuperat')
+            ->where('expenses.0.settlement_state.action_label', 'Marchează ca recuperat')
+            ->where('expenses.0.settlement_state.settled_label', null)
+        );
+
+    Carbon::setTestNow();
+});
+
+test('undo recovered makes amount outstanding again on dashboard', function () {
+    Carbon::setTestNow('2026-07-10');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $lease->property_id,
+        'lease_id' => $lease->id,
+        'amount' => 120,
+        'expense_date' => '2026-07-04',
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'settled_at' => now(),
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.operational_cash_result', '0.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.undo-recovered', [$team, $expense]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.operational_cash_result', '-120.00')
+            ->where('summary.current_month_payments', '0.00')
+            ->where('summary.collected_guarantees', '0.00')
         );
 
     Carbon::setTestNow();
@@ -640,6 +836,58 @@ test('invalid settlement actions are rejected', function (array $overrides, stri
         'responsible_party' => 'owner',
         'settlement_type' => 'deduct_from_rent',
     ], 'expenses.mark-recovered'],
+]);
+
+test('invalid undo settlement actions are rejected', function (array $overrides, string $routeName, string $message) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        ...$overrides,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route($routeName, [$team, $expense]))
+        ->assertSessionHasErrors(['expense' => $message]);
+})->with([
+    'unsettled reimbursement cannot be undone' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+    ], 'expenses.undo-reimbursed', 'Această cheltuială nu este închisă.'],
+    'unsettled recovery cannot be undone' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'reimburse',
+        'settled_at' => null,
+    ], 'expenses.undo-recovered', 'Această cheltuială nu este închisă.'],
+    'owner owner cannot undo reimbursement' => [[
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+        'settled_at' => '2026-07-04 10:00:00',
+    ], 'expenses.undo-reimbursed', 'Această acțiune nu este permisă pentru această cheltuială.'],
+    'tenant tenant cannot undo recovery' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+        'settled_at' => '2026-07-04 10:00:00',
+    ], 'expenses.undo-recovered', 'Această acțiune nu este permisă pentru această cheltuială.'],
+    'deduct from rent cannot undo reimbursement' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'settled_at' => '2026-07-04 10:00:00',
+    ], 'expenses.undo-reimbursed', 'Această acțiune nu este permisă pentru această cheltuială.'],
+    'deduct from rent cannot undo recovery' => [[
+        'paid_by' => 'tenant',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'deduct_from_rent',
+        'settled_at' => '2026-07-04 10:00:00',
+    ], 'expenses.undo-recovered', 'Această acțiune nu este permisă pentru această cheltuială.'],
 ]);
 
 test('vacant property rejects tenant paid expense', function () {

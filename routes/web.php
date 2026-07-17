@@ -20,6 +20,8 @@ Route::prefix('{current_team}')
         Route::resource('payments', RentPaymentController::class);
         Route::patch('expenses/{expense}/mark-reimbursed', [ExpenseController::class, 'markReimbursed'])->name('expenses.mark-reimbursed');
         Route::patch('expenses/{expense}/mark-recovered', [ExpenseController::class, 'markRecovered'])->name('expenses.mark-recovered');
+        Route::patch('expenses/{expense}/undo-reimbursed', [ExpenseController::class, 'undoReimbursed'])->name('expenses.undo-reimbursed');
+        Route::patch('expenses/{expense}/undo-recovered', [ExpenseController::class, 'undoRecovered'])->name('expenses.undo-recovered');
         Route::resource('expenses', ExpenseController::class);
     });
 

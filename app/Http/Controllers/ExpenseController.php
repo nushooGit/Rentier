@@ -230,6 +230,60 @@ class ExpenseController extends Controller
         return back();
     }
 
+    public function undoReimbursed(Team $currentTeam, Expense $expense): RedirectResponse
+    {
+        Gate::authorize('update', $expense);
+        $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+
+        if (! $expense->requiresOwnerReimbursement()) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această acțiune nu este permisă pentru această cheltuială.',
+            ]);
+        }
+
+        if ($expense->settled_at === null) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială nu este închisă.',
+            ]);
+        }
+
+        $expense->update([
+            'settled_at' => null,
+            'status' => 'reimbursable',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Rambursarea a fost anulată.']);
+
+        return back();
+    }
+
+    public function undoRecovered(Team $currentTeam, Expense $expense): RedirectResponse
+    {
+        Gate::authorize('update', $expense);
+        $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+
+        if (! $expense->requiresTenantRecovery()) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această acțiune nu este permisă pentru această cheltuială.',
+            ]);
+        }
+
+        if ($expense->settled_at === null) {
+            throw ValidationException::withMessages([
+                'expense' => 'Această cheltuială nu este închisă.',
+            ]);
+        }
+
+        $expense->update([
+            'settled_at' => null,
+            'status' => 'reimbursable',
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Recuperarea a fost anulată.']);
+
+        return back();
+    }
+
     /**
      * @return array<int, array{value: string, label: string}>
      */
@@ -377,8 +431,10 @@ class ExpenseController extends Controller
             return [
                 'kind' => $expense->settled_at ? 'reimbursed' : 'reimbursement_due',
                 'label' => $expense->settled_at ? 'Rambursat' : 'De rambursat',
-                'action_label' => $expense->settled_at ? null : 'Marchează ca rambursat',
-                'action_route' => $expense->settled_at ? null : route('expenses.mark-reimbursed', [$currentTeam, $expense], false),
+                'action_label' => $expense->settled_at ? 'Anulează rambursarea' : 'Marchează ca rambursat',
+                'action_route' => $expense->settled_at
+                    ? route('expenses.undo-reimbursed', [$currentTeam, $expense], false)
+                    : route('expenses.mark-reimbursed', [$currentTeam, $expense], false),
                 'settled_label' => $expense->settled_at ? 'Rambursat la '.$this->romanianDate($expense->settled_at) : null,
             ];
         }
@@ -387,8 +443,10 @@ class ExpenseController extends Controller
             return [
                 'kind' => $expense->settled_at ? 'recovered' : 'recovery_due',
                 'label' => $expense->settled_at ? 'Recuperat' : 'De recuperat',
-                'action_label' => $expense->settled_at ? null : 'Marchează ca recuperat',
-                'action_route' => $expense->settled_at ? null : route('expenses.mark-recovered', [$currentTeam, $expense], false),
+                'action_label' => $expense->settled_at ? 'Anulează recuperarea' : 'Marchează ca recuperat',
+                'action_route' => $expense->settled_at
+                    ? route('expenses.undo-recovered', [$currentTeam, $expense], false)
+                    : route('expenses.mark-recovered', [$currentTeam, $expense], false),
                 'settled_label' => $expense->settled_at ? 'Recuperat la '.$this->romanianDate($expense->settled_at) : null,
             ];
         }

@@ -159,6 +159,12 @@ export default function ExpenseForm({
         (settlementTypeOption) =>
             allowedSettlements.includes(settlementTypeOption.value),
     );
+    const settlementHelpText =
+        paidBy === 'owner' && responsibleParty === 'tenant'
+            ? 'Dacă proprietarul plătește o cheltuială suportată de chiriaș, aceasta se recuperează de la chiriaș.'
+            : paidBy === 'tenant' && responsibleParty === 'owner'
+              ? 'Dacă chiriașul plătește o cheltuială suportată de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
+              : null;
 
     useEffect(() => {
         if (hasActiveTenantContext) {
@@ -398,6 +404,8 @@ export default function ExpenseForm({
                                         >
                                             {expenseSettlementTypeLabel(
                                                 settlementType.value,
+                                                paidBy,
+                                                responsibleParty,
                                             )}
                                         </option>
                                     ),
@@ -419,11 +427,9 @@ export default function ExpenseForm({
                                 Cheltuielile suportate de chirias nu afecteaza
                                 profitul proprietarului.
                             </p>
-                            <p>
-                                Daca chiriasul plateste o cheltuiala suportata
-                                de proprietar, aceasta poate fi scazuta din
-                                chirie sau rambursata.
-                            </p>
+                            {settlementHelpText ? (
+                                <p>{settlementHelpText}</p>
+                            ) : null}
                         </div>
                     </FormSection>
 

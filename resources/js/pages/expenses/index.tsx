@@ -73,6 +73,14 @@ export default function ExpensesIndex({
             return;
         }
 
+        if (
+            !window.confirm(
+                `Sigur vrei să continui cu acțiunea „${expense.settlement_state.action_label}”?`,
+            )
+        ) {
+            return;
+        }
+
         router.patch(expense.settlement_state.action_route, undefined, {
             preserveScroll: true,
         });
@@ -227,6 +235,8 @@ export default function ExpensesIndex({
                                             Decontare:{' '}
                                             {expenseSettlementTypeLabel(
                                                 expense.settlement_type,
+                                                expense.paid_by,
+                                                expense.responsible_party,
                                             )}
                                         </Badge>
                                         {expense.settlement_state.label ? (

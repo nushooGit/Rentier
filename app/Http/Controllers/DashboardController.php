@@ -155,33 +155,23 @@ class DashboardController extends Controller
 
         $settledOwnerReimbursements = Expense::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', '!=', 'cancelled')
-            ->where('paid_by', 'tenant')
-            ->where('responsible_party', 'owner')
-            ->where('settlement_type', 'reimburse')
-            ->whereNotNull('settled_at')
-            ->whereYear('settled_at', $currentYear)
-            ->whereMonth('settled_at', $currentMonth)
+            ->activeForDashboard()
+            ->ownerReimbursements()
+            ->settledInMonth($currentYear, $currentMonth)
             ->sum('amount');
 
         $settledTenantRecoveries = Expense::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', '!=', 'cancelled')
-            ->where('paid_by', 'owner')
-            ->where('responsible_party', 'tenant')
-            ->where('settlement_type', 'reimburse')
-            ->whereNotNull('settled_at')
-            ->whereYear('settled_at', $currentYear)
-            ->whereMonth('settled_at', $currentMonth)
+            ->activeForDashboard()
+            ->tenantRecoveries()
+            ->settledInMonth($currentYear, $currentMonth)
             ->sum('amount');
 
         $tenantReimbursementExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', '!=', 'cancelled')
-            ->where('paid_by', 'tenant')
-            ->where('responsible_party', 'owner')
-            ->where('settlement_type', 'reimburse')
-            ->whereNull('settled_at')
+            ->activeForDashboard()
+            ->ownerReimbursements()
+            ->unsettledSettlement()
             ->sum('amount');
 
         $utilityDeductionExpenses = Expense::query()
@@ -206,11 +196,9 @@ class DashboardController extends Controller
 
         $recoverableExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
-            ->where('status', '!=', 'cancelled')
-            ->where('paid_by', 'owner')
-            ->where('responsible_party', 'tenant')
-            ->where('settlement_type', 'reimburse')
-            ->whereNull('settled_at')
+            ->activeForDashboard()
+            ->tenantRecoveries()
+            ->unsettledSettlement()
             ->sum('amount');
 
         $recentLeases = Lease::query()

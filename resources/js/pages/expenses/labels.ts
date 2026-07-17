@@ -60,7 +60,21 @@ export function expenseResponsiblePartyLabel(value: ExpenseResponsibleParty) {
     return expenseResponsiblePartyLabels[value] ?? value;
 }
 
-export function expenseSettlementTypeLabel(value: ExpenseSettlementType) {
+export function expenseSettlementTypeLabel(
+    value: ExpenseSettlementType,
+    paidBy?: ExpensePaidBy,
+    responsibleParty?: ExpenseResponsibleParty,
+) {
+    if (value === 'reimburse') {
+        if (paidBy === 'owner' && responsibleParty === 'tenant') {
+            return 'Se recuperează de la chiriaș';
+        }
+
+        if (paidBy === 'tenant' && responsibleParty === 'owner') {
+            return 'Se rambursează către chiriaș';
+        }
+    }
+
     return expenseSettlementTypeLabels[value] ?? value;
 }
 

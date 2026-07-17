@@ -67,3 +67,31 @@ test('dashboard record lists include navigation links to record details', functi
         ->toContain('href={showPayment([')
         ->toContain('href={showExpense([');
 });
+
+test('expense settlement labels use directional reimbursement wording', function () {
+    $labels = pageSource('expenses/labels.ts');
+    $index = pageSource('expenses/index.tsx');
+    $form = pageSource('expenses/form.tsx');
+    $show = pageSource('expenses/show.tsx');
+
+    expect($labels)
+        ->toContain('Se recuperează de la chiriaș')
+        ->toContain('Se rambursează către chiriaș')
+        ->toContain('Se scade din chirie')
+        ->toContain('Se scade din utilități')
+        ->toContain('Nu se decontează');
+
+    expect($index)
+        ->toContain('expense.paid_by')
+        ->toContain('expense.responsible_party');
+
+    expect($form)
+        ->toContain('paidBy')
+        ->toContain('responsibleParty')
+        ->toContain('se recuperează de la chiriaș')
+        ->toContain('se rambursează către chiriaș');
+
+    expect($show)
+        ->toContain('expense.paid_by')
+        ->toContain('expense.responsible_party');
+});
