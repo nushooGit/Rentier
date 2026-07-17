@@ -165,84 +165,103 @@ export default function ExpensesIndex({
                         {expenses.map((expense) => (
                             <article
                                 key={expense.id}
-                                className="flex flex-col gap-2.5 rounded-lg border p-3"
+                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
                                 data-test="expense-card"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h2 className="truncate text-base font-medium">
-                                            {expense.title}
-                                        </h2>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {expense.property.name} ·{' '}
-                                            {expenseCategoryLabel(
-                                                expense.category,
-                                            )}
-                                        </p>
+                                <Link
+                                    href={show([currentTeamSlug, expense.id])}
+                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    data-test="expense-card-link"
+                                    aria-label={`Vezi cheltuiala ${expense.title}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h2 className="truncate text-base font-medium">
+                                                {expense.title}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {expense.property.name} ·{' '}
+                                                {expenseCategoryLabel(
+                                                    expense.category,
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Badge variant="secondary">
+                                            {expense.settlement_state.label ??
+                                                expenseStatusLabel(
+                                                    expense.status,
+                                                )}
+                                        </Badge>
                                     </div>
-                                    <Badge variant="secondary">
-                                        {expense.settlement_state.label ??
-                                            expenseStatusLabel(expense.status)}
-                                    </Badge>
-                                </div>
-                                <div className="grid gap-0.5 text-sm">
-                                    <span className="font-medium">
-                                        {formatMoney(
-                                            expense.amount,
-                                            expense.currency,
-                                        )}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {formatDateLong(expense.expense_date)} ·{' '}
-                                        {expensePaidByLabel(expense.paid_by)}
-                                    </span>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5 text-xs">
-                                    <Badge variant="outline">
-                                        Plătit de:{' '}
-                                        {expensePaidByLabel(expense.paid_by)}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                        Suportat de:{' '}
-                                        {expenseResponsiblePartyLabel(
-                                            expense.responsible_party,
-                                        )}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                        Decontare:{' '}
-                                        {expenseSettlementTypeLabel(
-                                            expense.settlement_type,
-                                        )}
-                                    </Badge>
-                                    {expense.settlement_state.label ? (
+                                    <div className="grid gap-0.5 text-sm">
+                                        <span className="font-medium">
+                                            {formatMoney(
+                                                expense.amount,
+                                                expense.currency,
+                                            )}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {formatDateLong(
+                                                expense.expense_date,
+                                            )}{' '}
+                                            ·{' '}
+                                            {expensePaidByLabel(
+                                                expense.paid_by,
+                                            )}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-1.5 text-xs">
+                                        <Badge variant="outline">
+                                            Plătit de:{' '}
+                                            {expensePaidByLabel(
+                                                expense.paid_by,
+                                            )}
+                                        </Badge>
+                                        <Badge variant="outline">
+                                            Suportat de:{' '}
+                                            {expenseResponsiblePartyLabel(
+                                                expense.responsible_party,
+                                            )}
+                                        </Badge>
+                                        <Badge variant="outline">
+                                            Decontare:{' '}
+                                            {expenseSettlementTypeLabel(
+                                                expense.settlement_type,
+                                            )}
+                                        </Badge>
+                                        {expense.settlement_state.label ? (
+                                            <Badge
+                                                variant={
+                                                    expense.settled_at
+                                                        ? 'secondary'
+                                                        : 'outline'
+                                                }
+                                            >
+                                                {expense.settlement_state.label}
+                                            </Badge>
+                                        ) : null}
                                         <Badge
                                             variant={
-                                                expense.settled_at
+                                                expense.affects_owner_profit
                                                     ? 'secondary'
                                                     : 'outline'
                                             }
                                         >
-                                            {expense.settlement_state.label}
+                                            {expense.affects_owner_profit
+                                                ? 'Afectează profitul'
+                                                : 'Nu afectează profitul'}
                                         </Badge>
+                                    </div>
+                                    {expense.settlement_state.settled_label ? (
+                                        <p className="text-xs text-muted-foreground">
+                                            {
+                                                expense.settlement_state
+                                                    .settled_label
+                                            }
+                                        </p>
                                     ) : null}
-                                    <Badge
-                                        variant={
-                                            expense.affects_owner_profit
-                                                ? 'secondary'
-                                                : 'outline'
-                                        }
-                                    >
-                                        {expense.affects_owner_profit
-                                            ? 'Afectează profitul'
-                                            : 'Nu afectează profitul'}
-                                    </Badge>
-                                </div>
-                                {expense.settlement_state.settled_label ? (
-                                    <p className="text-xs text-muted-foreground">
-                                        {expense.settlement_state.settled_label}
-                                    </p>
-                                ) : null}
-                                <div className="mt-auto flex justify-end gap-2">
+                                </Link>
+                                <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
                                     {expense.settlement_state.action_label ? (
                                         <Button
                                             variant="outline"
@@ -251,6 +270,7 @@ export default function ExpensesIndex({
                                             onClick={() =>
                                                 settleExpense(expense)
                                             }
+                                            data-test="expense-settlement-button"
                                         >
                                             <CheckCircle2 className="h-4 w-4" />
                                             {
@@ -259,7 +279,12 @@ export default function ExpensesIndex({
                                             }
                                         </Button>
                                     ) : null}
-                                    <Button variant="ghost" size="sm" asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        asChild
+                                        data-test="expense-view-link"
+                                    >
                                         <Link
                                             href={show([
                                                 currentTeamSlug,
@@ -269,7 +294,12 @@ export default function ExpensesIndex({
                                             <Eye className="h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" size="sm" asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        asChild
+                                        data-test="expense-edit-link"
+                                    >
                                         <Link
                                             href={edit([
                                                 currentTeamSlug,

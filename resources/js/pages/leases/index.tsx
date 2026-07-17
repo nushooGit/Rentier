@@ -76,38 +76,45 @@ export default function LeasesIndex({ leases }: Props) {
                         {leases.map((lease) => (
                             <article
                                 key={lease.id}
-                                className="flex flex-col gap-2.5 rounded-lg border p-3"
+                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
                                 data-test="lease-card"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h2 className="truncate text-base font-medium">
-                                            {lease.renter.name}
-                                        </h2>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {lease.property.name} ·{' '}
-                                            {lease.property.city}
-                                        </p>
+                                <Link
+                                    href={show([currentTeamSlug, lease.id])}
+                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    data-test="lease-card-link"
+                                    aria-label={`Vezi contractul pentru ${lease.renter.name}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h2 className="truncate text-base font-medium">
+                                                {lease.renter.name}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {lease.property.name} ·{' '}
+                                                {lease.property.city}
+                                            </p>
+                                        </div>
+                                        <Badge variant="secondary">
+                                            {leaseStatusLabel(lease.status)}
+                                        </Badge>
                                     </div>
-                                    <Badge variant="secondary">
-                                        {leaseStatusLabel(lease.status)}
-                                    </Badge>
-                                </div>
 
-                                <div className="grid gap-0.5 text-sm">
-                                    <span className="font-medium">
-                                        {formatMoney(
-                                            lease.monthly_rent_amount,
-                                            lease.currency,
-                                        )}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {formatPeriod(lease)}
-                                    </span>
-                                </div>
+                                    <div className="grid gap-0.5 text-sm">
+                                        <span className="font-medium">
+                                            {formatMoney(
+                                                lease.monthly_rent_amount,
+                                                lease.currency,
+                                            )}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {formatPeriod(lease)}
+                                        </span>
+                                    </div>
+                                </Link>
 
                                 <TooltipProvider>
-                                    <div className="mt-auto flex justify-end gap-2">
+                                    <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button

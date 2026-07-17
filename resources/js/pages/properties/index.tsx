@@ -93,82 +93,94 @@ export default function PropertiesIndex({ properties }: Props) {
                         {properties.map((property) => (
                             <article
                                 key={property.id}
-                                className="flex flex-col gap-2.5 rounded-lg border p-3"
+                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
                                 data-test="property-card"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h2 className="truncate text-base font-medium">
-                                            {property.name}
-                                        </h2>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {propertyTypeLabel(property.type)} ·{' '}
-                                            {property.city}
-                                            {property.county_or_sector
-                                                ? `, ${property.county_or_sector}`
-                                                : ''}
-                                        </p>
-                                    </div>
-                                    <Badge variant="secondary">
-                                        {propertyStatusLabel(property.status)}
-                                    </Badge>
-                                </div>
-
-                                <div className="grid gap-0.5 text-sm">
-                                    <span className="font-medium">
-                                        {formatMoney(
-                                            property.monthly_rent_amount,
-                                            property.currency,
-                                        )}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {property.address_line}
-                                    </span>
-                                    {property.rent_payment_status ? (
-                                        <div className="mt-1 grid gap-1">
-                                            <Badge
-                                                variant="outline"
-                                                className={`w-fit ${rentStatusClassNames[property.rent_payment_status.key]}`}
-                                            >
-                                                {
-                                                    property.rent_payment_status
-                                                        .label
-                                                }
-                                            </Badge>
-                                            {hasPositiveAmount(
-                                                property.rent_payment_status
-                                                    .rent_deduction_amount,
-                                            ) ? (
-                                                <span className="text-xs text-muted-foreground">
-                                                    Scăzut din chirie:{' '}
-                                                    {formatMoney(
-                                                        property
-                                                            .rent_payment_status
-                                                            .rent_deduction_amount,
-                                                        property.currency,
-                                                    )}
-                                                </span>
-                                            ) : null}
-                                            {hasPositiveAmount(
-                                                property.rent_payment_status
-                                                    .collected_amount,
-                                            ) ? (
-                                                <span className="text-xs text-muted-foreground">
-                                                    Încasat:{' '}
-                                                    {formatMoney(
-                                                        property
-                                                            .rent_payment_status
-                                                            .collected_amount,
-                                                        property.currency,
-                                                    )}
-                                                </span>
-                                            ) : null}
+                                <Link
+                                    href={show([currentTeamSlug, property.id])}
+                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    data-test="property-card-link"
+                                    aria-label={`Vezi proprietatea ${property.name}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h2 className="truncate text-base font-medium">
+                                                {property.name}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {propertyTypeLabel(
+                                                    property.type,
+                                                )}{' '}
+                                                · {property.city}
+                                                {property.county_or_sector
+                                                    ? `, ${property.county_or_sector}`
+                                                    : ''}
+                                            </p>
                                         </div>
-                                    ) : null}
-                                </div>
+                                        <Badge variant="secondary">
+                                            {propertyStatusLabel(
+                                                property.status,
+                                            )}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="grid gap-0.5 text-sm">
+                                        <span className="font-medium">
+                                            {formatMoney(
+                                                property.monthly_rent_amount,
+                                                property.currency,
+                                            )}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {property.address_line}
+                                        </span>
+                                        {property.rent_payment_status ? (
+                                            <div className="mt-1 grid gap-1">
+                                                <Badge
+                                                    variant="outline"
+                                                    className={`w-fit ${rentStatusClassNames[property.rent_payment_status.key]}`}
+                                                >
+                                                    {
+                                                        property
+                                                            .rent_payment_status
+                                                            .label
+                                                    }
+                                                </Badge>
+                                                {hasPositiveAmount(
+                                                    property.rent_payment_status
+                                                        .rent_deduction_amount,
+                                                ) ? (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Scăzut din chirie:{' '}
+                                                        {formatMoney(
+                                                            property
+                                                                .rent_payment_status
+                                                                .rent_deduction_amount,
+                                                            property.currency,
+                                                        )}
+                                                    </span>
+                                                ) : null}
+                                                {hasPositiveAmount(
+                                                    property.rent_payment_status
+                                                        .collected_amount,
+                                                ) ? (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Încasat:{' '}
+                                                        {formatMoney(
+                                                            property
+                                                                .rent_payment_status
+                                                                .collected_amount,
+                                                            property.currency,
+                                                        )}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        ) : null}
+                                    </div>
+                                </Link>
 
                                 <TooltipProvider>
-                                    <div className="mt-auto flex justify-end gap-2">
+                                    <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button

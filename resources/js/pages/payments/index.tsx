@@ -5,10 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
-import {
-    paymentMethodLabel,
-    paymentTypeLabel,
-} from '@/pages/payments/labels';
+import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
 
@@ -45,8 +42,12 @@ function paymentBadgeLabel(payment: RentPayment) {
 
 function paymentContext(payment: RentPayment) {
     if (payment.payment_type === 'guarantee' && payment.guarantee_summary) {
-        const collectedAmount = Number(payment.guarantee_summary.collected_amount);
-        const expectedAmount = Number(payment.guarantee_summary.expected_amount);
+        const collectedAmount = Number(
+            payment.guarantee_summary.collected_amount,
+        );
+        const expectedAmount = Number(
+            payment.guarantee_summary.expected_amount,
+        );
         const prefix =
             expectedAmount > 0 && collectedAmount > expectedAmount
                 ? 'Garanție depășită'
@@ -109,38 +110,50 @@ export default function PaymentsIndex({ payments }: Props) {
                         {payments.map((payment) => (
                             <article
                                 key={payment.id}
-                                className="flex flex-col gap-2.5 rounded-lg border p-3"
+                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
                                 data-test="payment-card"
                             >
-                                <div className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                        <h2 className="truncate text-base font-medium">
-                                            {payment.renter.name}
-                                        </h2>
-                                        <p className="mt-1 text-sm text-muted-foreground">
-                                            {payment.property.name} - Tip:{' '}
-                                            {paymentTypeLabel(
-                                                payment.payment_type,
-                                            )}
-                                        </p>
+                                <Link
+                                    href={show([currentTeamSlug, payment.id])}
+                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    data-test="payment-card-link"
+                                    aria-label={`Vezi plata pentru ${payment.renter.name}`}
+                                >
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h2 className="truncate text-base font-medium">
+                                                {payment.renter.name}
+                                            </h2>
+                                            <p className="mt-1 text-sm text-muted-foreground">
+                                                {payment.property.name} - Tip:{' '}
+                                                {paymentTypeLabel(
+                                                    payment.payment_type,
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Badge variant="secondary">
+                                            {paymentBadgeLabel(payment)}
+                                        </Badge>
                                     </div>
-                                    <Badge variant="secondary">
-                                        {paymentBadgeLabel(payment)}
-                                    </Badge>
-                                </div>
-                                <div className="grid gap-0.5 text-sm">
-                                    <span className="font-medium">
-                                        {formatMoney(
-                                            payment.amount,
-                                            payment.currency,
-                                        )}
-                                    </span>
-                                    <span className="text-muted-foreground">
-                                        {paymentMetaLine(payment)}
-                                    </span>
-                                </div>
-                                <div className="mt-auto flex justify-end gap-2">
-                                    <Button variant="ghost" size="sm" asChild>
+                                    <div className="grid gap-0.5 text-sm">
+                                        <span className="font-medium">
+                                            {formatMoney(
+                                                payment.amount,
+                                                payment.currency,
+                                            )}
+                                        </span>
+                                        <span className="text-muted-foreground">
+                                            {paymentMetaLine(payment)}
+                                        </span>
+                                    </div>
+                                </Link>
+                                <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        asChild
+                                        data-test="payment-view-link"
+                                    >
                                         <Link
                                             href={show([
                                                 currentTeamSlug,
@@ -150,7 +163,12 @@ export default function PaymentsIndex({ payments }: Props) {
                                             <Eye className="h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" size="sm" asChild>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        asChild
+                                        data-test="payment-edit-link"
+                                    >
                                         <Link
                                             href={edit([
                                                 currentTeamSlug,

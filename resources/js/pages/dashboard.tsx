@@ -1,4 +1,4 @@
-import { Head, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
@@ -9,6 +9,10 @@ import { expenseStatusLabel } from '@/pages/expenses/labels';
 import { leaseStatusLabel } from '@/pages/leases/labels';
 import { paymentStatusLabel } from '@/pages/payments/labels';
 import { dashboard } from '@/routes';
+import { show as showExpense } from '@/routes/expenses';
+import { show as showLease } from '@/routes/leases';
+import { show as showPayment } from '@/routes/payments';
+import { show as showProperty } from '@/routes/properties';
 import type {
     DashboardInvitation,
     DashboardLeaseFinancialRow,
@@ -109,13 +113,20 @@ function PaymentMethodBreakdownCard({
 
 function FinancialLeaseLine({
     lease,
+    href,
     tone = 'neutral',
 }: {
     lease: DashboardLeaseFinancialRow;
+    href: ReturnType<typeof showLease>;
     tone?: 'neutral' | 'danger';
 }) {
     return (
-        <div className="rounded-md bg-muted/40 p-2 text-sm">
+        <Link
+            href={href}
+            className="block rounded-md bg-muted/40 p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            data-test="dashboard-lease-link"
+            aria-label={`Vezi contractul pentru ${lease.property_name}`}
+        >
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                     <p className="truncate font-medium">
@@ -160,7 +171,7 @@ function FinancialLeaseLine({
                     </strong>
                 </span>
             </div>
-        </div>
+        </Link>
     );
 }
 
@@ -176,6 +187,8 @@ export default function Dashboard({
     rentPaymentMethodBreakdown,
 }: Props) {
     const hasRefreshed = useRef(false);
+    const { currentTeam } = usePage().props;
+    const currentTeamSlug = currentTeam?.slug ?? '';
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
     );
@@ -364,6 +377,10 @@ export default function Dashboard({
                                     <FinancialLeaseLine
                                         key={lease.lease_id}
                                         lease={lease}
+                                        href={showLease([
+                                            currentTeamSlug,
+                                            lease.lease_id,
+                                        ])}
                                         tone="danger"
                                     />
                                 ))
@@ -385,11 +402,16 @@ export default function Dashboard({
                                     <FinancialLeaseLine
                                         key={lease.lease_id}
                                         lease={lease}
+                                        href={showLease([
+                                            currentTeamSlug,
+                                            lease.lease_id,
+                                        ])}
                                     />
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu sunt plăți scadente în următoarele 7 zile.
+                                    Nu sunt plăți scadente în următoarele 7
+                                    zile.
                                 </EmptyLine>
                             )}
                         </div>
@@ -402,9 +424,15 @@ export default function Dashboard({
                         <div className="mt-2.5 space-y-2">
                             {propertiesWithoutActiveLease.length > 0 ? (
                                 propertiesWithoutActiveLease.map((property) => (
-                                    <div
+                                    <Link
                                         key={property.id}
-                                        className="rounded-md bg-muted/40 p-2 text-sm"
+                                        href={showProperty([
+                                            currentTeamSlug,
+                                            property.id,
+                                        ])}
+                                        className="block rounded-md bg-muted/40 p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        data-test="dashboard-property-link"
+                                        aria-label={`Vezi proprietatea ${property.name}`}
                                     >
                                         <p className="truncate font-medium">
                                             {property.name}
@@ -420,7 +448,7 @@ export default function Dashboard({
                                                 property.currency,
                                             )}
                                         </p>
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <EmptyLine>
@@ -439,9 +467,15 @@ export default function Dashboard({
                         <div className="mt-2.5 space-y-2.5">
                             {recentLeases.length > 0 ? (
                                 recentLeases.map((lease) => (
-                                    <div
+                                    <Link
                                         key={lease.id}
-                                        className="flex items-start justify-between gap-3 text-sm"
+                                        href={showLease([
+                                            currentTeamSlug,
+                                            lease.id,
+                                        ])}
+                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        data-test="dashboard-recent-lease-link"
+                                        aria-label={`Vezi contractul pentru ${lease.renter_name}`}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -458,7 +492,7 @@ export default function Dashboard({
                                         <Badge variant="secondary">
                                             {leaseStatusLabel(lease.status)}
                                         </Badge>
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <EmptyLine>
@@ -473,9 +507,15 @@ export default function Dashboard({
                         <div className="mt-2.5 space-y-2.5">
                             {recentPayments.length > 0 ? (
                                 recentPayments.map((payment) => (
-                                    <div
+                                    <Link
                                         key={payment.id}
-                                        className="flex items-start justify-between gap-3 text-sm"
+                                        href={showPayment([
+                                            currentTeamSlug,
+                                            payment.id,
+                                        ])}
+                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        data-test="dashboard-recent-payment-link"
+                                        aria-label={`Vezi plata pentru ${payment.renter_name}`}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -492,7 +532,7 @@ export default function Dashboard({
                                         <Badge variant="secondary">
                                             {paymentStatusLabel(payment.status)}
                                         </Badge>
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <EmptyLine>Nu există plăți recente.</EmptyLine>
@@ -507,9 +547,15 @@ export default function Dashboard({
                         <div className="mt-2.5 space-y-2.5">
                             {recentExpenses.length > 0 ? (
                                 recentExpenses.map((expense) => (
-                                    <div
+                                    <Link
                                         key={expense.id}
-                                        className="flex items-start justify-between gap-3 text-sm"
+                                        href={showExpense([
+                                            currentTeamSlug,
+                                            expense.id,
+                                        ])}
+                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        data-test="dashboard-recent-expense-link"
+                                        aria-label={`Vezi cheltuiala ${expense.title}`}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -526,7 +572,7 @@ export default function Dashboard({
                                         <Badge variant="secondary">
                                             {expenseStatusLabel(expense.status)}
                                         </Badge>
-                                    </div>
+                                    </Link>
                                 ))
                             ) : (
                                 <EmptyLine>
