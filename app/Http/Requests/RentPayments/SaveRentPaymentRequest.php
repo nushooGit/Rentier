@@ -18,9 +18,9 @@ class SaveRentPaymentRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $rentPayment = $this->route('payment');
+        $rentPayment = $this->rentPaymentFromRoute();
 
-        if ($rentPayment instanceof RentPayment) {
+        if ($rentPayment !== null) {
             return Gate::allows('update', $rentPayment);
         }
 
@@ -82,12 +82,16 @@ class SaveRentPaymentRequest extends FormRequest
                 return;
             }
 
-            $payment = $this->route('payment');
-            $existingTotal = (float) RentPayment::query()
+            $payment = $this->rentPaymentFromRoute();
+            $existingTotalQuery = RentPayment::query()
                 ->where('lease_id', $lease->id)
-                ->where('payment_type', 'guarantee')
-                ->when($payment instanceof RentPayment, fn ($query) => $query->whereKeyNot($payment->id))
-                ->sum('amount');
+                ->where('payment_type', 'guarantee');
+
+            if ($payment !== null) {
+                $existingTotalQuery->whereKeyNot($payment->id);
+            }
+
+            $existingTotal = (float) $existingTotalQuery->sum('amount');
             $newTotalCents = $this->moneyToCents($existingTotal) + $this->moneyToCents((float) $this->input('amount'));
             $expectedGuaranteeCents = $this->moneyToCents($expectedGuarantee);
 
@@ -116,5 +120,12 @@ class SaveRentPaymentRequest extends FormRequest
     private function moneyToCents(float $amount): int
     {
         return (int) round($amount * 100);
+    }
+
+    private function rentPaymentFromRoute(): ?RentPayment
+    {
+        $rentPayment = $this->route('payment');
+
+        return $rentPayment instanceof RentPayment ? $rentPayment : null;
     }
 }

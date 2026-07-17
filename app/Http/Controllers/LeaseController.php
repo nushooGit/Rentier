@@ -225,7 +225,8 @@ class LeaseController extends Controller
      */
     private function leaseAttributes(array $validated): array
     {
-        $property = Property::query()->findOrFail($validated['property_id']);
+        /** @var Property $property */
+        $property = Property::query()->findOrFail((int) $validated['property_id']);
 
         return [
             'property_id' => $validated['property_id'],

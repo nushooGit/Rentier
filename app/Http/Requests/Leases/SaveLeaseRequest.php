@@ -18,9 +18,9 @@ class SaveLeaseRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $lease = $this->route('lease');
+        $lease = $this->leaseFromRoute();
 
-        if ($lease instanceof Lease) {
+        if ($lease !== null) {
             return Gate::allows('update', $lease);
         }
 
@@ -81,15 +81,23 @@ class SaveLeaseRequest extends FormRequest
                 return;
             }
 
-            $lease = $this->route('lease');
+            $lease = $this->leaseFromRoute();
             $startDate = $this->input('start_date');
             $endDate = $this->input('end_date');
 
-            $overlappingLeaseExists = Lease::query()
+            $overlappingLeaseQuery = Lease::query()
                 ->whereBelongsTo($team)
-                ->where('property_id', $this->input('property_id'))
-                ->when($lease instanceof Lease, fn ($query) => $query->whereKeyNot($lease->id))
-                ->when($endDate, fn ($query) => $query->whereDate('start_date', '<=', $endDate))
+                ->where('property_id', $this->input('property_id'));
+
+            if ($lease !== null) {
+                $overlappingLeaseQuery->whereKeyNot($lease->id);
+            }
+
+            if ($endDate) {
+                $overlappingLeaseQuery->whereDate('start_date', '<=', $endDate);
+            }
+
+            $overlappingLeaseExists = $overlappingLeaseQuery
                 ->where(function ($query) use ($startDate) {
                     $query
                         ->whereNull('end_date')
@@ -161,5 +169,12 @@ class SaveLeaseRequest extends FormRequest
             ],
             $this->validated(),
         );
+    }
+
+    private function leaseFromRoute(): ?Lease
+    {
+        $lease = $this->route('lease');
+
+        return $lease instanceof Lease ? $lease : null;
     }
 }

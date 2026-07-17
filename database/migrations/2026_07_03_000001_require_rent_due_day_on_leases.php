@@ -10,11 +10,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::table('leases')
-            ->whereNull('rent_due_day')
-            ->update([
-                'rent_due_day' => DB::raw($this->dayFromStartDateExpression()),
-            ]);
+        $this->backfillRentDueDay();
 
         if (DB::getDriverName() === 'mysql') {
             DB::statement('ALTER TABLE leases MODIFY rent_due_day TINYINT UNSIGNED NOT NULL DEFAULT 1');
@@ -41,13 +37,19 @@ return new class extends Migration
         }
     }
 
-    private function dayFromStartDateExpression(): string
+    private function backfillRentDueDay(): void
     {
-        return match (DB::getDriverName()) {
-            'mysql', 'mariadb' => 'COALESCE(DAY(start_date), 1)',
-            'pgsql' => 'COALESCE(EXTRACT(DAY FROM start_date), 1)',
-            'sqlite' => "COALESCE(CAST(strftime('%d', start_date) AS INTEGER), 1)",
-            default => '1',
+        $expression = match (DB::getDriverName()) {
+            'mysql', 'mariadb' => DB::raw('COALESCE(DAY(start_date), 1)'),
+            'pgsql' => DB::raw('COALESCE(EXTRACT(DAY FROM start_date), 1)'),
+            'sqlite' => DB::raw("COALESCE(CAST(strftime('%d', start_date) AS INTEGER), 1)"),
+            default => DB::raw('1'),
         };
+
+        DB::table('leases')
+            ->whereNull('rent_due_day')
+            ->update([
+                'rent_due_day' => $expression,
+            ]);
     }
 };
