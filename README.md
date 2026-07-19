@@ -132,3 +132,4 @@ development and is not run automatically in production.
 - [Roadmap](docs/ROADMAP.md)
 - [Data Model Draft](docs/DATA_MODEL_DRAFT.md)
 - [Beta Deployment Readiness](docs/deployment-beta.md)
+- [E2E Smoke Tests](docs/e2e-smoke-tests.md)
