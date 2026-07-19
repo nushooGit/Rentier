@@ -71,6 +71,8 @@ cp .env.example .env
 php artisan key:generate
 ```
 
+Local registration is enabled by default with `RENTIER_REGISTRATION_ENABLED=true`. For a private beta deployment, set it to `false` unless public signups are intentionally allowed.
+
 Run the app locally:
 
 ```bash

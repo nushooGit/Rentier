@@ -2,6 +2,11 @@
 
 use Laravel\Fortify\Features;
 
+$registrationEnabled = filter_var(
+    $_SERVER['RENTIER_REGISTRATION_ENABLED'] ?? $_ENV['RENTIER_REGISTRATION_ENABLED'] ?? env('RENTIER_REGISTRATION_ENABLED', true),
+    FILTER_VALIDATE_BOOL,
+);
+
 return [
 
     /*
@@ -160,8 +165,8 @@ return [
     |
     */
 
-    'features' => [
-        Features::registration(),
+    'features' => array_values(array_filter([
+        $registrationEnabled ? Features::registration() : null,
         Features::resetPasswords(),
         Features::emailVerification(),
         Features::twoFactorAuthentication([
@@ -172,6 +177,6 @@ return [
         Features::passkeys([
             'confirmPassword' => true,
         ]),
-    ],
+    ])),
 
 ];

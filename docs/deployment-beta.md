@@ -27,6 +27,7 @@ APP_URL=https://your-domain.example
 APP_TIMEZONE=Europe/Bucharest
 APP_LOCALE=ro
 APP_FALLBACK_LOCALE=en
+RENTIER_REGISTRATION_ENABLED=false
 
 LOG_CHANNEL=stack
 LOG_STACK=daily
@@ -60,8 +61,10 @@ Notes:
 
 - Generate `APP_KEY` on the server with `php artisan key:generate --show`, then place it in `.env`.
 - `PASSKEYS_USER_HANDLE_SECRET` can be a separate random secret. If omitted, the app falls back to `APP_KEY`, but a dedicated value is cleaner for beta.
+- `RENTIER_REGISTRATION_ENABLED=false` disables public signup routes. Keep it disabled for private beta unless public signups are intentionally allowed.
 - Keep `.env` outside version control.
 - If using PostgreSQL, set `DB_CONNECTION=pgsql`, `DB_PORT=5432`, and confirm `DB_SSLMODE`.
+- `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.
 
 ## First deploy checklist
 
@@ -176,7 +179,7 @@ php artisan up
 
 1. Visit `/up` and confirm healthy response.
 2. Visit `/` and confirm frontend assets load without Vite dev server.
-3. Register a test account, or log in with a seeded/admin beta account depending on the registration decision.
+3. Confirm `/register` is unavailable when `RENTIER_REGISTRATION_ENABLED=false`, or register a test account only if public signup is intentionally enabled.
 4. Confirm email verification and password reset mail are delivered.
 5. Confirm redirect to `/{team}/dashboard` works after auth.
 6. Create, view, edit, and delete a test property.
@@ -188,8 +191,8 @@ php artisan up
 
 ## Beta blockers and decisions
 
-- Decide whether public registration remains open for private beta. Current Fortify config enables registration.
-- Decide whether email verification is required in practice. Routes use `verified`, Fortify enables email verification, but `App\Models\User` does not currently implement `MustVerifyEmail`.
+- Keep `RENTIER_REGISTRATION_ENABLED=false` for private beta unless public registration is intentionally opened.
+- Email verification is required for protected app routes. Ensure users receive verification emails before inviting real beta users.
 - Choose the beta database engine. README says PostgreSQL or MySQL is planned for production, while `.env.example` defaults to SQLite for local development.
 - Configure a real mail provider before using invitations, password reset, or email verification.
 - Run a persistent queue worker because team invitation notifications are queued.

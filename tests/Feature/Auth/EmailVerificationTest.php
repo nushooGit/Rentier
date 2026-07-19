@@ -77,6 +77,15 @@ test('verified user is redirected to dashboard from verification prompt', functi
     $response->assertRedirect('/dashboard');
 });
 
+test('unverified users are redirected away from verified team routes', function () {
+    $user = User::factory()->unverified()->create();
+    $team = $user->personalTeam();
+
+    $response = $this->actingAs($user)->get(route('dashboard', ['current_team' => $team]));
+
+    $response->assertRedirect(route('verification.notice'));
+});
+
 test('already verified user visiting verification link is redirected without firing event again', function () {
     $user = User::factory()->create();
     $team = $user->personalTeam();
