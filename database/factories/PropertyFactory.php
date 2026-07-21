@@ -34,7 +34,6 @@ class PropertyFactory extends Factory
             'status' => fake()->randomElement(['available', 'occupied', 'renovation', 'inactive']),
             'monthly_rent_amount' => fake()->optional()->randomFloat(2, 200, 2500),
             'currency' => 'RON',
-            'rent_due_day' => fake()->optional()->numberBetween(1, 31),
             'deposit_amount' => fake()->optional()->randomFloat(2, 200, 2500),
             'notes' => fake()->optional()->sentence(),
         ];

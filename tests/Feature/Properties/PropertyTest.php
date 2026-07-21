@@ -32,7 +32,6 @@ function validPropertyPayload(array $overrides = []): array
         'status' => 'available',
         'monthly_rent_amount' => 2500,
         'currency' => 'RON',
-        'rent_due_day' => 5,
         'deposit_amount' => 2500,
         'notes' => 'Near metro.',
     ], $overrides);

@@ -288,7 +288,7 @@ export default function PaymentForm({
                             <>
                                 <input name="period_month" type="hidden" />
                                 <input name="period_year" type="hidden" />
-                                <div className="text-xs text-muted-foreground md:col-span-2">
+                                <div className="text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
                                     <div className="space-y-1">
                                         <p>
                                             Garanție contract:{' '}

@@ -30,7 +30,6 @@ use Illuminate\Support\Carbon;
  * @property string $status
  * @property string|null $monthly_rent_amount
  * @property string $currency
- * @property int|null $rent_due_day
  * @property string|null $deposit_amount
  * @property string|null $notes
  * @property Carbon|null $created_at
@@ -56,7 +55,6 @@ use Illuminate\Support\Carbon;
     'status',
     'monthly_rent_amount',
     'currency',
-    'rent_due_day',
     'deposit_amount',
     'notes',
 ])]
@@ -173,7 +171,6 @@ class Property extends Model
             'rooms' => 'integer',
             'floor' => 'integer',
             'total_floors' => 'integer',
-            'rent_due_day' => 'integer',
             'usable_area_sqm' => 'decimal:2',
             'monthly_rent_amount' => 'decimal:2',
             'deposit_amount' => 'decimal:2',

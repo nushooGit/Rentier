@@ -404,7 +404,7 @@ export default function ExpenseForm({
                             <InputError message={errors.settlement_type} />
                         </Field>
 
-                        <div className="space-y-1 text-xs text-muted-foreground md:col-span-2">
+                        <div className="space-y-1 text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
                             {!hasActiveTenantContext ? (
                                 <p>
                                     Nu există contract activ pentru această

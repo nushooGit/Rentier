@@ -903,7 +903,7 @@ test('vacant property rejects tenant paid expense', function () {
             'settlement_type' => 'none',
         ]));
 
-    $response->assertSessionHasErrors(['paid_by']);
+    $response->assertSessionHasErrors(['paid_by', 'responsible_party']);
 });
 
 test('vacant property rejects tenant responsible expense', function () {
@@ -920,6 +920,22 @@ test('vacant property rejects tenant responsible expense', function () {
         ]));
 
     $response->assertSessionHasErrors(['responsible_party']);
+});
+
+test('vacant property rejects tenant paid owner responsible expense', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'paid_by' => 'tenant',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'deduct_from_rent',
+        ]));
+
+    $response->assertSessionHasErrors(['paid_by']);
 });
 
 test('tenant paid expense is allowed only inside an active contract interval', function () {
