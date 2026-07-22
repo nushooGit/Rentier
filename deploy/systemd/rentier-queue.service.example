@@ -1,0 +1,15 @@
+[Unit]
+Description=Rentier Laravel queue worker
+After=network.target postgresql.service
+
+[Service]
+User=DEPLOY_USER
+Group=www-data
+Restart=always
+RestartSec=5
+WorkingDirectory=/var/www/YOUR_APP_PATH/current
+ExecStart=/usr/bin/php artisan queue:work database --sleep=3 --tries=3 --max-time=3600
+TimeoutStopSec=60
+
+[Install]
+WantedBy=multi-user.target

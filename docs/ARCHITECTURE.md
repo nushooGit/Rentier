@@ -8,7 +8,7 @@ Rentier is a Laravel SaaS application for property rental management. The backen
 - Inertia connects Laravel routes to React pages without a separate API application for the MVP.
 - React and TypeScript handle interactive screens, forms, and responsive layouts.
 - Tailwind CSS provides mobile-first styling.
-- SQLite is used locally. PostgreSQL or MySQL should be supported later in production.
+- SQLite is used locally. PostgreSQL is the target beta production database.
 - The application should remain a modular monolith until product needs justify extraction.
 
 ## Auth Strategy

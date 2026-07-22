@@ -18,13 +18,13 @@ The project is intentionally MVP-focused. Build the landlord workflow first, kee
 - Pest for tests
 - Laravel Pint, PHPStan/Larastan, ESLint, Prettier, TypeScript checks
 - SQLite for local development
-- PostgreSQL or MySQL planned for production
+- PostgreSQL for beta production
 
 ## Local Development Notes
 
 - Current local URL: `http://127.0.0.1:8000`
 - The optional `rentier.test` hostname depends on Laravel Herd parked paths and local DNS/hosts configuration.
-- SQLite is the default local database direction. Keep migrations portable for later PostgreSQL or MySQL production deployments.
+- SQLite is the default local database direction. Keep migrations portable for PostgreSQL beta production deployments.
 - Use one backend authentication system and one `users` table.
 - The UI may expose separate landlord and renter portal experiences, but authentication remains shared.
 - A user may be a landlord, renter, or both.
@@ -132,4 +132,5 @@ development and is not run automatically in production.
 - [Roadmap](docs/ROADMAP.md)
 - [Data Model Draft](docs/DATA_MODEL_DRAFT.md)
 - [Beta Deployment Readiness](docs/deployment-beta.md)
+- [Hetzner PostgreSQL Beta Deployment](docs/hetzner-deployment.md)
 - [E2E Smoke Tests](docs/e2e-smoke-tests.md)

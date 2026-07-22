@@ -6,10 +6,10 @@ This is a practical checklist for a future private beta deploy on a VPS. It is n
 
 - Linux VPS with SSH access and automated security updates.
 - Nginx or Apache pointing the web root to `public/`.
-- PHP 8.3+ with common Laravel extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pdo`, `pdo_mysql` or `pdo_pgsql`, `session`, `tokenizer`, `xml`.
+- PHP 8.3+ with common Laravel extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pdo`, `pgsql`, `pdo_pgsql`, `session`, `tokenizer`, `xml`.
 - Composer 2.
 - Node.js LTS and npm for building assets during deploy, or build artifacts produced in CI.
-- MySQL/MariaDB or PostgreSQL for beta. SQLite is fine locally but should be an explicit risk decision on VPS.
+- PostgreSQL for beta production. SQLite remains the local development default.
 - Supervisor or systemd for `php artisan queue:work`.
 - Cron entry for Laravel scheduler.
 - HTTPS certificate, usually via Certbot or the VPS provider.
@@ -33,12 +33,13 @@ LOG_CHANNEL=stack
 LOG_STACK=daily
 LOG_LEVEL=warning
 
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=rentier
-DB_USERNAME=rentier
-DB_PASSWORD=change-me
+DB_PORT=5432
+DB_DATABASE=DB_NAME
+DB_USERNAME=DB_USER
+DB_PASSWORD=DB_PASSWORD_PLACEHOLDER
+DB_SSLMODE=prefer
 
 SESSION_DRIVER=database
 SESSION_SECURE_COOKIE=true
@@ -48,8 +49,8 @@ QUEUE_CONNECTION=database
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.example.com
 MAIL_PORT=587
-MAIL_USERNAME=change-me
-MAIL_PASSWORD=change-me
+MAIL_USERNAME=MAIL_USERNAME_PLACEHOLDER
+MAIL_PASSWORD=MAIL_PASSWORD_PLACEHOLDER
 MAIL_FROM_ADDRESS=no-reply@your-domain.example
 MAIL_FROM_NAME="${APP_NAME}"
 
@@ -63,8 +64,12 @@ Notes:
 - `PASSKEYS_USER_HANDLE_SECRET` can be a separate random secret. If omitted, the app falls back to `APP_KEY`, but a dedicated value is cleaner for beta.
 - `RENTIER_REGISTRATION_ENABLED=false` disables public signup routes. Keep it disabled for private beta unless public signups are intentionally allowed.
 - Keep `.env` outside version control.
-- If using PostgreSQL, set `DB_CONNECTION=pgsql`, `DB_PORT=5432`, and confirm `DB_SSLMODE`.
+- Production beta should use PostgreSQL. Keep credentials only in the server-side `.env`.
 - `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.
+
+## Hetzner PostgreSQL runbook
+
+Use [Hetzner PostgreSQL Beta Deployment](hetzner-deployment.md) for the focused Ubuntu 24.04, Nginx, PostgreSQL, queue, scheduler, backup, and smoke-test preparation checklist.
 
 ## First deploy checklist
 
@@ -111,17 +116,18 @@ php artisan optimize
 php artisan queue:work --sleep=3 --tries=3 --max-time=3600
 ```
 
-13. Configure the scheduler cron:
+13. Configure the scheduler cron with non-blocking `flock` and an application-owned log path:
 
 ```cron
-* * * * * cd /path/to/rentier && php artisan schedule:run >> /dev/null 2>&1
+* * * * * DEPLOY_USER /usr/bin/flock -n /tmp/rentier-scheduler.lock /bin/bash -lc 'cd /var/www/YOUR_APP_PATH/current && /usr/bin/php artisan schedule:run >> /var/www/YOUR_APP_PATH/current/storage/logs/scheduler.log 2>&1'
 ```
 
 ## Permissions
 
-The web server user must be able to write to:
+The web server user and deploy user must be able to write to the application-owned runtime paths:
 
 - `storage/`
+- `storage/logs/`
 - `bootstrap/cache/`
 
 The web server should serve only `public/`. Do not expose the project root, `.env`, `storage/app/private`, or `database/`.
@@ -193,7 +199,7 @@ php artisan up
 
 - Keep `RENTIER_REGISTRATION_ENABLED=false` for private beta unless public registration is intentionally opened.
 - Email verification is required for protected app routes. Ensure users receive verification emails before inviting real beta users.
-- Choose the beta database engine. README says PostgreSQL or MySQL is planned for production, while `.env.example` defaults to SQLite for local development.
+- Use PostgreSQL for the beta database. `.env.example` defaults to SQLite for local development only.
 - Configure a real mail provider before using invitations, password reset, or email verification.
 - Run a persistent queue worker because team invitation notifications are queued.
 - Configure cron for the scheduled expired-invitation cleanup.
