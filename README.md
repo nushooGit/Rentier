@@ -7,7 +7,7 @@ The project is intentionally MVP-focused. Build the landlord workflow first, kee
 ## Current Tech Stack
 
 - Laravel 13
-- PHP 8.3+
+- PHP 8.4.1+
 - Laravel Fortify for authentication
 - Inertia.js with React 19
 - TypeScript

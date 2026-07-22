@@ -33,7 +33,7 @@ server {
     error_page 404 /index.php;
 
     location ~ \.php$ {
-        # Replace php8.X with the installed PHP-FPM version, such as php8.3 or php8.4.
+        # Replace php8.X with the installed PHP 8.4+ FPM version, such as php8.4.
         fastcgi_pass unix:/run/php/php8.X-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;

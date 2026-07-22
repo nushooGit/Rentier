@@ -6,7 +6,7 @@ This is a practical checklist for a future private beta deploy on a VPS. It is n
 
 - Linux VPS with SSH access and automated security updates.
 - Nginx or Apache pointing the web root to `public/`.
-- PHP 8.3+ with common Laravel extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pdo`, `pgsql`, `pdo_pgsql`, `session`, `tokenizer`, `xml`.
+- PHP 8.4.1+ with common Laravel extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pdo`, `pgsql`, `pdo_pgsql`, `session`, `tokenizer`, `xml`.
 - Composer 2.
 - Node.js LTS and npm for building assets during deploy, or build artifacts produced in CI.
 - PostgreSQL for beta production. SQLite remains the local development default.

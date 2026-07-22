@@ -8,7 +8,7 @@ Do not run these commands blindly on production. Review every placeholder before
 
 - Ubuntu 24.04 LTS
 - Nginx serving the Laravel `public/` directory
-- PHP 8.3 or newer, matching `composer.json`; select the matching PHP-FPM socket in Nginx, such as `php8.3-fpm.sock` or `php8.4-fpm.sock`
+- PHP 8.4.1 or newer, matching `composer.json`; select the matching PHP-FPM socket in Nginx, such as `php8.4-fpm.sock` or a newer installed PHP-FPM socket
 - Required PHP extensions: `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `filter`, `hash`, `mbstring`, `openssl`, `pdo`, `pgsql`, `pdo_pgsql`, `session`, `tokenizer`, `xml`
 - Composer 2
 - Node.js LTS and npm for `npm ci` and `npm run build`
@@ -127,7 +127,7 @@ Replace:
 - `/etc/ssl/YOUR_DOMAIN/privkey.pem`
 - `/run/php/php8.X-fpm.sock`
 
-The PHP-FPM socket must match the installed PHP version, for example `/run/php/php8.3-fpm.sock` or `/run/php/php8.4-fpm.sock`.
+The PHP-FPM socket must match the installed PHP 8.4+ version, for example `/run/php/php8.4-fpm.sock` or a newer installed socket.
 
 ## Health Check
 
