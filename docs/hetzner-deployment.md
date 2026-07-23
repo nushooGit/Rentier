@@ -20,6 +20,102 @@ Do not run these commands blindly on production. Review every placeholder before
 
 Redis is not required for the initial beta. The repository has database queue, job batch, and failed job migrations.
 
+## Coolify Nixpacks Runtime
+
+The current beta deployment uses Coolify on the same Hetzner VPS, with PostgreSQL as a separate internal Coolify resource and the Laravel app built from Git with Nixpacks.
+
+Repository runtime files:
+
+- `nixpacks.toml`
+- `deploy/coolify/start.sh`
+- `deploy/coolify/nginx.template.conf`
+- `deploy/coolify/php-fpm.conf`
+- `deploy/coolify/supervisord.conf`
+- `deploy/coolify/worker-*.conf`
+
+Architecture inside the application container:
+
+- Supervisor runs as PID 1.
+- Nginx serves `/app/public` and forwards PHP requests to PHP-FPM on `127.0.0.1:9000`.
+- PHP-FPM runs in the foreground with low-resource pool defaults.
+- One queue worker runs `php /app/artisan queue:work --sleep=3 --tries=3 --max-time=3600`.
+- One scheduler process runs `php /app/artisan schedule:work`.
+
+Coolify application settings:
+
+- Build Pack: `Nixpacks`
+- Branch: `main`
+- Port Exposes: `80`
+- Health check path: `/up`
+- Start Command: leave empty after `nixpacks.toml` is committed. Do not keep `php artisan serve --host=0.0.0.0 --port=80`; it is only a temporary diagnostic command and is not the production runtime.
+
+HTTPS is handled by Coolify's proxy. Do not configure TLS certificates, real domains, or IP addresses inside the application container.
+
+Required Coolify environment variable names, using placeholders only:
+
+```dotenv
+APP_NAME=Rentier
+APP_ENV=production
+APP_KEY=base64:GENERATED_WITH_php_artisan_key_generate_show
+APP_DEBUG=false
+APP_URL=https://your-domain.example
+APP_TIMEZONE=Europe/Bucharest
+APP_LOCALE=ro
+APP_FALLBACK_LOCALE=en
+
+RENTIER_REGISTRATION_ENABLED=false
+
+LOG_CHANNEL=stderr
+LOG_LEVEL=warning
+
+DB_CONNECTION=pgsql
+DB_HOST=<COOLIFY_POSTGRES_INTERNAL_HOST>
+DB_PORT=5432
+DB_DATABASE=<COOLIFY_POSTGRES_DATABASE>
+DB_USERNAME=<COOLIFY_POSTGRES_USERNAME>
+DB_PASSWORD=<COOLIFY_POSTGRES_PASSWORD>
+DB_SSLMODE=prefer
+
+SESSION_DRIVER=database
+SESSION_SECURE_COOKIE=true
+CACHE_STORE=database
+QUEUE_CONNECTION=database
+
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=MAIL_USERNAME_PLACEHOLDER
+MAIL_PASSWORD=MAIL_PASSWORD_PLACEHOLDER
+MAIL_FROM_ADDRESS=no-reply@your-domain.example
+MAIL_FROM_NAME="${APP_NAME}"
+
+PASSKEYS_USER_HANDLE_SECRET=GENERATED_RANDOM_SECRET
+VITE_APP_NAME="${APP_NAME}"
+```
+
+Prefer the separate `DB_*` variables above for Coolify because they are explicit and match Laravel's config names. Remove `DB_URL` from the Coolify application environment when switching to this style so there is one database configuration source. This repository also supports Coolify's PostgreSQL URL as `DB_URL` for the `pgsql` connection because `config/database.php` maps `connections.pgsql.url` to `env('DB_URL')`; still set `DB_CONNECTION=pgsql`. The current config does not read `DATABASE_URL`.
+
+Use this Coolify post-deployment command:
+
+```bash
+php artisan migrate --force &&
+php artisan storage:link --force &&
+php artisan optimize:clear &&
+php artisan optimize
+```
+
+Do not run migrations during the Docker image build. Never run `migrate:fresh`, `db:wipe`, or destructive reset commands on beta or production. `queue:restart` is not required in the post-deployment command because Coolify recreates the application container and Supervisor starts a fresh worker.
+
+Application logs are visible in Coolify's application logs. The container sends Nginx, PHP-FPM, queue worker, scheduler, and Supervisor logs to stdout/stderr where practical.
+
+Run Playwright against the deployed URL with test-only beta credentials:
+
+```bash
+E2E_BASE_URL=https://your-domain.example E2E_EMAIL=beta-test-user@example.com E2E_PASSWORD=TEST_PASSWORD npm run test:e2e
+```
+
+Do not commit E2E credentials.
+
 ## Production Env Checklist
 
 Create the production `.env` on the server only. Do not commit it.

@@ -1,0 +1,27 @@
+[variables]
+# Nixpacks detects PHP from composer.json, which requires ^8.4.1.
+NIXPACKS_NODE_VERSION = "22"
+NIXPACKS_PHP_ROOT_DIR = "/app/public"
+NIXPACKS_PHP_FALLBACK_PATH = "/index.php"
+PORT = "80"
+
+[phases.setup]
+nixPkgs = ["...", "python311Packages.supervisor"]
+
+[phases.install]
+cmds = [
+    "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
+    "npm ci"
+]
+
+[phases.build]
+cmds = [
+    "npm run build",
+    "mkdir -p /etc/supervisor/conf.d",
+    "cp deploy/coolify/supervisord.conf /etc/supervisord.conf",
+    "cp deploy/coolify/worker-*.conf /etc/supervisor/conf.d/",
+    "chmod +x deploy/coolify/start.sh"
+]
+
+[start]
+cmd = "/app/deploy/coolify/start.sh"
