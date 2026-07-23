@@ -16,12 +16,8 @@ cmds = [
 
 [phases.build]
 cmds = [
-    "npm run build",
-    "mkdir -p /etc/supervisor/conf.d",
-    "cp deploy/coolify/supervisord.conf /etc/supervisord.conf",
-    "cp deploy/coolify/worker-*.conf /etc/supervisor/conf.d/",
-    "chmod +x deploy/coolify/start.sh"
+    "npm run build"
 ]
 
 [start]
-cmd = "/app/deploy/coolify/start.sh"
+cmd = "bash /app/deploy/coolify/start.sh"
