@@ -91,6 +91,7 @@ chmod -R ug+rwX /app/storage /app/bootstrap/cache
 
 "$PHP_BIN" /app/artisan storage:link --force || true
 
+mkdir -p /tmp
 "$NODE_BIN" /assets/scripts/prestart.mjs /app/deploy/coolify/nginx.template.conf /etc/nginx.conf
 
 log "testing nginx configuration"
