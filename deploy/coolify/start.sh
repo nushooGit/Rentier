@@ -95,7 +95,7 @@ mkdir -p /tmp
 "$NODE_BIN" /assets/scripts/prestart.mjs /app/deploy/coolify/nginx.template.conf /etc/nginx.conf
 
 log "testing nginx configuration"
-"$NGINX_BIN" -t -c /etc/nginx.conf || fail "nginx configuration test failed"
+"$NGINX_BIN" -t -e stderr -c /etc/nginx.conf || fail "nginx configuration test failed"
 
 log "testing php-fpm configuration"
 "$PHP_FPM_BIN" -t -y /app/deploy/coolify/php-fpm.conf || fail "php-fpm configuration test failed"
