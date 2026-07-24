@@ -6,6 +6,7 @@ use App\Models\TeamInvitation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 use Laravel\Passkeys\Contracts\PasskeyLoginResponse;
@@ -47,6 +48,82 @@ test('users can authenticate using the login screen', function () {
 
     $this->assertAuthenticated();
     $response->assertRedirect(route('dashboard'));
+});
+
+test('proxied https requests are treated as secure', function () {
+    Route::get('/_test/proxy-context', fn (Request $request) => [
+        'is_secure' => $request->isSecure(),
+        'host' => $request->getHost(),
+        'port' => $request->getPort(),
+        'ip' => $request->ip(),
+        'url' => $request->fullUrl(),
+    ]);
+
+    $response = $this
+        ->withServerVariables([
+            'REMOTE_ADDR' => '172.18.0.10',
+            'SERVER_PORT' => '80',
+            'HTTPS' => 'off',
+        ])
+        ->withHeaders([
+            'Host' => 'rentier-app:8080',
+            'X-Forwarded-For' => '203.0.113.50',
+            'X-Forwarded-Host' => 'rentier.ro',
+            'X-Forwarded-Port' => '443',
+            'X-Forwarded-Proto' => 'https',
+        ])
+        ->get('/_test/proxy-context?status=ok');
+
+    $response->assertOk();
+    $response->assertJson([
+        'is_secure' => true,
+        'host' => 'rentier.ro',
+        'port' => 443,
+        'ip' => '203.0.113.50',
+        'url' => 'https://rentier.ro/_test/proxy-context?status=ok',
+    ]);
+});
+
+test('proxied https login redirects keep the forwarded scheme', function () {
+    $user = User::factory()->create();
+
+    $response = $this
+        ->withServerVariables([
+            'REMOTE_ADDR' => '172.18.0.10',
+            'SERVER_PORT' => '80',
+            'HTTPS' => 'off',
+        ])
+        ->withHeaders([
+            'Host' => 'rentier-app:8080',
+            'X-Forwarded-For' => '203.0.113.50',
+            'X-Forwarded-Host' => 'rentier.ro',
+            'X-Forwarded-Port' => '443',
+            'X-Forwarded-Proto' => 'https',
+        ])
+        ->post('/login', [
+            'email' => $user->email,
+            'password' => 'password',
+        ]);
+
+    $this->assertAuthenticated();
+    $response->assertRedirect("https://rentier.ro/{$user->personalTeam()->slug}/dashboard");
+});
+
+test('local requests without forwarded headers keep normal request context', function () {
+    Route::get('/_test/local-context', fn (Request $request) => [
+        'is_secure' => $request->isSecure(),
+        'host' => $request->getHost(),
+        'url' => $request->fullUrl(),
+    ]);
+
+    $response = $this->get('/_test/local-context');
+
+    $response->assertOk();
+    $response->assertJson([
+        'is_secure' => false,
+        'host' => 'localhost',
+        'url' => 'http://localhost/_test/local-context',
+    ]);
 });
 
 test('passkey login response redirects to the current team dashboard', function () {
