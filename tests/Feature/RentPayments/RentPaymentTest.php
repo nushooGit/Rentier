@@ -477,7 +477,9 @@ test('cannot create guarantee payment that exceeds contract guarantee', function
             'period_month' => null,
             'period_year' => null,
         ]))
-        ->assertSessionHasErrors(['amount']);
+        ->assertSessionHasErrors([
+            'amount' => 'Suma nu poate depăși garanția rămasă de 0 RON.',
+        ]);
 
     expect((float) RentPayment::query()->where('lease_id', $lease->id)->where('payment_type', 'guarantee')->sum('amount'))->toBe(1000.0);
 });
@@ -517,6 +519,39 @@ test('can create guarantee payment up to remaining contract guarantee', function
     ]);
 });
 
+test('guarantee overpayment message includes Romanian formatted remaining amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+        'deposit_amount' => 2500,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'payment_type' => 'guarantee',
+        'period_month' => null,
+        'period_year' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 1500.01,
+            'payment_type' => 'guarantee',
+            'period_month' => null,
+            'period_year' => null,
+        ]))
+        ->assertSessionHasErrors([
+            'amount' => 'Suma nu poate depăși garanția rămasă de 1.500 RON.',
+        ]);
+
+    expect((float) RentPayment::query()->where('lease_id', $lease->id)->where('payment_type', 'guarantee')->sum('amount'))->toBe(1000.0);
+});
+
 test('cannot update guarantee payment to exceed contract guarantee', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -552,7 +587,9 @@ test('cannot update guarantee payment to exceed contract guarantee', function ()
             'period_month' => null,
             'period_year' => null,
         ]))
-        ->assertSessionHasErrors(['amount']);
+        ->assertSessionHasErrors([
+            'amount' => 'Suma nu poate depăși garanția rămasă de 100 RON.',
+        ]);
 
     expect($payment->refresh()->amount)->toBe('50.00');
 });

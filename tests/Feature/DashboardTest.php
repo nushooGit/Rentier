@@ -1056,6 +1056,48 @@ test('dashboard rent status marks overdue after local due date', function () {
     Carbon::setTestNow();
 });
 
+test('dashboard shows partially paid overdue rent in overdue list', function () {
+    Carbon::setTestNow(Carbon::parse('2026-07-08 02:20:00', 'Europe/Bucharest'));
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-01-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'period_month' => 7,
+        'period_year' => 2026,
+        'payment_date' => '2026-07-06',
+        'status' => 'partial',
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team));
+
+    $response->assertOk();
+    $response->assertInertia(fn (Assert $page) => $page
+        ->component('dashboard')
+        ->where('summary.overdue_count', 1)
+        ->has('overdueLeases', 1)
+        ->where('overdueLeases.0.lease_id', $lease->id)
+        ->where('overdueLeases.0.status_key', 'partial_overdue')
+        ->where('overdueLeases.0.status_label', 'Chirie plătită parțial')
+        ->where('overdueLeases.0.days', 3)
+        ->where('overdueLeases.0.remaining_amount', '1500.00')
+    );
+
+    Carbon::setTestNow();
+});
+
 test('dashboard counts vacant owner expenses without expected rent', function () {
     Carbon::setTestNow('2026-07-10');
 

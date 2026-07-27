@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import Heading from '@/components/heading';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import { Badge } from '@/components/ui/badge';
-import { formatDateShort } from '@/lib/date';
+import { formatDateLong } from '@/lib/date';
 import { formatMoney } from '@/lib/money';
 import { expenseStatusLabel } from '@/pages/expenses/labels';
 import { leaseStatusLabel } from '@/pages/leases/labels';
@@ -134,23 +134,33 @@ function FinancialLeaseLine({
                     </p>
                     <p className="text-muted-foreground">
                         {lease.renter_name} · scadentă{' '}
-                        {formatDateShort(lease.due_date)}
+                        {formatDateLong(lease.due_date)}
                     </p>
                 </div>
-                <Badge
-                    variant="outline"
-                    className={
-                        tone === 'danger'
-                            ? 'border-red-200 bg-red-50 text-red-700'
-                            : 'border-slate-200 bg-slate-50 text-slate-700'
-                    }
-                >
-                    {lease.days !== null && tone === 'danger'
-                        ? `${lease.days} ${
-                              lease.days === 1 ? 'zi' : 'zile'
-                          } întârziere`
-                        : lease.status_label}
-                </Badge>
+                <div className="flex flex-wrap justify-end gap-1">
+                    {lease.status_key === 'partial_overdue' ? (
+                        <Badge
+                            variant="outline"
+                            className="border-amber-200 bg-amber-50 text-amber-700"
+                        >
+                            Plătită parțial
+                        </Badge>
+                    ) : null}
+                    <Badge
+                        variant="outline"
+                        className={
+                            tone === 'danger'
+                                ? 'border-red-200 bg-red-50 text-red-700'
+                                : 'border-slate-200 bg-slate-50 text-slate-700'
+                        }
+                    >
+                        {lease.days !== null && tone === 'danger'
+                            ? `${lease.days} ${
+                                  lease.days === 1 ? 'zi' : 'zile'
+                              } întârziere`
+                            : lease.status_label}
+                    </Badge>
+                </div>
             </div>
             <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
                 <span>
@@ -488,6 +498,12 @@ export default function Dashboard({
                                                     lease.currency,
                                                 )}
                                             </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Început:{' '}
+                                                {formatDateLong(
+                                                    lease.start_date,
+                                                )}
+                                            </p>
                                         </div>
                                         <Badge variant="secondary">
                                             {leaseStatusLabel(lease.status)}
@@ -528,6 +544,12 @@ export default function Dashboard({
                                                     payment.currency,
                                                 )}
                                             </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Încasată:{' '}
+                                                {formatDateLong(
+                                                    payment.payment_date,
+                                                )}
+                                            </p>
                                         </div>
                                         <Badge variant="secondary">
                                             {paymentStatusLabel(payment.status)}
@@ -566,6 +588,12 @@ export default function Dashboard({
                                                 {formatMoney(
                                                     expense.amount,
                                                     expense.currency,
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                Data:{' '}
+                                                {formatDateLong(
+                                                    expense.expense_date,
                                                 )}
                                             </p>
                                         </div>

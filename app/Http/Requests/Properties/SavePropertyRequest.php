@@ -48,10 +48,26 @@ class SavePropertyRequest extends FormRequest
             'floor' => ['nullable', 'integer'],
             'total_floors' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', Rule::in(['available', 'occupied', 'renovation', 'inactive'])],
-            'monthly_rent_amount' => ['nullable', 'numeric', 'min:0'],
+            'monthly_rent_amount' => ['required', 'numeric', 'gt:0'],
             'currency' => ['nullable', 'string', 'size:3'],
             'deposit_amount' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string', 'max:10000'],
+        ];
+    }
+
+    /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'name.required' => __('validation.custom.property.name.required'),
+            'address_line.required' => __('validation.custom.property.address_line.required'),
+            'monthly_rent_amount.required' => __('validation.custom.property.monthly_rent_amount.required'),
+            'monthly_rent_amount.numeric' => __('validation.custom.property.monthly_rent_amount.numeric'),
+            'monthly_rent_amount.gt' => __('validation.custom.property.monthly_rent_amount.gt'),
         ];
     }
 

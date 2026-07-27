@@ -95,7 +95,6 @@ export default function PropertyForm({
                                 name="name"
                                 className={inputClassName}
                                 defaultValue={fieldValue(property?.name)}
-                                required
                                 data-test="property-name-input"
                             />
                             <InputError message={errors.name} />
@@ -208,7 +207,6 @@ export default function PropertyForm({
                                 defaultValue={fieldValue(
                                     property?.address_line,
                                 )}
-                                required
                                 data-test="property-address-input"
                             />
                             <InputError message={errors.address_line} />

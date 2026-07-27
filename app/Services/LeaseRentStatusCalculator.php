@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 class LeaseRentStatusCalculator
 {
     /**
-     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string}
+     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string, badges: array<int, array{key: string, label: string, tone: string}>}
      */
     public function forLease(Lease $lease, ?CarbonInterface $date = null): array
     {
@@ -35,6 +35,29 @@ class LeaseRentStatusCalculator
             $label = $rentDeductionAmount > 0
                 ? 'Chirie acoperită parțial'
                 : 'Chirie plătită parțial';
+
+            if ($date->isAfter($dueDate)) {
+                $days = (int) $dueDate->diffInDays($date);
+                $overdueLabel = $days === 1
+                    ? 'Întârziată cu 1 zi'
+                    : "Întârziată cu {$days} zile";
+
+                return $this->rentPaymentStatus(
+                    'partial_overdue',
+                    $label,
+                    $days,
+                    $dueDate,
+                    $expectedAmount,
+                    $collectedAmount,
+                    $rentDeductionAmount,
+                    $coveredAmount,
+                    $remainingAmount,
+                    [
+                        ['key' => 'partial', 'label' => 'Plătită parțial', 'tone' => 'partial'],
+                        ['key' => 'overdue', 'label' => $overdueLabel, 'tone' => 'overdue'],
+                    ],
+                );
+            }
 
             return $this->rentPaymentStatus('partial', $label, null, $dueDate, $expectedAmount, $collectedAmount, $rentDeductionAmount, $coveredAmount, $remainingAmount);
         }
@@ -126,7 +149,7 @@ class LeaseRentStatusCalculator
     }
 
     /**
-     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string}
+     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string, badges: array<int, array{key: string, label: string, tone: string}>}
      */
     private function rentPaymentStatus(
         string $key,
@@ -138,6 +161,7 @@ class LeaseRentStatusCalculator
         float $rentDeductionAmount,
         float $coveredAmount,
         float $remainingAmount,
+        ?array $badges = null,
     ): array {
         return [
             'key' => $key,
@@ -149,6 +173,9 @@ class LeaseRentStatusCalculator
             'rent_deduction_amount' => number_format($rentDeductionAmount, 2, '.', ''),
             'covered_amount' => number_format($coveredAmount, 2, '.', ''),
             'remaining_amount' => number_format($remainingAmount, 2, '.', ''),
+            'badges' => $badges ?? [
+                ['key' => $key, 'label' => $label, 'tone' => $key],
+            ],
         ];
     }
 }

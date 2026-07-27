@@ -197,11 +197,6 @@ export default function PaymentForm({
                                 className={inputClassName}
                                 type="number"
                                 min="0"
-                                max={
-                                    paymentType === 'guarantee'
-                                        ? remainingGuarantee
-                                        : undefined
-                                }
                                 step="0.01"
                                 defaultValue={fieldValue(payment?.amount)}
                                 required

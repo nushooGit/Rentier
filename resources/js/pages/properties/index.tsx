@@ -19,6 +19,7 @@ import type {
     PropertyOption,
     PropertyStatus,
     PropertyType,
+    RentPaymentStatusBadge,
     RentPaymentStatusKey,
 } from '@/types';
 
@@ -46,10 +47,15 @@ function hasPositiveAmount(amount?: string | null) {
 const rentStatusClassNames: Record<RentPaymentStatusKey, string> = {
     paid: 'border-emerald-200 bg-emerald-50 text-emerald-700',
     partial: 'border-amber-200 bg-amber-50 text-amber-700',
+    partial_overdue: 'border-red-200 bg-red-50 text-red-700',
     due_today: 'border-sky-200 bg-sky-50 text-sky-700',
     upcoming: 'border-slate-200 bg-slate-50 text-slate-700',
     overdue: 'border-red-200 bg-red-50 text-red-700',
 };
+
+function rentStatusBadgeClassName(badge: RentPaymentStatusBadge) {
+    return rentStatusClassNames[badge.tone as RentPaymentStatusKey] ?? '';
+}
 
 export default function PropertiesIndex({ properties }: Props) {
     const { currentTeam } = usePage().props;
@@ -136,16 +142,19 @@ export default function PropertiesIndex({ properties }: Props) {
                                         </span>
                                         {property.rent_payment_status ? (
                                             <div className="mt-1 grid gap-1">
-                                                <Badge
-                                                    variant="outline"
-                                                    className={`w-fit ${rentStatusClassNames[property.rent_payment_status.key]}`}
-                                                >
-                                                    {
-                                                        property
-                                                            .rent_payment_status
-                                                            .label
-                                                    }
-                                                </Badge>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {property.rent_payment_status.badges.map(
+                                                        (badge) => (
+                                                            <Badge
+                                                                key={badge.key}
+                                                                variant="outline"
+                                                                className={`w-fit ${rentStatusBadgeClassName(badge)}`}
+                                                            >
+                                                                {badge.label}
+                                                            </Badge>
+                                                        ),
+                                                    )}
+                                                </div>
                                                 {hasPositiveAmount(
                                                     property.rent_payment_status
                                                         .rent_deduction_amount,

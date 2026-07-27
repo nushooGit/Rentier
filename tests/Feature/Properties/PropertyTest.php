@@ -88,14 +88,71 @@ test('property validation requires core fields', function () {
             'name' => '',
             'city' => '',
             'address_line' => '',
-            'monthly_rent_amount' => -1,
+            'monthly_rent_amount' => '',
         ]));
 
     $response->assertSessionHasErrors([
-        'name',
+        'name' => 'Numele proprietății este obligatoriu.',
         'city',
-        'address_line',
-        'monthly_rent_amount',
+        'address_line' => 'Adresa proprietății este obligatorie.',
+        'monthly_rent_amount' => 'Chiria lunară este obligatorie.',
+    ]);
+
+    $this->assertDatabaseCount('properties', 0);
+});
+
+test('property validation requires positive monthly rent on create and update', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'monthly_rent_amount' => 0,
+        ]))
+        ->assertSessionHasErrors([
+            'monthly_rent_amount' => 'Chiria lunară trebuie să fie mai mare decât 0.',
+        ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('properties.update', [$team, $property]), validPropertyPayload([
+            'monthly_rent_amount' => 0,
+        ]))
+        ->assertSessionHasErrors([
+            'monthly_rent_amount' => 'Chiria lunară trebuie să fie mai mare decât 0.',
+        ]);
+
+    expect($property->refresh()->monthly_rent_amount)->toBe('2500.00');
+});
+
+test('optional property fields can remain empty', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'county_or_sector' => '',
+            'postal_code' => '',
+            'rooms' => '',
+            'usable_area_sqm' => '',
+            'floor' => '',
+            'total_floors' => '',
+            'deposit_amount' => '',
+            'notes' => '',
+        ]));
+
+    $response->assertRedirect(route('properties.index', $team));
+
+    $this->assertDatabaseHas('properties', [
+        'team_id' => $team->id,
+        'name' => 'Central Apartment',
+        'deposit_amount' => null,
+        'notes' => null,
     ]);
 });
 
@@ -189,8 +246,8 @@ test('property card shows paid rent status for the current month', function () {
     Carbon::setTestNow();
 });
 
-test('property card shows partial paid rent status for the current month', function () {
-    Carbon::setTestNow('2026-07-15');
+test('property card shows partial paid rent status before the due date', function () {
+    Carbon::setTestNow('2026-07-03');
 
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -219,6 +276,7 @@ test('property card shows partial paid rent status for the current month', funct
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'partial')
             ->where('properties.0.rent_payment_status.label', 'Chirie plătită parțial')
+            ->where('properties.0.rent_payment_status.badges.0.label', 'Chirie plătită parțial')
             ->where('properties.0.rent_payment_status.collected_amount', '1000.00')
             ->where('properties.0.rent_payment_status.rent_deduction_amount', '0.00')
         );
@@ -226,8 +284,46 @@ test('property card shows partial paid rent status for the current month', funct
     Carbon::setTestNow();
 });
 
+test('property card shows partial and overdue rent status after the due date', function () {
+    Carbon::setTestNow('2026-07-08');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+        'rent_due_day' => 5,
+    ]);
+
+    RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $property->id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1000,
+        'period_month' => 7,
+        'period_year' => 2026,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.index', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('properties.0.rent_payment_status.key', 'partial_overdue')
+            ->where('properties.0.rent_payment_status.label', 'Chirie plătită parțial')
+            ->where('properties.0.rent_payment_status.days', 3)
+            ->where('properties.0.rent_payment_status.badges.0.label', 'Plătită parțial')
+            ->where('properties.0.rent_payment_status.badges.1.label', 'Întârziată cu 3 zile')
+        );
+
+    Carbon::setTestNow();
+});
+
 test('property card shows partial covered rent status for rent deductions without payments', function () {
-    Carbon::setTestNow('2026-07-15');
+    Carbon::setTestNow('2026-07-03');
 
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -244,7 +340,7 @@ test('property card shows partial covered rent status for rent deductions withou
         'property_id' => $property->id,
         'lease_id' => $lease->id,
         'amount' => 1000,
-        'expense_date' => '2026-07-10',
+        'expense_date' => '2026-07-03',
         'paid_by' => 'tenant',
         'responsible_party' => 'owner',
         'settlement_type' => 'deduct_from_rent',

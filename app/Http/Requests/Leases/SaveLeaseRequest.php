@@ -61,6 +61,18 @@ class SaveLeaseRequest extends FormRequest
     }
 
     /**
+     * Get custom validation messages.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'end_date.after_or_equal' => __('validation.custom.lease.end_date.after_or_equal'),
+        ];
+    }
+
+    /**
      * Configure the validator instance.
      */
     public function withValidator(Validator $validator): void

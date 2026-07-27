@@ -108,7 +108,7 @@ class DashboardController extends Controller
         $rentPaymentMethodBreakdown = $this->rentPaymentMethodBreakdown($currentTeam, $activeLeaseIds->all(), $currentYear, $currentMonth);
 
         $overdueLeases = $leaseFinancialRows
-            ->filter(fn (array $row) => $row['status_key'] === 'overdue')
+            ->filter(fn (array $row) => in_array($row['status_key'], ['overdue', 'partial_overdue'], true))
             ->values();
 
         $upcomingPayments = $leaseFinancialRows

@@ -39,7 +39,13 @@ export type DashboardLeaseFinancialRow = {
     currency: string;
     rent_due_day: number;
     due_date: string;
-    status_key: 'paid' | 'partial' | 'due_today' | 'upcoming' | 'overdue';
+    status_key:
+        | 'paid'
+        | 'partial'
+        | 'partial_overdue'
+        | 'due_today'
+        | 'upcoming'
+        | 'overdue';
     status_label: string;
     days: number | null;
     expected_amount: string;

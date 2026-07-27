@@ -92,11 +92,20 @@ class SaveRentPaymentRequest extends FormRequest
             }
 
             $existingTotal = (float) $existingTotalQuery->sum('amount');
+            $remainingGuaranteeCents = max(
+                $this->moneyToCents($expectedGuarantee) - $this->moneyToCents($existingTotal),
+                0,
+            );
             $newTotalCents = $this->moneyToCents($existingTotal) + $this->moneyToCents((float) $this->input('amount'));
             $expectedGuaranteeCents = $this->moneyToCents($expectedGuarantee);
 
             if ($newTotalCents > $expectedGuaranteeCents) {
-                $validator->errors()->add('amount', 'Suma garanției depășește garanția stabilită în contract.');
+                $validator->errors()->add(
+                    'amount',
+                    __('validation.custom.rent_payment.amount.guarantee_remaining_max', [
+                        'amount' => $this->formatMoneyCents($remainingGuaranteeCents, $lease->currency),
+                    ])
+                );
             }
         });
     }
@@ -120,6 +129,11 @@ class SaveRentPaymentRequest extends FormRequest
     private function moneyToCents(float $amount): int
     {
         return (int) round($amount * 100);
+    }
+
+    private function formatMoneyCents(int $cents, string $currency): string
+    {
+        return number_format($cents / 100, 0, ',', '.').' '.$currency;
     }
 
     private function rentPaymentFromRoute(): ?RentPayment

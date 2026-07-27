@@ -170,5 +170,5 @@ export function parseDateInputToIso(value: string, locale = DEFAULT_LOCALE) {
     return trimmedValue;
 }
 
-export const formatDateForDisplay = formatDateShort;
-export const formatDate = formatDateShort;
+export const formatDateForDisplay = formatDateLong;
+export const formatDate = formatDateLong;

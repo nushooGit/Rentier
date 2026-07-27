@@ -102,6 +102,78 @@ test('lease validation requires rent due day', function () {
     $this->assertDatabaseCount('leases', 0);
 });
 
+test('lease create rejects end date before start date with Romanian message', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-09',
+        ]))
+        ->assertSessionHasErrors([
+            'end_date' => 'Data de sfârșit trebuie să fie egală sau ulterioară datei de început.',
+        ]);
+
+    $this->assertDatabaseCount('leases', 0);
+});
+
+test('lease update rejects end date before start date with Romanian message', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2027-07-01',
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('leases.update', [$team, $lease]), validLeasePayload($property, [
+            'start_date' => '2026-07-10',
+            'end_date' => '2026-07-09',
+        ]))
+        ->assertSessionHasErrors([
+            'end_date' => 'Data de sfârșit trebuie să fie egală sau ulterioară datei de început.',
+        ]);
+
+    expect($lease->refresh()->end_date->toDateString())->toBe('2027-07-01');
+});
+
+test('lease accepts equal and later end dates', function (?string $endDate) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => '2026-07-10',
+            'end_date' => $endDate,
+        ]))
+        ->assertRedirect(route('leases.index', $team));
+
+    $lease = Lease::query()
+        ->where('property_id', $property->id)
+        ->firstOrFail();
+
+    expect($lease->start_date->toDateString())->toBe('2026-07-10')
+        ->and($lease->end_date?->toDateString())->toBe($endDate);
+})->with([
+    'equal date' => '2026-07-10',
+    'later date' => '2026-07-11',
+]);
+
 test('can create a lease when no other lease exists for the property', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;

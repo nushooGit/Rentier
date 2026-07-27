@@ -5,7 +5,18 @@ export type PropertyStatus =
     'available' | 'occupied' | 'renovation' | 'inactive';
 
 export type RentPaymentStatusKey =
-    'paid' | 'partial' | 'due_today' | 'upcoming' | 'overdue';
+    | 'paid'
+    | 'partial'
+    | 'partial_overdue'
+    | 'due_today'
+    | 'upcoming'
+    | 'overdue';
+
+export type RentPaymentStatusBadge = {
+    key: string;
+    label: string;
+    tone: RentPaymentStatusKey | 'partial' | 'overdue';
+};
 
 export type RentPaymentStatus = {
     key: RentPaymentStatusKey;
@@ -17,6 +28,7 @@ export type RentPaymentStatus = {
     rent_deduction_amount: string;
     covered_amount: string;
     remaining_amount: string;
+    badges: RentPaymentStatusBadge[];
 };
 
 export type Property = {
