@@ -86,16 +86,31 @@ class DashboardController extends Controller
                     'rent_deduction_amount' => $status['rent_deduction_amount'],
                     'covered_amount' => $status['covered_amount'],
                     'remaining_amount' => $status['remaining_amount'],
+                    'advance_notice' => $status['advance_notice'],
+                    'advance_notices' => $status['advance_notices'],
+                    'advance_months' => $status['advance_months'],
                 ];
             })
             ->values();
 
         $estimatedMonthlyRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['expected_amount']);
-        $currentMonthPayments = $leaseFinancialRows->sum(fn (array $row) => (float) $row['collected_amount']);
+        $activeLeaseIds = $activeLeases->pluck('id');
+        $currentMonthPayments = $activeLeaseIds->isEmpty()
+            ? 0
+            : (float) RentPayment::query()
+                ->whereBelongsTo($currentTeam)
+                ->whereIn('lease_id', $activeLeaseIds)
+                ->where(function ($query) {
+                    $query
+                        ->where('payment_type', 'rent')
+                        ->orWhereNull('payment_type');
+                })
+                ->whereYear('payment_date', $currentYear)
+                ->whereMonth('payment_date', $currentMonth)
+                ->sum('amount');
         $currentMonthRentDeductions = $leaseFinancialRows->sum(fn (array $row) => (float) $row['rent_deduction_amount']);
         $currentMonthCoveredRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['covered_amount']);
         $remainingRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['remaining_amount']);
-        $activeLeaseIds = $activeLeases->pluck('id');
         $expectedGuarantees = $activeLeases->sum(fn (Lease $lease) => (float) ($lease->deposit_amount ?? 0));
         $collectedGuarantees = $activeLeaseIds->isEmpty()
             ? 0
@@ -122,6 +137,10 @@ class DashboardController extends Controller
                 return $dueDate->isSameDay($today)
                     || ($dueDate->isAfter($today) && $today->diffInDays($dueDate) <= 7);
             })
+            ->values();
+
+        $advanceLeases = $leaseFinancialRows
+            ->filter(fn (array $row) => $row['advance_notice'] !== null)
             ->values();
 
         $propertiesWithoutActiveLease = $properties
@@ -284,6 +303,7 @@ class DashboardController extends Controller
             ],
             'overdueLeases' => $overdueLeases,
             'upcomingPayments' => $upcomingPayments,
+            'advanceLeases' => $advanceLeases,
             'propertiesWithoutActiveLease' => $propertiesWithoutActiveLease,
             'recentLeases' => $recentLeases,
             'recentPayments' => $recentPayments,
@@ -305,9 +325,13 @@ class DashboardController extends Controller
         return DB::table('rent_payments')
             ->where('team_id', $currentTeam->id)
             ->whereIn('lease_id', $activeLeaseIds)
-            ->where('payment_type', 'rent')
-            ->where('period_year', $year)
-            ->where('period_month', $month)
+            ->where(function ($query) {
+                $query
+                    ->where('payment_type', 'rent')
+                    ->orWhereNull('payment_type');
+            })
+            ->whereYear('payment_date', $year)
+            ->whereMonth('payment_date', $month)
             ->selectRaw('method, SUM(amount) as total_amount')
             ->groupBy('method')
             ->orderByRaw('method IS NULL')

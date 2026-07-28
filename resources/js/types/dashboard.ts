@@ -53,6 +53,35 @@ export type DashboardLeaseFinancialRow = {
     rent_deduction_amount: string;
     covered_amount: string;
     remaining_amount: string;
+    advance_notice: {
+        key: 'paid_through' | 'partial_advance';
+        label: string;
+        period_key: string;
+        amount: string;
+        expected_amount: string;
+    } | null;
+    advance_notices: {
+        key: 'paid_through' | 'partial_advance';
+        label: string;
+        period_key: string;
+        amount: string;
+        expected_amount: string;
+    }[];
+    advance_months: {
+        period_key: string;
+        period_date: string;
+        period_label: string;
+        expected_amount: string;
+        rent_deduction_amount: string;
+        cash_allocated: string;
+        total_covered: string;
+        remaining_amount: string;
+        fully_paid: boolean;
+        partial: boolean;
+        overdue: boolean;
+        paid_in_advance: boolean;
+        due_date: string;
+    }[];
 };
 
 export type DashboardPropertyWithoutActiveLease = {

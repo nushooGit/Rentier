@@ -25,6 +25,18 @@ test.describe('public and auth smoke', () => {
     }) => {
         const response = await request.get('/register');
 
+        if (process.env.E2E_ISOLATED === '1') {
+            expect(response.status()).toBe(404);
+
+            await page.goto('/login');
+            await expect(
+                page.getByRole('heading', { name: 'Log in to your account' }),
+            ).toBeVisible();
+            await expect(page.getByTestId('register-link')).toHaveCount(0);
+
+            return;
+        }
+
         expect([200, 404]).toContain(response.status());
 
         if (response.status() === 200) {

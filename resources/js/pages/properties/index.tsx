@@ -183,6 +183,30 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         )}
                                                     </span>
                                                 ) : null}
+                                                {((
+                                                    property.rent_payment_status
+                                                        .advance_notices ?? []
+                                                ).length > 0
+                                                    ? property
+                                                          .rent_payment_status
+                                                          .advance_notices
+                                                    : property
+                                                            .rent_payment_status
+                                                            .advance_notice
+                                                      ? [
+                                                            property
+                                                                .rent_payment_status
+                                                                .advance_notice,
+                                                        ]
+                                                      : []
+                                                ).map((notice) => (
+                                                    <span
+                                                        key={`${notice.key}-${notice.period_key}`}
+                                                        className="text-xs font-medium text-emerald-700"
+                                                    >
+                                                        {notice.label}
+                                                    </span>
+                                                ))}
                                             </div>
                                         ) : null}
                                     </div>

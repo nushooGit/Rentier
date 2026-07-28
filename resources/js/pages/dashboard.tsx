@@ -33,6 +33,7 @@ type Props = {
     };
     overdueLeases: DashboardLeaseFinancialRow[];
     upcomingPayments: DashboardLeaseFinancialRow[];
+    advanceLeases: DashboardLeaseFinancialRow[];
     propertiesWithoutActiveLease: DashboardPropertyWithoutActiveLease[];
     recentLeases: DashboardRecentLease[];
     recentPayments: DashboardRecentPayment[];
@@ -44,13 +45,19 @@ function SummaryCard({
     label,
     value,
     description,
+    testId,
 }: {
     label: string;
     value: string | number;
     description?: string;
+    testId?: string;
 }) {
     return (
-        <section className="rounded-lg border p-3 sm:p-3.5">
+        <section
+            className="rounded-lg border p-3 sm:p-3.5"
+            data-test={testId}
+            data-testid={testId}
+        >
             <p className="text-xs text-muted-foreground">{label}</p>
             <p className="mt-1 text-lg font-semibold">{value}</p>
             {description ? (
@@ -180,6 +187,19 @@ function FinancialLeaseLine({
                         {formatMoney(lease.remaining_amount, lease.currency)}
                     </strong>
                 </span>
+                {((lease.advance_notices ?? []).length > 0
+                    ? lease.advance_notices
+                    : lease.advance_notice
+                      ? [lease.advance_notice]
+                      : []
+                ).map((notice) => (
+                    <span
+                        key={`${notice.key}-${notice.period_key}`}
+                        className="font-medium text-emerald-700 sm:col-span-2"
+                    >
+                        {notice.label}
+                    </span>
+                ))}
             </div>
         </Link>
     );
@@ -190,6 +210,7 @@ export default function Dashboard({
     summary,
     overdueLeases,
     upcomingPayments,
+    advanceLeases,
     propertiesWithoutActiveLease,
     recentLeases,
     recentPayments,
@@ -260,6 +281,7 @@ export default function Dashboard({
                             summary.currency,
                         )}
                         description="Plăți de chirie încasate luna asta, fără garanții"
+                        testId="dashboard-rent-collected"
                     />
                     <SummaryCard
                         label="Rest chirie de încasat"
@@ -376,7 +398,7 @@ export default function Dashboard({
                     </section>
                 ) : null}
 
-                <div className="grid gap-3 lg:grid-cols-3">
+                <div className="grid gap-3 lg:grid-cols-4">
                     <section className="rounded-lg border p-3 sm:p-3.5">
                         <h2 className="text-base font-medium">
                             Chirii întârziate
@@ -422,6 +444,30 @@ export default function Dashboard({
                                 <EmptyLine>
                                     Nu sunt plăți scadente în următoarele 7
                                     zile.
+                                </EmptyLine>
+                            )}
+                        </div>
+                    </section>
+
+                    <section className="rounded-lg border p-3 sm:p-3.5">
+                        <h2 className="text-base font-medium">
+                            Chirii plătite în avans
+                        </h2>
+                        <div className="mt-2.5 space-y-2">
+                            {advanceLeases.length > 0 ? (
+                                advanceLeases.map((lease) => (
+                                    <FinancialLeaseLine
+                                        key={lease.lease_id}
+                                        lease={lease}
+                                        href={showLease([
+                                            currentTeamSlug,
+                                            lease.lease_id,
+                                        ])}
+                                    />
+                                ))
+                            ) : (
+                                <EmptyLine>
+                                    Nu există chirii plătite în avans.
                                 </EmptyLine>
                             )}
                         </div>

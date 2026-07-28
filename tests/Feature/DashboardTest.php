@@ -1090,7 +1090,7 @@ test('dashboard shows partially paid overdue rent in overdue list', function () 
         ->has('overdueLeases', 1)
         ->where('overdueLeases.0.lease_id', $lease->id)
         ->where('overdueLeases.0.status_key', 'partial_overdue')
-        ->where('overdueLeases.0.status_label', 'Chirie plătită parțial')
+        ->where('overdueLeases.0.status_label', 'Plătită parțial')
         ->where('overdueLeases.0.days', 3)
         ->where('overdueLeases.0.remaining_amount', '1500.00')
     );

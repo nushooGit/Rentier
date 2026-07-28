@@ -11,6 +11,7 @@
         "lint": "eslint . --fix",
         "lint:check": "eslint .",
         "test:e2e": "playwright test",
+        "test:e2e:isolated": "playwright test --config=playwright.e2e.config.ts",
         "test:e2e:headed": "playwright test --headed",
         "test:e2e:ui": "playwright test --ui",
         "types:check": "tsc --noEmit"

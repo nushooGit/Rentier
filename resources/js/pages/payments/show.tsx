@@ -54,6 +54,49 @@ function Detail({
     );
 }
 
+function AllocationDetails({ payment }: { payment: RentPayment }) {
+    if (
+        payment.payment_type === 'guarantee' ||
+        !payment.allocation_summary ||
+        (payment.allocation_summary.breakdown.length === 0 &&
+            Number(payment.allocation_summary.unallocated_amount) <= 0)
+    ) {
+        return null;
+    }
+
+    return (
+        <section className="rounded-lg border p-3 sm:p-3.5">
+            <h2 className="text-base font-medium">Alocare chirie</h2>
+            <div className="mt-2.5 grid gap-1.5 text-sm">
+                {payment.allocation_summary.breakdown.map((allocation) => (
+                    <div
+                        key={allocation.period_key}
+                        className="flex items-center justify-between gap-3"
+                    >
+                        <span className="text-muted-foreground">
+                            {allocation.period_label}
+                        </span>
+                        <span className="font-medium">
+                            {formatMoney(allocation.amount, payment.currency)}
+                        </span>
+                    </div>
+                ))}
+                {Number(payment.allocation_summary.unallocated_amount) > 0 ? (
+                    <div className="flex items-center justify-between gap-3 text-amber-700">
+                        <span>Sold nealocat</span>
+                        <span className="font-medium">
+                            {formatMoney(
+                                payment.allocation_summary.unallocated_amount,
+                                payment.currency,
+                            )}
+                        </span>
+                    </div>
+                ) : null}
+            </div>
+        </section>
+    );
+}
+
 export default function PaymentShow({ payment }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -137,6 +180,8 @@ export default function PaymentShow({ payment }: Props) {
                         />
                     </dl>
                 </section>
+
+                <AllocationDetails payment={payment} />
 
                 {payment.notes ? (
                     <section className="rounded-lg border p-3 sm:p-3.5">

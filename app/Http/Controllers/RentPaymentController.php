@@ -6,6 +6,7 @@ use App\Http\Requests\RentPayments\SaveRentPaymentRequest;
 use App\Models\Lease;
 use App\Models\RentPayment;
 use App\Models\Team;
+use App\Services\RentPaymentAllocationCalculator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -206,6 +207,9 @@ class RentPaymentController extends Controller
         $paymentType = $payment->payment_type ?? 'rent';
         $statusSummary = $this->statusSummary($payment);
         $guaranteeSummary = $paymentType === 'guarantee' ? $statusSummary : null;
+        $allocationSummary = $paymentType === 'guarantee'
+            ? null
+            : app(RentPaymentAllocationCalculator::class)->paymentAllocation($payment);
 
         return [
             'id' => $payment->id,
@@ -222,6 +226,7 @@ class RentPaymentController extends Controller
             'method' => $payment->method,
             'status' => $payment->status,
             'status_summary' => $statusSummary,
+            'allocation_summary' => $allocationSummary,
             'notes' => $payment->notes,
             'guarantee_summary' => $guaranteeSummary,
             'lease' => [
@@ -259,23 +264,17 @@ class RentPaymentController extends Controller
      */
     private function rentSummary(RentPayment $payment): array
     {
-        $expectedAmount = (float) $payment->lease->monthly_rent_amount;
-        $collectedAmount = (float) RentPayment::query()
-            ->where('lease_id', $payment->lease_id)
-            ->where(function ($query) {
-                $query
-                    ->where('payment_type', 'rent')
-                    ->orWhereNull('payment_type');
-            })
-            ->where('period_month', $payment->period_month)
-            ->where('period_year', $payment->period_year)
-            ->sum('amount');
-        $remainingAmount = max($expectedAmount - $collectedAmount, 0);
+        $expectedAmount = $this->decimalString($payment->lease->monthly_rent_amount);
+        $collectedAmount = $this->decimalString($payment->amount);
+        $remainingAmount = $this->centsToDecimal(max(
+            $this->moneyToCents($expectedAmount) - $this->moneyToCents($collectedAmount),
+            0,
+        ));
 
-        if ($expectedAmount > 0 && $collectedAmount >= $expectedAmount) {
+        if ($this->compareMoney($expectedAmount, '0.00') > 0 && $this->compareMoney($collectedAmount, $expectedAmount) >= 0) {
             $statusKey = 'paid';
             $statusLabel = 'Chirie achitată integral';
-        } elseif ($collectedAmount > 0) {
+        } elseif ($this->compareMoney($collectedAmount, '0.00') > 0) {
             $statusKey = 'partial';
             $statusLabel = 'Chirie parțial achitată';
         } else {
@@ -284,9 +283,9 @@ class RentPaymentController extends Controller
         }
 
         return [
-            'expected_amount' => $this->decimalString($expectedAmount),
-            'collected_amount' => $this->decimalString($collectedAmount),
-            'remaining_amount' => $this->decimalString($remainingAmount),
+            'expected_amount' => $expectedAmount,
+            'collected_amount' => $collectedAmount,
+            'remaining_amount' => $remainingAmount,
             'status_key' => $statusKey,
             'status_label' => $statusLabel,
         ];
@@ -366,6 +365,26 @@ class RentPaymentController extends Controller
     private function decimalString(float|int|string $amount): string
     {
         return number_format((float) $amount, 2, '.', '');
+    }
+
+    private function compareMoney(string $left, string $right): int
+    {
+        return $this->moneyToCents($left) <=> $this->moneyToCents($right);
+    }
+
+    private function moneyToCents(float|int|string|null $amount): int
+    {
+        $normalized = number_format((float) ($amount ?? 0), 2, '.', '');
+
+        return (int) str_replace('.', '', $normalized);
+    }
+
+    private function centsToDecimal(int $cents): string
+    {
+        $sign = $cents < 0 ? '-' : '';
+        $absolute = abs($cents);
+
+        return $sign.intdiv($absolute, 100).'.'.str_pad((string) ($absolute % 100), 2, '0', STR_PAD_LEFT);
     }
 
     private function persistedStatusKey(string $statusKey): string

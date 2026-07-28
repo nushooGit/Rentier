@@ -380,6 +380,34 @@ test('fully paid payment can be created when amount matches monthly rent amount'
     ]);
 });
 
+test('fully sized rent payment status is independent from allocation lease-start rollover', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'start_date' => '2026-07-01',
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('payments.store', $team), validRentPaymentPayload($lease, [
+            'amount' => 2500,
+            'payment_date' => '2026-06-05',
+            'period_month' => 6,
+            'period_year' => 2026,
+            'status' => 'partial',
+        ]))
+        ->assertRedirect(route('payments.index', $team));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'lease_id' => $lease->id,
+        'amount' => 2500,
+        'period_month' => 6,
+        'period_year' => 2026,
+        'status' => 'paid',
+    ]);
+});
+
 test('guarantee payment can be created without rent period', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -756,6 +784,37 @@ test('payment update ignores submitted status and stores derived status', functi
         'id' => $payment->id,
         'amount' => 1500,
         'status' => 'partial',
+    ]);
+});
+
+test('updating partial rent payment to full amount recalculates status to paid', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $lease = Lease::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+    $payment = RentPayment::factory()->for($team)->create([
+        'lease_id' => $lease->id,
+        'property_id' => $lease->property_id,
+        'renter_id' => $lease->renter_id,
+        'amount' => 1500,
+        'period_month' => 6,
+        'period_year' => 2026,
+        'status' => 'partial',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('payments.update', [$team, $payment]), validRentPaymentPayload($lease, [
+            'amount' => 2500,
+            'status' => 'partial',
+        ]))
+        ->assertRedirect(route('payments.show', [$team, $payment]));
+
+    $this->assertDatabaseHas('rent_payments', [
+        'id' => $payment->id,
+        'amount' => 2500,
+        'status' => 'paid',
     ]);
 });
 

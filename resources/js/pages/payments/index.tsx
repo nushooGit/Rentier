@@ -71,6 +71,38 @@ function paymentMetaLine(payment: RentPayment) {
     )} - ${paymentContext(payment)}`;
 }
 
+function AllocationSummary({ payment }: { payment: RentPayment }) {
+    if (
+        payment.payment_type === 'guarantee' ||
+        !payment.allocation_summary ||
+        (payment.allocation_summary.breakdown.length === 0 &&
+            Number(payment.allocation_summary.unallocated_amount) <= 0)
+    ) {
+        return null;
+    }
+
+    return (
+        <div className="mt-1 grid gap-1 text-xs text-muted-foreground">
+            <span className="font-medium text-foreground">Alocare chirie:</span>
+            {payment.allocation_summary.breakdown.map((allocation) => (
+                <span key={allocation.period_key}>
+                    {allocation.period_label} -{' '}
+                    {formatMoney(allocation.amount, payment.currency)}
+                </span>
+            ))}
+            {Number(payment.allocation_summary.unallocated_amount) > 0 ? (
+                <span className="font-medium text-amber-700">
+                    Sold nealocat:{' '}
+                    {formatMoney(
+                        payment.allocation_summary.unallocated_amount,
+                        payment.currency,
+                    )}
+                </span>
+            ) : null}
+        </div>
+    );
+}
+
 export default function PaymentsIndex({ payments }: Props) {
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -145,6 +177,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                         <span className="text-muted-foreground">
                                             {paymentMetaLine(payment)}
                                         </span>
+                                        <AllocationSummary payment={payment} />
                                     </div>
                                 </Link>
                                 <div className="mt-auto flex justify-end gap-2 px-3 pb-3">

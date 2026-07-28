@@ -96,8 +96,34 @@ npm run test:e2e
 ## Scripts
 
 - `npm run test:e2e` runs Chromium smoke tests.
+- `npm run test:e2e:isolated` resets a guarded local E2E SQLite database, seeds the verified E2E user, starts Laravel on `http://127.0.0.1:8010`, starts Vite on port `5174`, and runs the full authenticated Playwright suite.
 - `npm run test:e2e:headed` runs Chromium visibly for debugging.
 - `npm run test:e2e:ui` opens Playwright UI mode.
+
+## Isolated local E2E
+
+The isolated command uses `.env.e2e`, created from `.env.e2e.example` when missing. It is local-only and is safe to reset because it points at `database/e2e.sqlite`, not the normal local database.
+
+```powershell
+npm run test:e2e:isolated
+```
+
+The bootstrap command is guarded and refuses to run unless:
+
+- `APP_ENV` is exactly `e2e`.
+- `DB_CONNECTION` is exactly `sqlite`.
+- `DB_DATABASE` resolves to a path that clearly contains `e2e`.
+- The database basename is not `database.sqlite`.
+- `APP_URL` is `localhost` or `127.0.0.1` and does not contain `rentier.ro`.
+
+The seeded isolated account defaults to:
+
+```text
+E2E_EMAIL=e2e@rentier.test
+E2E_PASSWORD=password
+```
+
+Do not point write-capable E2E tests at staging, beta, production, or `rentier.ro`. The write-capable tests also reject non-local `E2E_BASE_URL` values.
 
 ## Coverage
 
@@ -109,6 +135,7 @@ Current smoke tests cover:
 - Login with a verified E2E user reaches the dashboard.
 - Core landlord workflow creates an `E2E Smoke` property, active contract, rent payment, guarantee payment, and expense.
 - Dashboard still loads after the core flow.
+- PAY-03 rent allocation in isolated mode: multiple payments rolling forward, edit/delete recalculation, partial future advances, lease-end unallocated credit, and guarantee separation.
 
 ## Failure artifacts
 

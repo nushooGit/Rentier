@@ -41,6 +41,17 @@ export type RentPayment = {
             'paid' | 'partial' | 'pending' | 'not_configured' | 'unpaid';
         status_label: string;
     };
+    allocation_summary: {
+        payment_id: number;
+        breakdown: {
+            period_key: string;
+            period_date: string;
+            period_label: string;
+            amount: string;
+        }[];
+        total_allocated: string;
+        unallocated_amount: string;
+    } | null;
     guarantee_summary: {
         expected_amount: string;
         collected_amount: string;

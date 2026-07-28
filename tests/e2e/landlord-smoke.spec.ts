@@ -3,6 +3,7 @@ import {
     currentTeamSlug,
     hasE2ECredentials,
     login,
+    requireLocalBaseURL,
     selectOptionContaining,
     todayParts,
 } from './helpers';
@@ -20,6 +21,8 @@ test.describe('authenticated landlord smoke', () => {
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
+        requireLocalBaseURL();
+
         const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const propertyName = `E2E Smoke Property ${suffix}`;
         const renterName = `E2E Smoke Renter ${suffix}`;
