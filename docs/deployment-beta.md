@@ -28,6 +28,7 @@ APP_TIMEZONE=Europe/Bucharest
 APP_LOCALE=ro
 APP_FALLBACK_LOCALE=en
 RENTIER_REGISTRATION_ENABLED=false
+RENTIER_AUTO_MIGRATE=false
 
 LOG_CHANNEL=stack
 LOG_STACK=daily
@@ -63,6 +64,7 @@ Notes:
 - Generate `APP_KEY` on the server with `php artisan key:generate --show`, then place it in `.env`.
 - `PASSKEYS_USER_HANDLE_SECRET` can be a separate random secret. If omitted, the app falls back to `APP_KEY`, but a dedicated value is cleaner for beta.
 - `RENTIER_REGISTRATION_ENABLED=false` disables public signup routes. Keep it disabled for private beta unless public signups are intentionally allowed.
+- `RENTIER_AUTO_MIGRATE=false` is the safe default. In Coolify production, set it to `true` only after backups are tested and automatic forward migrations are approved. A failed readiness check or migration exits the new container before web, queue, or scheduler processes start.
 - Keep `.env` outside version control.
 - Production beta should use PostgreSQL. Keep credentials only in the server-side `.env`.
 - `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.

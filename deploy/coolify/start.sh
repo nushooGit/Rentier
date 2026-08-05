@@ -65,6 +65,7 @@ log "runtime user www-data: $(id www-data)"
 require_file /app/artisan
 require_file /app/deploy/coolify/nginx.template.conf
 require_file /app/deploy/coolify/php-fpm.conf
+require_file /app/deploy/coolify/run-migrations.sh
 require_file /app/deploy/coolify/supervisord.conf
 require_file /app/deploy/coolify/worker-nginx.conf
 require_file /app/deploy/coolify/worker-php-fpm.conf
@@ -106,6 +107,9 @@ if "$SUPERVISORD_BIN" --help 2>&1 | grep -q -- ' -t'; then
 else
     log "supervisord does not expose a config-test flag; skipping static supervisor test"
 fi
+
+log "running controlled migration prestart"
+"$BASH_BIN" /app/deploy/coolify/run-migrations.sh || fail "controlled migration prestart failed"
 
 log "starting supervisor"
 exec "$SUPERVISORD_BIN" -c /app/deploy/coolify/supervisord.conf -n

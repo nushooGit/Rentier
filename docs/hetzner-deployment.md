@@ -64,6 +64,7 @@ APP_LOCALE=ro
 APP_FALLBACK_LOCALE=en
 
 RENTIER_REGISTRATION_ENABLED=false
+RENTIER_AUTO_MIGRATE=false
 
 LOG_CHANNEL=stderr
 LOG_LEVEL=warning
@@ -95,10 +96,11 @@ VITE_APP_NAME="${APP_NAME}"
 
 Prefer the separate `DB_*` variables above for Coolify because they are explicit and match Laravel's config names. Remove `DB_URL` from the Coolify application environment when switching to this style so there is one database configuration source. This repository also supports Coolify's PostgreSQL URL as `DB_URL` for the `pgsql` connection because `config/database.php` maps `connections.pgsql.url` to `env('DB_URL')`; still set `DB_CONNECTION=pgsql`. The current config does not read `DATABASE_URL`.
 
-Use this Coolify post-deployment command:
+Automatic Coolify startup migrations are disabled by default. After backups are verified and an operator approves automatic forward migrations, set `RENTIER_AUTO_MIGRATE=true` in the Coolify application environment. The startup script only runs this step when `APP_ENV=production`; if database readiness or `php artisan migrate --force --no-interaction` fails, the new container exits before Supervisor starts Nginx, PHP-FPM, the queue worker, or the scheduler, allowing Coolify to mark the new deployment as failed. Do not enable this before the production backup and restore path has been tested.
+
+With `RENTIER_AUTO_MIGRATE=true`, do not keep a separate Coolify post-deployment migration command. Keep post-deployment commands limited to non-destructive cache/storage tasks when needed, such as:
 
 ```bash
-php artisan migrate --force &&
 php artisan storage:link --force &&
 php artisan optimize:clear &&
 php artisan optimize
@@ -131,6 +133,7 @@ APP_LOCALE=ro
 APP_FALLBACK_LOCALE=en
 
 RENTIER_REGISTRATION_ENABLED=false
+RENTIER_AUTO_MIGRATE=false
 
 LOG_CHANNEL=stack
 LOG_STACK=daily
