@@ -27,6 +27,22 @@ resolve_command() {
     return 1
 }
 
+canonicalize_executable() {
+    local label="$1"
+    local path="$2"
+    local canonical_path
+
+    if command -v readlink >/dev/null 2>&1; then
+        canonical_path="$(readlink -f "$path" 2>/dev/null || true)"
+        if [ -n "$canonical_path" ]; then
+            printf '%s\n' "$canonical_path"
+            return 0
+        fi
+    fi
+
+    fail "could not resolve canonical executable path for ${label}: $path"
+}
+
 require_file() {
     local path="$1"
 
@@ -35,6 +51,38 @@ require_file() {
     fi
 
     log "file ok: $path"
+}
+
+validate_worker_executable() {
+    local label="$1"
+    local path="$2"
+    local user="$3"
+    local user_shell
+
+    case "$path" in
+        /root/*)
+            fail "${label} executable is under /root and is not safe for ${user}: $path"
+            ;;
+    esac
+
+    if [ ! -x "$path" ]; then
+        fail "${label} executable is missing or not executable: $path"
+    fi
+
+    if command -v runuser >/dev/null 2>&1; then
+        runuser -u "$user" -- "$path" -v >/dev/null 2>&1 || fail "${label} executable cannot be run by ${user}: $path"
+    elif command -v su >/dev/null 2>&1; then
+        user_shell="$(getent passwd "$user" 2>/dev/null | cut -d: -f7 || true)"
+        if [ -z "$user_shell" ] || [ "$user_shell" = "/usr/sbin/nologin" ] || [ "$user_shell" = "/sbin/nologin" ] || [ "$user_shell" = "/bin/false" ]; then
+            user_shell="/bin/sh"
+        fi
+
+        su -s "$user_shell" "$user" -c "'$path' -v >/dev/null 2>&1" || fail "${label} executable cannot be run by ${user}: $path"
+    else
+        fail "cannot validate ${label} executable as ${user}: runuser or su is required"
+    fi
+
+    log "${label} executable is available to ${user}: $path"
 }
 
 export PORT="${PORT:-80}"
@@ -50,6 +98,7 @@ NGINX_BIN="$(resolve_command nginx nginx)" || fail "required command not found: 
 PHP_BIN="$(resolve_command php php)" || fail "required command not found: php"
 PHP_FPM_BIN="$(resolve_command php-fpm php-fpm php-fpm8.4 php-fpm84)" || fail "required command not found: php-fpm"
 NODE_BIN="$(resolve_command node node)" || fail "required command not found: node"
+PHP_BIN="$(canonicalize_executable php "$PHP_BIN")"
 export BASH_BIN SUPERVISORD_BIN NGINX_BIN PHP_BIN PHP_FPM_BIN NODE_BIN
 
 log "command bash: $BASH_BIN"
@@ -61,6 +110,7 @@ log "command node: $NODE_BIN"
 
 id www-data >/dev/null 2>&1 || fail "required runtime user does not exist: www-data"
 log "runtime user www-data: $(id www-data)"
+validate_worker_executable "worker php" "$PHP_BIN" "www-data"
 
 require_file /app/artisan
 require_file /app/deploy/coolify/nginx.template.conf
