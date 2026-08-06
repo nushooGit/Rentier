@@ -8,10 +8,10 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 
 ## Phase 1 - Close old backlog
 
-- EXP-02 - Active-lease association for tenant-involved expenses. Implemented; pending PHP test verification before removal from Phase 1.
+- EXP-02 - Active-lease association for tenant-involved expenses. Verified locally; pending final UI/production smoke verification before closing.
 - DATE-02 - Romanian create/edit date-picker UX.
-- UI-01 - Correct `Scazut din chirie` to `Scăzut din chirie`. Implemented; pending local UI confirmation.
-- UI-02 - Review/rename the generic or cash rent-collected label. Audited; pending local UI confirmation.
+- UI-01 - Correct `Scazut din chirie` to `Scăzut din chirie`. Verified locally; pending final UI/production smoke verification before closing.
+- UI-02 - Review/rename the generic or cash rent-collected label. Verified locally; pending final UI/production smoke verification before closing.
 - PROP-02 - Add total surface area in m2.
 - SEC-01 - Controlled dependency review for npm audit advisories; do not use blind `npm audit fix`.
 - SESSION-01 - Review `SESSION_CONNECTION`, `SESSION_STORE`, and `SESSION_DOMAIN`, especially before `app.rentier.ro`.

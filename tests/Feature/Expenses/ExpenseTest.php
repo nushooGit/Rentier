@@ -1065,10 +1065,18 @@ test('tenant involved expense auto associates the applicable historical current 
     $this->assertDatabaseHas('expenses', [
         'property_id' => $property->id,
         'lease_id' => $leases[$expectedLeaseKey]->id,
-        'expense_date' => $expenseDate,
         'paid_by' => 'tenant',
         'responsible_party' => 'tenant',
     ]);
+
+    $expense = Expense::query()
+        ->where('property_id', $property->id)
+        ->where('lease_id', $leases[$expectedLeaseKey]->id)
+        ->where('paid_by', 'tenant')
+        ->where('responsible_party', 'tenant')
+        ->firstOrFail();
+
+    expect($expense->expense_date->toDateString())->toBe($expenseDate);
 
     Carbon::setTestNow();
 })->with([
@@ -1219,8 +1227,9 @@ test('tenant involved expense update auto associates and recalculates applicable
         'id' => $expense->id,
         'property_id' => $otherProperty->id,
         'lease_id' => $newLease->id,
-        'expense_date' => '2026-07-12',
     ]);
+
+    expect($expense->refresh()->expense_date->toDateString())->toBe('2026-07-12');
 });
 
 test('tenant involved expense update rejects stale lease after date changes', function () {
