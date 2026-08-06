@@ -129,7 +129,7 @@ development and is not run automatically in production.
 
 - [Project Rules](PROJECT_RULES.md)
 - [Architecture](docs/ARCHITECTURE.md)
-- [Roadmap](docs/ROADMAP.md)
+- [Roadmap](docs/roadmap.md)
 - [Data Model Draft](docs/DATA_MODEL_DRAFT.md)
 - [Beta Deployment Readiness](docs/deployment-beta.md)
 - [Hetzner PostgreSQL Beta Deployment](docs/hetzner-deployment.md)
