@@ -178,7 +178,7 @@ function FinancialLeaseLine({
                     {formatMoney(lease.collected_amount, lease.currency)}
                 </span>
                 <span>
-                    Scazut din chirie:{' '}
+                    Scăzut din chirie:{' '}
                     {formatMoney(lease.rent_deduction_amount, lease.currency)}
                 </span>
                 <span>

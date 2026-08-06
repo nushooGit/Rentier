@@ -127,6 +127,9 @@ export default function ExpenseForm({
     const [settlementType, setSettlementType] = useState<ExpenseSettlementType>(
         expense?.settlement_type ?? 'none',
     );
+    const [selectedLeaseId, setSelectedLeaseId] = useState(
+        fieldValue(expense?.lease_id).toString(),
+    );
     const propertyLeases = useMemo(
         () =>
             leases.filter(
@@ -134,14 +137,18 @@ export default function ExpenseForm({
             ),
         [leases, selectedPropertyId],
     );
-    const hasActiveTenantContext = useMemo(
+    const applicableLeases = useMemo(
         () =>
-            selectedPropertyId !== '' &&
-            expenseDate !== '' &&
-            propertyLeases.some((lease) =>
-                dateIsInsideLease(expenseDate, lease),
-            ),
+            selectedPropertyId !== '' && expenseDate !== ''
+                ? propertyLeases.filter((lease) =>
+                      dateIsInsideLease(expenseDate, lease),
+                  )
+                : [],
         [expenseDate, propertyLeases, selectedPropertyId],
+    );
+    const hasActiveTenantContext = useMemo(
+        () => applicableLeases.length > 0,
+        [applicableLeases],
     );
     const effectivePaidBy = hasActiveTenantContext ? paidBy : 'owner';
     const effectiveResponsibleParty = hasActiveTenantContext
@@ -162,6 +169,12 @@ export default function ExpenseForm({
     const effectiveSettlementType = allowedSettlements.includes(settlementType)
         ? settlementType
         : allowedSettlements[0];
+    const tenantInvolved =
+        effectivePaidBy === 'tenant' || effectiveResponsibleParty === 'tenant';
+    const effectiveLeaseId =
+        tenantInvolved && applicableLeases.length === 1
+            ? applicableLeases[0].id.toString()
+            : selectedLeaseId;
     const visibleSettlementTypeOptions = expenseSettlementTypeOptions.filter(
         (settlementTypeOption) =>
             allowedSettlements.includes(settlementTypeOption.value),
@@ -223,9 +236,10 @@ export default function ExpenseForm({
                                 name="property_id"
                                 className={selectClassName}
                                 value={selectedPropertyId}
-                                onChange={(event) =>
-                                    setSelectedPropertyId(event.target.value)
-                                }
+                                onChange={(event) => {
+                                    setSelectedPropertyId(event.target.value);
+                                    setSelectedLeaseId('');
+                                }}
                                 required
                                 data-test="expense-property-select"
                             >
@@ -250,7 +264,10 @@ export default function ExpenseForm({
                                 id="lease_id"
                                 name="lease_id"
                                 className={selectClassName}
-                                defaultValue={fieldValue(expense?.lease_id)}
+                                value={effectiveLeaseId}
+                                onChange={(event) =>
+                                    setSelectedLeaseId(event.target.value)
+                                }
                             >
                                 <option value="">Fără contract</option>
                                 {propertyLeases.map((lease) => (
@@ -260,6 +277,12 @@ export default function ExpenseForm({
                                 ))}
                             </select>
                             <InputError message={errors.lease_id} />
+                            {tenantInvolved && applicableLeases.length === 1 ? (
+                                <p className="text-xs text-muted-foreground">
+                                    Cheltuiala va fi asociată contractului activ
+                                    la data selectată.
+                                </p>
+                            ) : null}
                         </Field>
                     </FormSection>
 
@@ -304,9 +327,13 @@ export default function ExpenseForm({
                                 name="expense_date"
                                 className={inputClassName}
                                 defaultValue={initialExpenseDate}
-                                onChange={(event) =>
-                                    setExpenseDate(event.target.value)
-                                }
+                                onChange={(event) => {
+                                    setExpenseDate(event.target.value);
+
+                                    if (tenantInvolved) {
+                                        setSelectedLeaseId('');
+                                    }
+                                }}
                                 required
                             />
                             <InputError message={errors.expense_date} />

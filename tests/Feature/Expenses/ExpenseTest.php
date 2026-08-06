@@ -1027,6 +1027,294 @@ test('active contract allows owner paid tenant responsible reimbursement', funct
     ]);
 });
 
+test('tenant involved expense auto associates the applicable historical current and future lease', function (string $expenseDate, string $expectedLeaseKey) {
+    Carbon::setTestNow('2026-08-06');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $leases = [
+        'historical' => Lease::factory()->for($team)->create([
+            'property_id' => $property->id,
+            'start_date' => '2026-01-01',
+            'end_date' => '2026-01-31',
+        ]),
+        'current' => Lease::factory()->for($team)->create([
+            'property_id' => $property->id,
+            'start_date' => '2026-08-01',
+            'end_date' => '2026-08-31',
+        ]),
+        'future' => Lease::factory()->for($team)->create([
+            'property_id' => $property->id,
+            'start_date' => '2026-12-01',
+            'end_date' => '2026-12-31',
+        ]),
+    ];
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => null,
+            'expense_date' => $expenseDate,
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    $this->assertDatabaseHas('expenses', [
+        'property_id' => $property->id,
+        'lease_id' => $leases[$expectedLeaseKey]->id,
+        'expense_date' => $expenseDate,
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+    ]);
+
+    Carbon::setTestNow();
+})->with([
+    'historical lease' => ['2026-01-15', 'historical'],
+    'current lease' => ['2026-08-06', 'current'],
+    'future lease' => ['2026-12-15', 'future'],
+]);
+
+test('tenant involved expense cannot persist null lease id when applicable lease exists', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => null,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'owner',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'reimburse',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    expect(Expense::latest()->first()->lease_id)->toBe($lease->id);
+});
+
+test('tenant involved expense rejects mismatched property lease and out of period lease', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $otherProperty = Property::factory()->for($team)->create();
+    $applicableLease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    $otherPropertyLease = Lease::factory()->for($team)->create([
+        'property_id' => $otherProperty->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    $outOfPeriodLease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $otherPropertyLease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id']);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $outOfPeriodLease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id']);
+
+    $this->assertDatabaseMissing('expenses', [
+        'property_id' => $property->id,
+        'lease_id' => $applicableLease->id,
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+    ]);
+});
+
+test('tenant involved expense rejects manually submitted lease from another workspace', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $otherTeam = Team::factory()->create();
+    $property = Property::factory()->for($team)->create();
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    $otherTeamLease = Lease::factory()->for($otherTeam)->create([
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => $otherTeamLease->id,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id']);
+});
+
+test('tenant involved expense update auto associates and recalculates applicable lease', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $otherProperty = Property::factory()->for($team)->create();
+    $oldLease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    $newLease = Lease::factory()->for($team)->create([
+        'property_id' => $otherProperty->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $oldLease->id,
+        'expense_date' => '2026-06-12',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+        'status' => 'paid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.update', [$team, $expense]), validExpensePayload($otherProperty, [
+            'lease_id' => null,
+            'expense_date' => '2026-07-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertRedirect(route('expenses.show', [$team, $expense]));
+
+    $this->assertDatabaseHas('expenses', [
+        'id' => $expense->id,
+        'property_id' => $otherProperty->id,
+        'lease_id' => $newLease->id,
+        'expense_date' => '2026-07-12',
+    ]);
+});
+
+test('tenant involved expense update rejects stale lease after date changes', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $juneLease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-07-01',
+        'end_date' => '2026-07-31',
+    ]);
+    $expense = Expense::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'lease_id' => $juneLease->id,
+        'expense_date' => '2026-06-12',
+        'paid_by' => 'tenant',
+        'responsible_party' => 'tenant',
+        'settlement_type' => 'none',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.update', [$team, $expense]), validExpensePayload($property, [
+            'lease_id' => $juneLease->id,
+            'expense_date' => '2026-07-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id']);
+});
+
+test('owner only expense can remain lease-less even when an applicable lease exists', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => null,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'owner',
+            'responsible_party' => 'owner',
+            'settlement_type' => 'none',
+        ]))
+        ->assertRedirect(route('expenses.index', $team));
+
+    $this->assertDatabaseHas('expenses', [
+        'property_id' => $property->id,
+        'lease_id' => null,
+        'paid_by' => 'owner',
+        'responsible_party' => 'owner',
+        'settlement_type' => 'none',
+    ]);
+});
+
+test('tenant involved expense fails safely when multiple applicable leases exist', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-01',
+        'end_date' => '2026-06-30',
+    ]);
+    Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-06-10',
+        'end_date' => '2026-06-20',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('expenses.store', $team), validExpensePayload($property, [
+            'lease_id' => null,
+            'expense_date' => '2026-06-12',
+            'paid_by' => 'tenant',
+            'responsible_party' => 'tenant',
+            'settlement_type' => 'none',
+        ]))
+        ->assertSessionHasErrors(['lease_id']);
+});
+
 test('property with contract outside expense date rejects tenant responsibility', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
