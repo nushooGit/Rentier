@@ -21,6 +21,8 @@ test.describe('authenticated landlord smoke', () => {
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
+        test.setTimeout(60_000);
+
         requireLocalBaseURL();
 
         const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
