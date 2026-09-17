@@ -238,6 +238,68 @@ test.describe('PAY-03 rent payment allocation', () => {
         ).toContainText('1.500 RON');
     });
 
+    test('overdue dashboard card shows cumulative arrears without current-month values', async ({
+        page,
+    }) => {
+        const suffix = uniqueSuffix();
+        const firstOverdueMonth = monthParts(-2);
+        const secondOverdueMonth = monthParts(-1);
+        const currentMonth = monthParts();
+        const dueDay = String(new Date().getDate());
+        const currentMonthEnd = new Date(
+            Number(currentMonth.year),
+            Number(currentMonth.month),
+            0,
+        )
+            .toISOString()
+            .slice(0, 10);
+        const propertyName = `PAY04 Arrears Property ${suffix}`;
+        const renterName = `PAY04 Arrears Renter ${suffix}`;
+
+        await login(page);
+        const teamSlug = await createScenarioTeam(
+            page,
+            `PAY04 Arrears Team ${suffix}`,
+        );
+
+        await createProperty(page, teamSlug, propertyName, '2500', '0');
+        await createLease(
+            page,
+            teamSlug,
+            propertyName,
+            renterName,
+            firstOverdueMonth.date,
+            currentMonthEnd,
+            dueDay,
+            '0',
+        );
+        await createRentPayment(
+            page,
+            teamSlug,
+            renterName,
+            '1500',
+            firstOverdueMonth,
+        );
+
+        await page.goto(`/${teamSlug}/dashboard`);
+        const overdueCard = page
+            .getByTestId('dashboard-lease-link')
+            .filter({ hasText: propertyName });
+
+        await expect(overdueCard).toContainText('Restanță totală: 3.500 RON');
+        await expect(overdueCard).toContainText('2 luni restante');
+        await expect(overdueCard).toContainText('Cea mai veche scadență:');
+        await expect(overdueCard).toContainText(
+            `${firstOverdueMonth.label} — Rest 1.000 RON`,
+        );
+        await expect(overdueCard).toContainText(
+            `${secondOverdueMonth.label} — Rest 2.500 RON`,
+        );
+        await expect(overdueCard).not.toContainText('Chirie:');
+        await expect(overdueCard).not.toContainText('Încasat:');
+        await expect(overdueCard).not.toContainText('Scăzut din chirie:');
+    });
+
     test('guarantee payments do not show rent allocation or advance notices', async ({
         page,
     }) => {

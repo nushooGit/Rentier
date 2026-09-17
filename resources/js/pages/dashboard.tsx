@@ -127,11 +127,6 @@ function FinancialLeaseLine({
     href: ReturnType<typeof showLease>;
     tone?: 'neutral' | 'danger';
 }) {
-    const displayedDueDate =
-        tone === 'danger' && lease.oldest_overdue_due_date
-            ? lease.oldest_overdue_due_date
-            : lease.due_date;
-
     return (
         <Link
             href={href}
@@ -145,8 +140,10 @@ function FinancialLeaseLine({
                         {lease.property_name}
                     </p>
                     <p className="text-muted-foreground">
-                        {lease.renter_name} · scadentă{' '}
-                        {formatDateLong(displayedDueDate)}
+                        {lease.renter_name}
+                        {tone === 'neutral' ? (
+                            <> · scadentă {formatDateLong(lease.due_date)}</>
+                        ) : null}
                     </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-1">
@@ -179,23 +176,6 @@ function FinancialLeaseLine({
                 </div>
             </div>
             <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                <span>
-                    Chirie: {formatMoney(lease.expected_amount, lease.currency)}
-                </span>
-                <span>
-                    Încasat:{' '}
-                    {formatMoney(lease.collected_amount, lease.currency)}
-                </span>
-                <span>
-                    Scăzut din chirie:{' '}
-                    {formatMoney(lease.rent_deduction_amount, lease.currency)}
-                </span>
-                <span>
-                    Rest:{' '}
-                    <strong className="font-medium text-foreground">
-                        {formatMoney(lease.remaining_amount, lease.currency)}
-                    </strong>
-                </span>
                 {tone === 'danger' ? (
                     <>
                         <span
@@ -205,6 +185,17 @@ function FinancialLeaseLine({
                             Restanță totală:{' '}
                             {formatMoney(lease.arrears_amount, lease.currency)}
                         </span>
+                        <span className="sm:col-span-2">
+                            {lease.overdue_month_count === 1
+                                ? '1 lună restantă'
+                                : `${lease.overdue_month_count} luni restante`}
+                        </span>
+                        {lease.oldest_overdue_due_date ? (
+                            <span className="sm:col-span-2">
+                                Cea mai veche scadență:{' '}
+                                {formatDateLong(lease.oldest_overdue_due_date)}
+                            </span>
+                        ) : null}
                         {lease.overdue_months.map((month) => (
                             <span
                                 key={month.period_key}
@@ -218,7 +209,37 @@ function FinancialLeaseLine({
                             </span>
                         ))}
                     </>
-                ) : null}
+                ) : (
+                    <>
+                        <span>
+                            Chirie:{' '}
+                            {formatMoney(lease.expected_amount, lease.currency)}
+                        </span>
+                        <span>
+                            Încasat:{' '}
+                            {formatMoney(
+                                lease.collected_amount,
+                                lease.currency,
+                            )}
+                        </span>
+                        <span>
+                            Scăzut din chirie:{' '}
+                            {formatMoney(
+                                lease.rent_deduction_amount,
+                                lease.currency,
+                            )}
+                        </span>
+                        <span>
+                            Rest:{' '}
+                            <strong className="font-medium text-foreground">
+                                {formatMoney(
+                                    lease.remaining_amount,
+                                    lease.currency,
+                                )}
+                            </strong>
+                        </span>
+                    </>
+                )}
                 {((lease.advance_notices ?? []).length > 0
                     ? lease.advance_notices
                     : lease.advance_notice
