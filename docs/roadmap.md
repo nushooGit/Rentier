@@ -9,7 +9,6 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 ## Phase 1 - Close old backlog
 
 - EXP-02 - Active-lease association for tenant-involved expenses. Verified locally with automated, isolated E2E, and manual UI checks; pending production smoke verification before closing.
-- PAY-04 - VERIFIED LOCAL. Cumulative arrears now include every overdue rent month, while current-month dashboard metrics remain current-month-only; `Chirii întârziate` and `Total de încasat` use cumulative arrears. The production regression case now calculates 3,500 RON total arrears. Local verification passed: 307 Laravel tests, 8/8 isolated E2E, build/types/lint/format, and PHP static analysis. Production visual verification remains pending.
 - DATE-02 - Romanian create/edit date-picker UX.
 - UI-01 - Correct `Scazut din chirie` to `Scăzut din chirie`. Verified locally with automated, isolated E2E, and manual UI checks; pending production smoke verification before closing.
 - UI-02 - Review/rename the generic or cash rent-collected label. Verified locally with automated, isolated E2E, and manual UI checks; pending production smoke verification before closing.
