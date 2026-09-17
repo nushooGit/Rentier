@@ -30,8 +30,8 @@ class E2eBootstrapCommand extends Command
             '--force' => true,
         ]);
 
-        $email = env('E2E_EMAIL', 'e2e@rentier.test');
-        $password = env('E2E_PASSWORD', 'password');
+        $email = (string) config('e2e.email');
+        $password = (string) config('e2e.password');
 
         $user = User::query()->create([
             'name' => 'E2E Smoke User',

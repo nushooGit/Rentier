@@ -6,12 +6,18 @@ use App\Models\Lease;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
+/**
+ * @phpstan-import-type FinalizedMonth from RentPaymentAllocationCalculator
+ * @phpstan-type Badge array{key: string, label: string, tone: string}
+ * @phpstan-type AdvanceNotice array{key: string, label: string, period_key: string, amount: string, expected_amount: string}
+ * @phpstan-type RentStatus array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string, badges: list<Badge>, advance_notice: AdvanceNotice|null, advance_notices: list<AdvanceNotice>, advance_months: list<FinalizedMonth>}
+ */
 class LeaseRentStatusCalculator
 {
     public function __construct(private readonly RentPaymentAllocationCalculator $allocationCalculator) {}
 
     /**
-     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string, badges: array<int, array{key: string, label: string, tone: string}>, advance_notice: array{key: string, label: string, period_key: string, amount: string, expected_amount: string}|null, advance_notices: array<int, array{key: string, label: string, period_key: string, amount: string, expected_amount: string}>, advance_months: array<int, array<string, mixed>>}
+     * @return RentStatus
      */
     public function forLease(Lease $lease, ?CarbonInterface $date = null): array
     {
@@ -112,7 +118,11 @@ class LeaseRentStatusCalculator
     }
 
     /**
-     * @return array{key: string, label: string, days: int|null, due_date: string, expected_amount: string, collected_amount: string, rent_deduction_amount: string, covered_amount: string, remaining_amount: string, badges: array<int, array{key: string, label: string, tone: string}>, advance_notice: array{key: string, label: string, period_key: string, amount: string, expected_amount: string}|null, advance_notices: array<int, array{key: string, label: string, period_key: string, amount: string, expected_amount: string}>, advance_months: array<int, array<string, mixed>>}
+     * @param  list<Badge>|null  $badges
+     * @param  AdvanceNotice|null  $advanceNotice
+     * @param  list<AdvanceNotice>  $advanceNotices
+     * @param  list<FinalizedMonth>  $advanceMonths
+     * @return RentStatus
      */
     private function rentPaymentStatus(
         string $key,
@@ -149,23 +159,23 @@ class LeaseRentStatusCalculator
     }
 
     /**
-     * @param  array<string, array<string, mixed>>  $months
-     * @return array<int, array<string, mixed>>
+     * @param  array<string, FinalizedMonth>  $months
+     * @return list<FinalizedMonth>
      */
     private function advanceMonths(array $months, CarbonInterface $date): array
     {
         $currentMonth = $this->localCalendarDate($date)->startOfMonth();
 
-        return collect($months)
+        return array_values(collect($months)
             ->filter(fn (array $month) => Carbon::parse($month['period_date'])->startOfMonth()->greaterThan($currentMonth)
                 && $this->compareMoney($month['total_covered'], '0.00') > 0)
             ->values()
-            ->all();
+            ->all());
     }
 
     /**
-     * @param  array<int, array<string, mixed>>  $advanceMonths
-     * @return array<int, array{key: string, label: string, period_key: string, amount: string, expected_amount: string}>
+     * @param  list<FinalizedMonth>  $advanceMonths
+     * @return list<AdvanceNotice>
      */
     private function advanceNotices(array $advanceMonths, string $currency): array
     {

@@ -8,10 +8,16 @@ use App\Models\RentPayment;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 
+/**
+ * @phpstan-type WorkingMonth array{period_key: string, period_date: string, period_label: string, expected_cents: int, rent_deduction_cents: int, cash_allocated_cents: int, due_date: string}
+ * @phpstan-type FinalizedMonth array{period_key: string, period_date: string, period_label: string, expected_amount: string, rent_deduction_amount: string, cash_allocated: string, total_covered: string, remaining_amount: string, fully_paid: bool, partial: bool, overdue: bool, paid_in_advance: bool, due_date: string}
+ * @phpstan-type PaymentBreakdown array{period_key: string, period_date: string, period_label: string, amount: string}
+ * @phpstan-type PaymentAllocation array{payment_id: int, breakdown: list<PaymentBreakdown>, total_allocated: string, unallocated_amount: string}
+ */
 class RentPaymentAllocationCalculator
 {
     /**
-     * @return array{months: array<string, array<string, mixed>>, payments: array<int, array<string, mixed>>}
+     * @return array{months: array<string, FinalizedMonth>, payments: array<int, PaymentAllocation>}
      */
     public function forLease(Lease $lease, ?CarbonInterface $date = null): array
     {
@@ -32,7 +38,9 @@ class RentPaymentAllocationCalculator
 
             if ($this->monthIsEligible($month, $leaseStart, $leaseEnd)) {
                 $this->ensureMonth($months, $lease, $month, $expectedCents);
-                $months[$periodKey]['rent_deduction_cents'] = $deductionCents;
+                $monthData = $months[$periodKey];
+                $monthData['rent_deduction_cents'] = $deductionCents;
+                $months[$periodKey] = $monthData;
             }
         }
 
@@ -58,7 +66,9 @@ class RentPaymentAllocationCalculator
 
                 if ($neededCents > 0) {
                     $allocationCents = min($remainingCents, $neededCents);
-                    $months[$periodKey]['cash_allocated_cents'] += $allocationCents;
+                    $monthData = $months[$periodKey];
+                    $monthData['cash_allocated_cents'] += $allocationCents;
+                    $months[$periodKey] = $monthData;
                     $remainingCents -= $allocationCents;
                     $allocatedCents += $allocationCents;
 
@@ -97,7 +107,7 @@ class RentPaymentAllocationCalculator
     }
 
     /**
-     * @return array<string, mixed>|null
+     * @return PaymentAllocation|null
      */
     public function paymentAllocation(RentPayment $payment, ?CarbonInterface $date = null): ?array
     {
@@ -115,6 +125,9 @@ class RentPaymentAllocationCalculator
         ];
     }
 
+    /**
+     * @param  array<string, WorkingMonth>  $months
+     */
     private function ensureMonth(array &$months, Lease $lease, CarbonInterface $month, int $expectedCents): void
     {
         $periodKey = $this->periodKey($month);
@@ -135,7 +148,8 @@ class RentPaymentAllocationCalculator
     }
 
     /**
-     * @return array<string, mixed>
+     * @param  WorkingMonth  $month
+     * @return FinalizedMonth
      */
     private function finalizeMonth(array $month, CarbonInterface $date): array
     {

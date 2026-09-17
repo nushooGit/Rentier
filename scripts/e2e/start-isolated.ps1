@@ -15,4 +15,4 @@ $env:E2E_PASSWORD = if ($env:E2E_PASSWORD) { $env:E2E_PASSWORD } else { 'passwor
 
 php artisan e2e:bootstrap --env=e2e
 
-npx concurrently -c "#93c5fd,#c4b5fd" "php artisan serve --env=e2e --host=127.0.0.1 --port=8010" "npm run dev -- --host 127.0.0.1 --port 5174"
+php artisan serve --env=e2e --host=127.0.0.1 --port=8010
