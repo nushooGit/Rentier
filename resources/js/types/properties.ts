@@ -28,6 +28,24 @@ export type RentPaymentStatus = {
     rent_deduction_amount: string;
     covered_amount: string;
     remaining_amount: string;
+    arrears_amount: string;
+    overdue_month_count: number;
+    oldest_overdue_due_date: string | null;
+    overdue_months: {
+        period_key: string;
+        period_date: string;
+        period_label: string;
+        expected_amount: string;
+        rent_deduction_amount: string;
+        cash_allocated: string;
+        total_covered: string;
+        remaining_amount: string;
+        fully_paid: boolean;
+        partial: boolean;
+        overdue: boolean;
+        paid_in_advance: boolean;
+        due_date: string;
+    }[];
     badges: RentPaymentStatusBadge[];
     advance_notice: {
         key: 'paid_through' | 'partial_advance';

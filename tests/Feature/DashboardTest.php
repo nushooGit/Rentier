@@ -57,21 +57,21 @@ test('dashboard includes current workspace financial summary', function () {
 
     $paidLease = Lease::factory()->for($team)->create([
         'property_id' => $paidProperty->id,
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 15,
     ]);
     Lease::factory()->for($team)->create([
         'property_id' => $overdueProperty->id,
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 1800,
         'rent_due_day' => 5,
     ]);
     $partialUpcomingLease = Lease::factory()->for($team)->create([
         'property_id' => $partialUpcomingProperty->id,
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 1200,
         'rent_due_day' => 15,
@@ -139,7 +139,7 @@ test('dashboard expense settlement numbers are correct for mixed current month a
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 15,
@@ -228,13 +228,13 @@ test('dashboard rent status treats rent deductions as coverage but not cash coll
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $paidLease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 5,
     ]);
     $partialLease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 15,
@@ -308,7 +308,7 @@ test('dashboard separates tenant paid owner expenses that are not rent deduction
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 15,
@@ -410,7 +410,7 @@ test('dashboard keeps unsettled recoveries outstanding until they are marked rec
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 1000,
         'deposit_amount' => 1000,
@@ -751,7 +751,7 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 1000,
         'deposit_amount' => 0,
@@ -785,7 +785,7 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
         ->assertInertia(fn (Assert $page) => $page
             ->where('summary.tenant_reimbursement_expenses', '150.00')
             ->where('summary.recoverable_expenses', '120.00')
-            ->where('summary.total_receivable', '1120.00')
+            ->where('summary.total_receivable', '120.00')
         );
 
     $this->actingAs($user)->patch(route('expenses.mark-reimbursed', [$team, $reimbursement]));
@@ -798,7 +798,7 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
         ->assertInertia(fn (Assert $page) => $page
             ->where('summary.tenant_reimbursement_expenses', '0.00')
             ->where('summary.recoverable_expenses', '0.00')
-            ->where('summary.total_receivable', '1000.00')
+            ->where('summary.total_receivable', '0.00')
         );
 
     Carbon::setTestNow();
@@ -945,7 +945,7 @@ test('dashboard uses last valid month day for rent due day 31', function () {
 
     Lease::factory()->for($team)->create([
         'property_id' => $property->id,
-        'start_date' => '2027-01-01',
+        'start_date' => '2027-02-01',
         'end_date' => '2027-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 31,
@@ -977,7 +977,7 @@ test('dashboard rent status uses local calendar days for upcoming rent', functio
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 5,
@@ -1006,7 +1006,7 @@ test('dashboard rent status marks due today using local calendar date', function
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 5,
@@ -1034,7 +1034,7 @@ test('dashboard rent status marks overdue after local due date', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 5,
@@ -1062,7 +1062,7 @@ test('dashboard shows partially paid overdue rent in overdue list', function () 
     $user = User::factory()->create();
     $team = $user->currentTeam;
     $lease = Lease::factory()->for($team)->create([
-        'start_date' => '2026-01-01',
+        'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 5,
@@ -1090,7 +1090,7 @@ test('dashboard shows partially paid overdue rent in overdue list', function () 
         ->has('overdueLeases', 1)
         ->where('overdueLeases.0.lease_id', $lease->id)
         ->where('overdueLeases.0.status_key', 'partial_overdue')
-        ->where('overdueLeases.0.status_label', 'Plătită parțial')
+        ->where('overdueLeases.0.status_label', 'Restanță: 1.500 RON')
         ->where('overdueLeases.0.days', 3)
         ->where('overdueLeases.0.remaining_amount', '1500.00')
     );

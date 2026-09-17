@@ -28,9 +28,14 @@ class RentPaymentAllocationCalculator
         $months = [];
 
         $viewedMonth = $date->copy()->startOfMonth();
+        $lastObligationMonth = $leaseEnd !== null && $leaseEnd->lessThan($viewedMonth)
+            ? $leaseEnd->copy()
+            : $viewedMonth->copy();
+        $obligationMonth = $leaseStart->copy();
 
-        if ($this->monthIsEligible($viewedMonth, $leaseStart, $leaseEnd)) {
-            $this->ensureMonth($months, $lease, $viewedMonth, $expectedCents);
+        while (! $obligationMonth->greaterThan($lastObligationMonth)) {
+            $this->ensureMonth($months, $lease, $obligationMonth, $expectedCents);
+            $obligationMonth->addMonthNoOverflow()->startOfMonth();
         }
 
         foreach ($this->rentDeductionCentsByMonth($lease) as $periodKey => $deductionCents) {

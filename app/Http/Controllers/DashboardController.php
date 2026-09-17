@@ -86,6 +86,10 @@ class DashboardController extends Controller
                     'rent_deduction_amount' => $status['rent_deduction_amount'],
                     'covered_amount' => $status['covered_amount'],
                     'remaining_amount' => $status['remaining_amount'],
+                    'arrears_amount' => $status['arrears_amount'],
+                    'overdue_month_count' => $status['overdue_month_count'],
+                    'overdue_months' => $status['overdue_months'],
+                    'oldest_overdue_due_date' => $status['oldest_overdue_due_date'],
                     'advance_notice' => $status['advance_notice'],
                     'advance_notices' => $status['advance_notices'],
                     'advance_months' => $status['advance_months'],
@@ -110,7 +114,9 @@ class DashboardController extends Controller
                 ->sum('amount');
         $currentMonthRentDeductions = $leaseFinancialRows->sum(fn (array $row) => (float) $row['rent_deduction_amount']);
         $currentMonthCoveredRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['covered_amount']);
-        $remainingRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['remaining_amount']);
+        $currentMonthRemainingRent = $leaseFinancialRows->sum(fn (array $row) => (float) $row['remaining_amount']);
+        $overdueRentCents = $leaseFinancialRows->sum(fn (array $row) => $this->moneyToCents($row['arrears_amount']));
+        $overdueMonthCount = $leaseFinancialRows->sum(fn (array $row) => $row['overdue_month_count']);
         $expectedGuarantees = $activeLeases->sum(fn (Lease $lease) => (float) ($lease->deposit_amount ?? 0));
         $collectedGuarantees = $activeLeaseIds->isEmpty()
             ? 0
@@ -123,12 +129,12 @@ class DashboardController extends Controller
         $rentPaymentMethodBreakdown = $this->rentPaymentMethodBreakdown($currentTeam, $activeLeaseIds->all(), $currentYear, $currentMonth);
 
         $overdueLeases = $leaseFinancialRows
-            ->filter(fn (array $row) => in_array($row['status_key'], ['overdue', 'partial_overdue'], true))
+            ->filter(fn (array $row) => $this->moneyToCents($row['arrears_amount']) > 0)
             ->values();
 
         $upcomingPayments = $leaseFinancialRows
             ->filter(function (array $row) use ($today) {
-                if ((float) $row['remaining_amount'] <= 0) {
+                if ((float) $row['remaining_amount'] <= 0 || $this->moneyToCents($row['arrears_amount']) > 0) {
                     return false;
                 }
 
@@ -278,11 +284,13 @@ class DashboardController extends Controller
                 'current_month_payments' => $this->decimalString($currentMonthPayments),
                 'current_month_rent_deductions' => $this->decimalString($currentMonthRentDeductions),
                 'current_month_covered_rent' => $this->decimalString($currentMonthCoveredRent),
-                'remaining_rent' => $this->decimalString($remainingRent),
+                'remaining_rent' => $this->decimalString($currentMonthRemainingRent),
+                'overdue_rent' => $this->centsToDecimal($overdueRentCents),
                 'expected_guarantees' => $this->decimalString($expectedGuarantees),
                 'collected_guarantees' => $this->decimalString($collectedGuarantees),
                 'remaining_guarantees' => $this->decimalString($remainingGuarantees),
                 'overdue_count' => $overdueLeases->count(),
+                'overdue_month_count' => $overdueMonthCount,
                 'occupancy_label' => "{$occupiedPropertyCount}/{$propertyCount}",
                 'occupancy_rate' => $propertyCount > 0
                     ? round(($occupiedPropertyCount / $propertyCount) * 100)
@@ -294,7 +302,11 @@ class DashboardController extends Controller
                 'utility_deduction_expenses' => $this->decimalString($utilityDeductionExpenses),
                 'unsettled_tenant_paid_owner_expenses' => $this->decimalString($unsettledTenantPaidOwnerExpenses),
                 'recoverable_expenses' => $this->decimalString($recoverableExpenses),
-                'total_receivable' => $this->decimalString($remainingRent + $remainingGuarantees + $recoverableExpenses),
+                'total_receivable' => $this->centsToDecimal(
+                    $overdueRentCents
+                    + $this->moneyToCents($remainingGuarantees)
+                    + $this->moneyToCents($recoverableExpenses),
+                ),
                 'currency' => 'RON',
             ],
             'propertyStatusSummary' => [
@@ -367,5 +379,15 @@ class DashboardController extends Controller
     private function decimalString(float|int|string $amount): string
     {
         return number_format((float) $amount, 2, '.', '');
+    }
+
+    private function moneyToCents(float|int|string $amount): int
+    {
+        return (int) str_replace('.', '', number_format((float) $amount, 2, '.', ''));
+    }
+
+    private function centsToDecimal(int $cents): string
+    {
+        return intdiv($cents, 100).'.'.str_pad((string) ($cents % 100), 2, '0', STR_PAD_LEFT);
     }
 }

@@ -127,6 +127,11 @@ function FinancialLeaseLine({
     href: ReturnType<typeof showLease>;
     tone?: 'neutral' | 'danger';
 }) {
+    const displayedDueDate =
+        tone === 'danger' && lease.oldest_overdue_due_date
+            ? lease.oldest_overdue_due_date
+            : lease.due_date;
+
     return (
         <Link
             href={href}
@@ -141,7 +146,7 @@ function FinancialLeaseLine({
                     </p>
                     <p className="text-muted-foreground">
                         {lease.renter_name} · scadentă{' '}
-                        {formatDateLong(lease.due_date)}
+                        {formatDateLong(displayedDueDate)}
                     </p>
                 </div>
                 <div className="flex flex-wrap justify-end gap-1">
@@ -161,12 +166,16 @@ function FinancialLeaseLine({
                                 : 'border-slate-200 bg-slate-50 text-slate-700'
                         }
                     >
-                        {lease.days !== null && tone === 'danger'
-                            ? `${lease.days} ${
-                                  lease.days === 1 ? 'zi' : 'zile'
-                              } întârziere`
-                            : lease.status_label}
+                        {lease.status_label}
                     </Badge>
+                    {tone === 'danger' && lease.overdue_month_count > 1 ? (
+                        <Badge
+                            variant="outline"
+                            className="border-red-200 bg-red-50 text-red-700"
+                        >
+                            {lease.overdue_month_count} luni restante
+                        </Badge>
+                    ) : null}
                 </div>
             </div>
             <div className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
@@ -187,6 +196,29 @@ function FinancialLeaseLine({
                         {formatMoney(lease.remaining_amount, lease.currency)}
                     </strong>
                 </span>
+                {tone === 'danger' ? (
+                    <>
+                        <span
+                            className="font-medium text-red-700 sm:col-span-2"
+                            data-test="dashboard-rent-arrears"
+                        >
+                            Restanță totală:{' '}
+                            {formatMoney(lease.arrears_amount, lease.currency)}
+                        </span>
+                        {lease.overdue_months.map((month) => (
+                            <span
+                                key={month.period_key}
+                                className="sm:col-span-2"
+                            >
+                                {month.period_label} — Rest{' '}
+                                {formatMoney(
+                                    month.remaining_amount,
+                                    lease.currency,
+                                )}
+                            </span>
+                        ))}
+                    </>
+                ) : null}
                 {((lease.advance_notices ?? []).length > 0
                     ? lease.advance_notices
                     : lease.advance_notice
@@ -289,6 +321,7 @@ export default function Dashboard({
                             summary.remaining_rent,
                             summary.currency,
                         )}
+                        description="Restul aferent lunii curente"
                     />
                 </div>
 
@@ -375,6 +408,10 @@ export default function Dashboard({
                     <SummaryCard
                         label="Chirii întârziate"
                         value={summary.overdue_count}
+                        description={`${summary.overdue_month_count} luni restante · ${formatMoney(
+                            summary.overdue_rent,
+                            summary.currency,
+                        )}`}
                     />
                     <SummaryCard
                         label="Grad de ocupare"

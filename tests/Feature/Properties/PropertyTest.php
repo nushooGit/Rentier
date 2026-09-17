@@ -313,10 +313,10 @@ test('property card shows partial and overdue rent status after the due date', f
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'partial_overdue')
-            ->where('properties.0.rent_payment_status.label', 'Plătită parțial')
+            ->where('properties.0.rent_payment_status.label', 'Restanță: 1.500 RON')
             ->where('properties.0.rent_payment_status.days', 3)
             ->where('properties.0.rent_payment_status.badges.0.label', 'Plătită parțial')
-            ->where('properties.0.rent_payment_status.badges.1.label', 'Întârziată cu 3 zile')
+            ->where('properties.0.rent_payment_status.badges.1.label', 'Restanță: 1.500 RON')
         );
 
     Carbon::setTestNow();
@@ -487,7 +487,7 @@ test('property card shows overdue rent status after due date', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('properties.0.rent_payment_status.key', 'overdue')
-            ->where('properties.0.rent_payment_status.label', 'Întârziată cu 3 zile')
+            ->where('properties.0.rent_payment_status.label', 'Restanță: 2.500 RON')
             ->where('properties.0.rent_payment_status.days', 3)
         );
 
@@ -503,7 +503,7 @@ test('property card uses last valid day when rent due day is missing from month'
 
     Lease::factory()->for($team)->create([
         'property_id' => $property->id,
-        'start_date' => '2027-01-01',
+        'start_date' => '2027-02-01',
         'end_date' => '2028-01-01',
         'monthly_rent_amount' => 2500,
         'rent_due_day' => 31,

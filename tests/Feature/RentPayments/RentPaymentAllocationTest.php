@@ -324,7 +324,10 @@ test('full and partial future advance notices are exposed together', function ()
 });
 
 test('current partial overdue behavior remains correct', function () {
-    $lease = pay03Lease(['rent_due_day' => 5]);
+    $lease = pay03Lease([
+        'start_date' => '2026-07-01',
+        'rent_due_day' => 5,
+    ]);
     pay03Payment($lease, 1000);
 
     $status = app(LeaseRentStatusCalculator::class)->forLease($lease, Carbon::parse('2026-07-10'));

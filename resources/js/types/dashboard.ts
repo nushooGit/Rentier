@@ -6,10 +6,12 @@ export type DashboardSummary = {
     current_month_rent_deductions: string;
     current_month_covered_rent: string;
     remaining_rent: string;
+    overdue_rent: string;
     expected_guarantees: string;
     collected_guarantees: string;
     remaining_guarantees: string;
     overdue_count: number;
+    overdue_month_count: number;
     occupancy_label: string;
     occupancy_rate: number;
     current_month_expenses: string;
@@ -53,6 +55,24 @@ export type DashboardLeaseFinancialRow = {
     rent_deduction_amount: string;
     covered_amount: string;
     remaining_amount: string;
+    arrears_amount: string;
+    overdue_month_count: number;
+    oldest_overdue_due_date: string | null;
+    overdue_months: {
+        period_key: string;
+        period_date: string;
+        period_label: string;
+        expected_amount: string;
+        rent_deduction_amount: string;
+        cash_allocated: string;
+        total_covered: string;
+        remaining_amount: string;
+        fully_paid: boolean;
+        partial: boolean;
+        overdue: boolean;
+        paid_in_advance: boolean;
+        due_date: string;
+    }[];
     advance_notice: {
         key: 'paid_through' | 'partial_advance';
         label: string;
