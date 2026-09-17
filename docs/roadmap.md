@@ -8,7 +8,6 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 
 ## Phase 1 - Close old backlog
 
-- EXP-02 - Active-lease association for tenant-involved expenses. Verified locally with automated, isolated E2E, and manual UI checks; pending production smoke verification before closing.
 - DATE-02 - Romanian create/edit date-picker UX.
 - PROP-02 - Add total surface area in m2.
 - SEC-01 - Controlled dependency review for npm audit advisories; do not use blind `npm audit fix`.
