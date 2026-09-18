@@ -754,6 +754,8 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
         'start_date' => '2026-07-01',
         'end_date' => '2026-12-31',
         'monthly_rent_amount' => 1000,
+        'currency' => 'RON',
+        'rent_due_day' => 15,
         'deposit_amount' => 0,
     ]);
 
@@ -785,6 +787,9 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
         ->assertInertia(fn (Assert $page) => $page
             ->where('summary.tenant_reimbursement_expenses', '150.00')
             ->where('summary.recoverable_expenses', '120.00')
+            ->where('summary.overdue_rent', '0.00')
+            ->where('summary.remaining_guarantees', '0.00')
+            ->where('summary.overdue_count', 0)
             ->where('summary.total_receivable', '120.00')
         );
 
@@ -798,6 +803,9 @@ test('dashboard excludes settled reimbursements and recoveries from outstanding 
         ->assertInertia(fn (Assert $page) => $page
             ->where('summary.tenant_reimbursement_expenses', '0.00')
             ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.overdue_rent', '0.00')
+            ->where('summary.remaining_guarantees', '0.00')
+            ->where('summary.overdue_count', 0)
             ->where('summary.total_receivable', '0.00')
         );
 
