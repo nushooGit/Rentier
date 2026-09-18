@@ -90,6 +90,7 @@ export type Property = {
     postal_code?: string | null;
     rooms?: number | null;
     usable_area_sqm?: string | null;
+    total_area_sqm?: string | null;
     floor?: number | null;
     total_floors?: number | null;
     status: PropertyStatus;

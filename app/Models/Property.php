@@ -25,6 +25,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $postal_code
  * @property int|null $rooms
  * @property string|null $usable_area_sqm
+ * @property string|null $total_area_sqm
  * @property int|null $floor
  * @property int|null $total_floors
  * @property string $status
@@ -50,6 +51,7 @@ use Illuminate\Support\Carbon;
     'postal_code',
     'rooms',
     'usable_area_sqm',
+    'total_area_sqm',
     'floor',
     'total_floors',
     'status',
@@ -172,6 +174,7 @@ class Property extends Model
             'floor' => 'integer',
             'total_floors' => 'integer',
             'usable_area_sqm' => 'decimal:2',
+            'total_area_sqm' => 'decimal:2',
             'monthly_rent_amount' => 'decimal:2',
             'deposit_amount' => 'decimal:2',
         ];

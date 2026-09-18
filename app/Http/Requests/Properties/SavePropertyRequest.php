@@ -45,6 +45,7 @@ class SavePropertyRequest extends FormRequest
             'postal_code' => ['nullable', 'string', 'max:32'],
             'rooms' => ['nullable', 'integer', 'min:0'],
             'usable_area_sqm' => ['nullable', 'numeric', 'min:0'],
+            'total_area_sqm' => ['nullable', 'numeric', 'gt:0'],
             'floor' => ['nullable', 'integer'],
             'total_floors' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', Rule::in(['available', 'occupied', 'renovation', 'inactive'])],
@@ -65,6 +66,8 @@ class SavePropertyRequest extends FormRequest
         return [
             'name.required' => __('validation.custom.property.name.required'),
             'address_line.required' => __('validation.custom.property.address_line.required'),
+            'total_area_sqm.numeric' => __('validation.custom.property.total_area_sqm.numeric'),
+            'total_area_sqm.gt' => __('validation.custom.property.total_area_sqm.gt'),
             'monthly_rent_amount.required' => __('validation.custom.property.monthly_rent_amount.required'),
             'monthly_rent_amount.numeric' => __('validation.custom.property.monthly_rent_amount.numeric'),
             'monthly_rent_amount.gt' => __('validation.custom.property.monthly_rent_amount.gt'),

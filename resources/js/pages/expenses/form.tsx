@@ -327,8 +327,8 @@ export default function ExpenseForm({
                                 name="expense_date"
                                 className={inputClassName}
                                 defaultValue={initialExpenseDate}
-                                onChange={(event) => {
-                                    setExpenseDate(event.target.value);
+                                onValueChange={(value) => {
+                                    setExpenseDate(value);
 
                                     if (tenantInvolved) {
                                         setSelectedLeaseId('');

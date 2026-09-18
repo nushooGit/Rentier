@@ -68,7 +68,10 @@ class SaveLeaseRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'end_date.after_or_equal' => __('validation.custom.lease.end_date.after_or_equal'),
+            'start_date.required' => __('validation.custom.lease.start_date.required', locale: 'ro'),
+            'start_date.date' => __('validation.custom.lease.start_date.date', locale: 'ro'),
+            'end_date.date' => __('validation.custom.lease.end_date.date', locale: 'ro'),
+            'end_date.after_or_equal' => __('validation.custom.lease.end_date.after_or_equal', locale: 'ro'),
         ];
     }
 

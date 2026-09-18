@@ -169,6 +169,7 @@ class PropertyController extends Controller
             'postal_code' => $property->postal_code,
             'rooms' => $property->rooms,
             'usable_area_sqm' => $property->usable_area_sqm,
+            'total_area_sqm' => $property->total_area_sqm,
             'floor' => $property->floor,
             'total_floors' => $property->total_floors,
             'status' => $property->occupancyStatus(),

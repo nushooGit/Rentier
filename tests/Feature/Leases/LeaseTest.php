@@ -388,6 +388,73 @@ test('lease validation requires core fields and workspace property', function ()
         'rent_due_day',
         'deposit_amount',
     ]);
+
+    $response->assertSessionHasErrors([
+        'start_date' => 'Data de început este obligatorie.',
+    ]);
+});
+
+test('lease validation localizes invalid dates', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'start_date' => 'not-a-date',
+            'end_date' => 'also-not-a-date',
+        ]));
+
+    $response->assertSessionHasErrors([
+        'start_date' => 'Data de început trebuie să fie o dată validă.',
+        'end_date' => 'Data de sfârșit trebuie să fie o dată validă.',
+    ]);
+});
+
+test('lease start date required message stays Romanian regardless of the active locale', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $originalLocale = app()->getLocale();
+
+    app()->setLocale('en');
+
+    try {
+        $response = $this
+            ->actingAs($user)
+            ->post(route('leases.store', $team), validLeasePayload($property, [
+                'start_date' => '',
+                'end_date' => null,
+            ]));
+    } finally {
+        app()->setLocale($originalLocale);
+    }
+
+    $response->assertSessionHasErrors([
+        'start_date' => 'Data de început este obligatorie.',
+    ]);
+    $response->assertSessionDoesntHaveErrors('end_date');
+});
+
+test('lease end date remains optional', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 2500,
+    ]);
+
+    $response = $this
+        ->actingAs($user)
+        ->post(route('leases.store', $team), validLeasePayload($property, [
+            'end_date' => '',
+        ]));
+
+    $response->assertSessionDoesntHaveErrors('end_date');
+    $this->assertDatabaseHas('leases', [
+        'property_id' => $property->id,
+        'end_date' => null,
+    ]);
 });
 
 test('cannot create a lease with overlapping dates on the same property', function () {

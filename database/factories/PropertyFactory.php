@@ -29,6 +29,7 @@ class PropertyFactory extends Factory
             'postal_code' => fake()->optional()->postcode(),
             'rooms' => fake()->optional()->numberBetween(1, 5),
             'usable_area_sqm' => fake()->optional()->randomFloat(2, 20, 180),
+            'total_area_sqm' => fake()->optional()->randomFloat(2, 20, 220),
             'floor' => fake()->optional()->numberBetween(0, 10),
             'total_floors' => fake()->optional()->numberBetween(1, 12),
             'status' => fake()->randomElement(['available', 'occupied', 'renovation', 'inactive']),

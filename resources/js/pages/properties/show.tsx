@@ -129,13 +129,21 @@ export default function PropertyShow({ property }: Props) {
 
                 <section className="rounded-lg border p-3 sm:p-3.5">
                     <h2 className="text-base font-medium">Caracteristici</h2>
-                    <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <Detail label="Camere" value={property.rooms} />
                         <Detail
                             label="Suprafață utilă"
                             value={
                                 property.usable_area_sqm
                                     ? `${property.usable_area_sqm} mp`
+                                    : null
+                            }
+                        />
+                        <Detail
+                            label="Suprafață totală"
+                            value={
+                                property.total_area_sqm
+                                    ? `${property.total_area_sqm} m²`
                                     : null
                             }
                         />

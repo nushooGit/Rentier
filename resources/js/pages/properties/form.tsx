@@ -215,7 +215,7 @@ export default function PropertyForm({
 
                     <FormSection
                         title="Caracteristici"
-                        gridClassName="md:grid-cols-2 xl:grid-cols-4"
+                        gridClassName="md:grid-cols-2 xl:grid-cols-5"
                     >
                         <Field>
                             <Label htmlFor="rooms">Camere</Label>
@@ -229,6 +229,25 @@ export default function PropertyForm({
                                 defaultValue={fieldValue(property?.rooms)}
                             />
                             <InputError message={errors.rooms} />
+                        </Field>
+
+                        <Field>
+                            <Label htmlFor="total_area_sqm">
+                                Suprafață totală (m²)
+                            </Label>
+                            <Input
+                                id="total_area_sqm"
+                                name="total_area_sqm"
+                                className={inputClassName}
+                                type="number"
+                                min="0.01"
+                                step="0.01"
+                                defaultValue={fieldValue(
+                                    property?.total_area_sqm,
+                                )}
+                                data-test="property-total-area-input"
+                            />
+                            <InputError message={errors.total_area_sqm} />
                         </Field>
 
                         <Field>

@@ -56,11 +56,51 @@ test.describe('authenticated landlord smoke', () => {
             '[data-test="lease-property-select"]',
             propertyName,
         );
-        await page.getByTestId('lease-start-date-input').fill(date);
         await page.getByTestId('lease-renter-name-input').fill(renterName);
         await page.locator('#renter_email').fill(`e2e-${suffix}@rentier.test`);
         await page.locator('#rent_due_day').fill('1');
         await page.locator('#deposit_amount').fill('500');
+        await expect(page.getByTestId('lease-start-date-input')).toHaveAttribute(
+            'aria-required',
+            'true',
+        );
+        await expect(
+            page.getByTestId('lease-start-date-input'),
+        ).not.toHaveAttribute('required', '');
+        await expect(page.locator('#end_date')).not.toHaveAttribute(
+            'aria-required',
+            'true',
+        );
+        await page.getByTestId('lease-save-button').click();
+        await expect(
+            page.getByText('Data de început este obligatorie.'),
+        ).toHaveCount(1);
+        await expect(
+            page.getByText('The start date is required.'),
+        ).toHaveCount(0);
+        await expect(
+            page.getByText('Please fill out this field.'),
+        ).toHaveCount(0);
+
+        await page
+            .getByTestId('lease-start-date-input')
+            .fill('35.09.2026');
+        await page.getByTestId('lease-save-button').click();
+        await expect(page.getByTestId('lease-start-date-input')).toHaveAttribute(
+            'aria-invalid',
+            'true',
+        );
+        await expect(page.locator('#start_date-format-hint')).toHaveText(
+            'Data trebuie să fie în formatul ZZ.LL.AAAA.',
+        );
+        await expect(
+            page.getByText('The start date field is required.'),
+        ).toHaveCount(0);
+        await expect(
+            page.getByText('Data de început este obligatorie.'),
+        ).toHaveCount(0);
+
+        await page.getByTestId('lease-start-date-input').fill(date);
         await page.getByTestId('lease-save-button').click();
         await expect(page).toHaveURL(new RegExp(`/${teamSlug}/leases`));
         await expect(page.getByText(renterName)).toBeVisible();

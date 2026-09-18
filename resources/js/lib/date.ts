@@ -6,6 +6,16 @@ const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 export const DATE_INPUT_FORMAT_MESSAGE =
     'Data trebuie să fie în formatul ZZ.LL.AAAA.';
 
+export function dateInputPlaceholder(locale = DEFAULT_LOCALE) {
+    return locale === 'ro-RO' ? 'ZZ.LL.AAAA' : 'YYYY-MM-DD';
+}
+
+export function dateInputFormatMessage(locale = DEFAULT_LOCALE) {
+    return locale === 'ro-RO'
+        ? DATE_INPUT_FORMAT_MESSAGE
+        : 'Use the YYYY-MM-DD date format.';
+}
+
 function isValidDateParts(year: number, month: number, day: number) {
     const date = new Date(Date.UTC(year, month - 1, day));
 
@@ -124,6 +134,10 @@ export function formatDateForInput(
         return '';
     }
 
+    if (locale !== 'ro-RO') {
+        return parseIsoDate(date) ? date.slice(0, 10) : date;
+    }
+
     const formattedDate = formatDateShort(date, locale);
 
     return formattedDate === 'Nesetat' ? '' : formattedDate;
@@ -134,6 +148,16 @@ export function parseDateInputToIso(value: string, locale = DEFAULT_LOCALE) {
 
     if (!trimmedValue) {
         return '';
+    }
+
+    const isoMatch = trimmedValue.match(ISO_DATE_PATTERN);
+
+    if (isoMatch) {
+        const [, year, month, day] = isoMatch;
+
+        return isValidDateParts(Number(year), Number(month), Number(day))
+            ? trimmedValue
+            : null;
     }
 
     if (locale === 'ro-RO') {
@@ -155,19 +179,7 @@ export function parseDateInputToIso(value: string, locale = DEFAULT_LOCALE) {
         return `${year}-${month}-${day}`;
     }
 
-    const isoMatch = trimmedValue.match(ISO_DATE_PATTERN);
-
-    if (!isoMatch) {
-        return null;
-    }
-
-    const [, year, month, day] = isoMatch;
-
-    if (!isValidDateParts(Number(year), Number(month), Number(day))) {
-        return null;
-    }
-
-    return trimmedValue;
+    return null;
 }
 
 export const formatDateForDisplay = formatDateLong;

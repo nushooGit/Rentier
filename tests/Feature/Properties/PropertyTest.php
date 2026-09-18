@@ -140,6 +140,7 @@ test('optional property fields can remain empty', function () {
             'postal_code' => '',
             'rooms' => '',
             'usable_area_sqm' => '',
+            'total_area_sqm' => '',
             'floor' => '',
             'total_floors' => '',
             'deposit_amount' => '',
@@ -151,9 +152,105 @@ test('optional property fields can remain empty', function () {
     $this->assertDatabaseHas('properties', [
         'team_id' => $team->id,
         'name' => 'Central Apartment',
+        'total_area_sqm' => null,
         'deposit_amount' => null,
         'notes' => null,
     ]);
+});
+
+test('property can be created without total surface area', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload())
+        ->assertRedirect(route('properties.index', $team));
+
+    expect(Property::query()->sole()->total_area_sqm)->toBeNull();
+});
+
+test('property can be created with a valid decimal total surface area', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'total_area_sqm' => 52.5,
+        ]))
+        ->assertRedirect(route('properties.index', $team));
+
+    expect(Property::query()->sole()->total_area_sqm)->toBe('52.50');
+});
+
+test('property total surface area can be updated', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'total_area_sqm' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('properties.update', [$team, $property]), validPropertyPayload([
+            'total_area_sqm' => 73.25,
+        ]))
+        ->assertRedirect(route('properties.show', [$team, $property]));
+
+    expect($property->refresh()->total_area_sqm)->toBe('73.25');
+});
+
+test('property total surface area rejects zero negative and malformed values', function (mixed $value, string $message) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'total_area_sqm' => $value,
+        ]))
+        ->assertSessionHasErrors([
+            'total_area_sqm' => $message,
+        ]);
+
+    $this->assertDatabaseCount('properties', 0);
+})->with([
+    'zero' => [0, 'Suprafața totală trebuie să fie mai mare decât 0.'],
+    'negative' => [-1, 'Suprafața totală trebuie să fie mai mare decât 0.'],
+    'malformed' => ['cincizeci', 'Suprafața totală trebuie să fie un număr valid.'],
+]);
+
+test('existing property with null total surface area remains valid', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'total_area_sqm' => null,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.total_area_sqm', null)
+        );
+});
+
+test('property details serialize the total surface area', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'total_area_sqm' => 52.5,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->get(route('properties.show', [$team, $property]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('property.total_area_sqm', '52.50')
+        );
 });
 
 test('property without active lease shows available occupancy status', function () {

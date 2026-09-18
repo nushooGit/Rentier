@@ -121,9 +121,9 @@ export default function LeaseForm({
                                 className={inputClassName}
                                 defaultValue={lease?.start_date}
                                 required
+                                error={errors.start_date}
                                 data-test="lease-start-date-input"
                             />
-                            <InputError message={errors.start_date} />
                         </Field>
 
                         <Field>
@@ -133,8 +133,8 @@ export default function LeaseForm({
                                 name="end_date"
                                 className={inputClassName}
                                 defaultValue={lease?.end_date}
+                                error={errors.end_date}
                             />
-                            <InputError message={errors.end_date} />
                         </Field>
                     </FormSection>
 

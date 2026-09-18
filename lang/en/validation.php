@@ -16,7 +16,12 @@ return [
             ],
         ],
         'lease' => [
+            'start_date' => [
+                'required' => 'The start date is required.',
+                'date' => 'The start date must be a valid date.',
+            ],
             'end_date' => [
+                'date' => 'The end date must be a valid date.',
                 'after_or_equal' => 'The end date must be equal to or later than the start date.',
             ],
         ],

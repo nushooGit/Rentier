@@ -9,6 +9,10 @@ return [
             'address_line' => [
                 'required' => 'Adresa proprietății este obligatorie.',
             ],
+            'total_area_sqm' => [
+                'numeric' => 'Suprafața totală trebuie să fie un număr valid.',
+                'gt' => 'Suprafața totală trebuie să fie mai mare decât 0.',
+            ],
             'monthly_rent_amount' => [
                 'required' => 'Chiria lunară este obligatorie.',
                 'numeric' => 'Chiria lunară trebuie să fie o sumă validă.',
@@ -16,7 +20,12 @@ return [
             ],
         ],
         'lease' => [
+            'start_date' => [
+                'required' => 'Data de început este obligatorie.',
+                'date' => 'Data de început trebuie să fie o dată validă.',
+            ],
             'end_date' => [
+                'date' => 'Data de sfârșit trebuie să fie o dată validă.',
                 'after_or_equal' => 'Data de sfârșit trebuie să fie egală sau ulterioară datei de început.',
             ],
         ],
