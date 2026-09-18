@@ -9,6 +9,9 @@ return [
             'address_line' => [
                 'required' => 'The property address is required.',
             ],
+            'usable_area_sqm' => [
+                'lte_total_area' => 'The usable area may not be greater than the total area.',
+            ],
             'monthly_rent_amount' => [
                 'required' => 'The monthly rent is required.',
                 'numeric' => 'The monthly rent must be a valid amount.',

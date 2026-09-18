@@ -9,6 +9,9 @@ return [
             'address_line' => [
                 'required' => 'Adresa proprietății este obligatorie.',
             ],
+            'usable_area_sqm' => [
+                'lte_total_area' => 'Suprafața utilă nu poate fi mai mare decât suprafața totală.',
+            ],
             'total_area_sqm' => [
                 'numeric' => 'Suprafața totală trebuie să fie un număr valid.',
                 'gt' => 'Suprafața totală trebuie să fie mai mare decât 0.',

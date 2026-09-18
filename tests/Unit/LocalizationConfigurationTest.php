@@ -12,6 +12,7 @@ test('authentication and validation messages resolve through the active locale',
 
     expect(__('auth.failed'))->toBe('Datele de autentificare nu sunt corecte.')
         ->and(__('validation.custom.property.name.required'))->toBe('Numele proprietății este obligatoriu.')
+        ->and(__('validation.custom.property.usable_area_sqm.lte_total_area'))->toBe('Suprafața utilă nu poate fi mai mare decât suprafața totală.')
         ->and(__('validation.custom.lease.start_date.required'))->toBe('Data de început este obligatorie.')
         ->and(__('validation.custom.lease.start_date.date'))->toBe('Data de început trebuie să fie o dată validă.')
         ->and(__('validation.custom.lease.end_date.date'))->toBe('Data de sfârșit trebuie să fie o dată validă.')
@@ -21,6 +22,7 @@ test('authentication and validation messages resolve through the active locale',
 
     expect(__('auth.failed'))->toBe('These credentials do not match our records.')
         ->and(__('validation.custom.property.name.required'))->toBe('The property name is required.')
+        ->and(__('validation.custom.property.usable_area_sqm.lte_total_area'))->toBe('The usable area may not be greater than the total area.')
         ->and(__('validation.custom.lease.start_date.required'))->toBe('The start date is required.')
         ->and(__('validation.custom.lease.start_date.date'))->toBe('The start date must be a valid date.')
         ->and(__('validation.custom.lease.end_date.date'))->toBe('The end date must be a valid date.')

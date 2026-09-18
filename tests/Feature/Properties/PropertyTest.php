@@ -177,11 +177,65 @@ test('property can be created with a valid decimal total surface area', function
     $this
         ->actingAs($user)
         ->post(route('properties.store', $team), validPropertyPayload([
-            'total_area_sqm' => 52.5,
+            'total_area_sqm' => 62.5,
         ]))
         ->assertRedirect(route('properties.index', $team));
 
-    expect(Property::query()->sole()->total_area_sqm)->toBe('52.50');
+    expect(Property::query()->sole()->total_area_sqm)->toBe('62.50');
+});
+
+test('property usable area may be smaller than or equal to total area', function (float $usableArea, float $totalArea) {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'usable_area_sqm' => $usableArea,
+            'total_area_sqm' => $totalArea,
+        ]))
+        ->assertRedirect(route('properties.index', $team));
+
+    $property = Property::query()->sole();
+
+    expect($property->usable_area_sqm)->toBe(number_format($usableArea, 2, '.', ''))
+        ->and($property->total_area_sqm)->toBe(number_format($totalArea, 2, '.', ''));
+})->with([
+    'usable area smaller than total area' => [50, 60],
+    'usable area equal to total area' => [60, 60],
+]);
+
+test('property usable area greater than total area is rejected in Romanian', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'usable_area_sqm' => 60,
+            'total_area_sqm' => 50,
+        ]))
+        ->assertSessionHasErrors([
+            'usable_area_sqm' => 'Suprafața utilă nu poate fi mai mare decât suprafața totală.',
+        ]);
+
+    $this->assertDatabaseCount('properties', 0);
+});
+
+test('property total area may be saved without usable area', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    $this
+        ->actingAs($user)
+        ->post(route('properties.store', $team), validPropertyPayload([
+            'usable_area_sqm' => '',
+            'total_area_sqm' => 60,
+        ]))
+        ->assertRedirect(route('properties.index', $team));
+
+    expect(Property::query()->sole()->usable_area_sqm)->toBeNull()
+        ->and(Property::query()->sole()->total_area_sqm)->toBe('60.00');
 });
 
 test('property total surface area can be updated', function () {
@@ -199,6 +253,28 @@ test('property total surface area can be updated', function () {
         ->assertRedirect(route('properties.show', [$team, $property]));
 
     expect($property->refresh()->total_area_sqm)->toBe('73.25');
+});
+
+test('property update rejects usable area greater than total area', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'usable_area_sqm' => 50,
+        'total_area_sqm' => 60,
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->patch(route('properties.update', [$team, $property]), validPropertyPayload([
+            'usable_area_sqm' => 70,
+            'total_area_sqm' => 60,
+        ]))
+        ->assertSessionHasErrors([
+            'usable_area_sqm' => 'Suprafața utilă nu poate fi mai mare decât suprafața totală.',
+        ]);
+
+    expect($property->refresh()->usable_area_sqm)->toBe('50.00')
+        ->and($property->total_area_sqm)->toBe('60.00');
 });
 
 test('property total surface area rejects zero negative and malformed values', function (mixed $value, string $message) {

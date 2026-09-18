@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class SavePropertyRequest extends FormRequest
 {
@@ -72,6 +73,33 @@ class SavePropertyRequest extends FormRequest
             'monthly_rent_amount.numeric' => __('validation.custom.property.monthly_rent_amount.numeric'),
             'monthly_rent_amount.gt' => __('validation.custom.property.monthly_rent_amount.gt'),
         ];
+    }
+
+    /**
+     * Configure the validator instance.
+     */
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            if (
+                ! $this->filled('usable_area_sqm')
+                || ! $this->filled('total_area_sqm')
+                || $validator->errors()->has('usable_area_sqm')
+                || $validator->errors()->has('total_area_sqm')
+            ) {
+                return;
+            }
+
+            $usableArea = (float) $this->input('usable_area_sqm');
+            $totalArea = (float) $this->input('total_area_sqm');
+
+            if ($usableArea > $totalArea) {
+                $validator->errors()->add(
+                    'usable_area_sqm',
+                    __('validation.custom.property.usable_area_sqm.lte_total_area', locale: 'ro')
+                );
+            }
+        });
     }
 
     /**
