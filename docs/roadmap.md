@@ -8,8 +8,6 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 
 ## Phase 1 - Close old backlog
 
-- SEC-01 - Controlled dependency remediation is locally verified; retain until the clean lockfile is exercised by CI/deployment.
-- SESSION-01 - Database-backed, secure, host-only session defaults are locally verified; apply the explicit null values in Coolify and retain the host-only decision for `app.rentier.ro` unless cross-subdomain authentication is intentionally required.
 - OPS-01 - Download and verify an off-VPS backup copy on the home PC.
 - OPS-02 - Apply Ubuntu updates and perform a controlled server reboot.
 - OPS-03 - Complete SSH hardening and verify `PasswordAuthentication` is disabled.
