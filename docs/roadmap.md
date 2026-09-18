@@ -8,8 +8,6 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 
 ## Phase 1 - Close old backlog
 
-- DATE-02 - VERIFIED LOCAL. Shared create/edit date inputs use Romanian `ZZ.LL.AAAA` presentation while submitting ISO dates; manual UI and production verification remain pending.
-- PROP-02 - VERIFIED LOCAL. Optional positive decimal total surface area is available on property create/edit/details; manual UI and production verification remain pending.
 - SEC-01 - Controlled dependency review for npm audit advisories; do not use blind `npm audit fix`.
 - SESSION-01 - Review `SESSION_CONNECTION`, `SESSION_STORE`, and `SESSION_DOMAIN`, especially before `app.rentier.ro`.
 - OPS-01 - Download and verify an off-VPS backup copy on the home PC.
