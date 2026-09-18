@@ -43,6 +43,9 @@ DB_PASSWORD=DB_PASSWORD_PLACEHOLDER
 DB_SSLMODE=prefer
 
 SESSION_DRIVER=database
+SESSION_CONNECTION=null
+SESSION_STORE=null
+SESSION_DOMAIN=null
 SESSION_SECURE_COOKIE=true
 CACHE_STORE=database
 QUEUE_CONNECTION=database
@@ -68,6 +71,10 @@ Notes:
 - Keep `.env` outside version control.
 - Production beta should use PostgreSQL. Keep credentials only in the server-side `.env`.
 - `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.
+- `SESSION_CONNECTION=null` makes database sessions use the default `DB_CONNECTION`; it does not disable the session database connection.
+- `SESSION_STORE=null` is intentional because the database session driver does not use a cache store.
+- `SESSION_DOMAIN=null` creates a host-only cookie. Keep it host-only on the current production host instead of widening it to `.rentier.ro`.
+- Keep `SESSION_SECURE_COOKIE=true` in production so the session cookie is sent only over HTTPS.
 
 ## Hetzner PostgreSQL runbook
 

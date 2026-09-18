@@ -78,6 +78,9 @@ DB_PASSWORD=<COOLIFY_POSTGRES_PASSWORD>
 DB_SSLMODE=prefer
 
 SESSION_DRIVER=database
+SESSION_CONNECTION=null
+SESSION_STORE=null
+SESSION_DOMAIN=null
 SESSION_SECURE_COOKIE=true
 CACHE_STORE=database
 QUEUE_CONNECTION=database
@@ -95,6 +98,8 @@ VITE_APP_NAME="${APP_NAME}"
 ```
 
 Prefer the separate `DB_*` variables above for Coolify because they are explicit and match Laravel's config names. Remove `DB_URL` from the Coolify application environment when switching to this style so there is one database configuration source. This repository also supports Coolify's PostgreSQL URL as `DB_URL` for the `pgsql` connection because `config/database.php` maps `connections.pgsql.url` to `env('DB_URL')`; still set `DB_CONNECTION=pgsql`. The current config does not read `DATABASE_URL`.
+
+The database session driver uses the default `DB_CONNECTION` when `SESSION_CONNECTION=null`; no separate database connection is required. `SESSION_STORE=null` is also intentional because cache stores apply only to cache-backed session drivers, not database sessions. Keep `SESSION_DOMAIN=null` for a host-only cookie on the current production host, and keep `SESSION_SECURE_COOKIE=true` for HTTPS.
 
 Automatic Coolify startup migrations are disabled by default. After backups are verified and an operator approves automatic forward migrations, set `RENTIER_AUTO_MIGRATE=true` in the Coolify application environment. The startup script only runs this step when `APP_ENV=production`; if database readiness or `php artisan migrate --force --no-interaction` fails, the new container exits before Supervisor starts Nginx, PHP-FPM, the queue worker, or the scheduler, allowing Coolify to mark the new deployment as failed. Do not enable this before the production backup and restore path has been tested.
 
@@ -148,6 +153,9 @@ DB_PASSWORD=DB_PASSWORD_PLACEHOLDER
 DB_SSLMODE=prefer
 
 SESSION_DRIVER=database
+SESSION_CONNECTION=null
+SESSION_STORE=null
+SESSION_DOMAIN=null
 SESSION_SECURE_COOKIE=true
 CACHE_STORE=database
 QUEUE_CONNECTION=database

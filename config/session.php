@@ -68,8 +68,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | When using the "database" or "redis" session drivers, you may specify a
-    | connection that should be used to manage these sessions. This should
-    | correspond to a connection in your database configuration options.
+    | connection that should be used to manage these sessions. A null value
+    | intentionally uses the application's default database connection.
     |
     */
 
@@ -95,7 +95,7 @@ return [
     |
     | When using one of the framework's cache driven session backends, you may
     | define the cache store which should be used to store the session data
-    | between requests. This must match one of your defined cache stores.
+    | between requests. It is intentionally unused by the database driver.
     |
     | Affects: "dynamodb", "memcached", "redis"
     |
@@ -151,8 +151,8 @@ return [
     |--------------------------------------------------------------------------
     |
     | This value determines the domain and subdomains the session cookie is
-    | available to. By default, the cookie will be available to the root
-    | domain without subdomains. Typically, this shouldn't be changed.
+    | available to. A null value creates a host-only cookie, which avoids
+    | sharing authentication with sibling subdomains by default.
     |
     */
 
