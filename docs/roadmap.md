@@ -10,7 +10,6 @@ The previous broad roadmap phases were reorganized into this issue-driven sequen
 
 - OPS-01 - Download and verify an off-VPS backup copy on the home PC.
 - OPS-02 - Apply Ubuntu updates and perform a controlled server reboot.
-- OPS-03 - Complete SSH hardening and verify `PasswordAuthentication` is disabled.
 
 Infrastructure and security tasks can be scheduled between product sprints when that lowers operational risk or fits a maintenance window.
 The product sequence below should not be reordered casually; move items only when the issue register records the reason and evidence.
