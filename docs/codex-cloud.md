@@ -78,7 +78,7 @@ The normal CI job retains its full PDO PostgreSQL requirement. A separate CI job
 
 Existing `tests.yml` runs PHP 8.4/8.5 and disposable PostgreSQL jobs. Existing `lint.yml` uses mutating format commands and `npm install`, so its success alone is not evidence that read-only checks pass on a clean tree. Those workflows are unchanged, including the open Dependabot PR #2.
 
-Playwright was inspected but is outside this initial command suite. `test:e2e:isolated` currently starts PowerShell (`scripts/e2e/start-isolated.ps1`); it is not Linux-ready. Do not run browser tests against production. A later task can add a Linux launcher with the existing isolation guards.
+Playwright is still outside the default `scripts/codex/validate.sh` suite. The separate `test:e2e:isolated` command now selects Bash (`scripts/e2e/start-isolated.sh`) on Linux and the existing PowerShell launcher on Windows, using only guarded `database/e2e.sqlite`. Browser execution additionally requires the Chromium build pinned by the locked Playwright dependency. A Codex Cloud attempt to download Chromium build 1228 received HTTP 403, including with `NODE_USE_ENV_PROXY=1`; only the launcher and discovery of 9 tests were verified. Do not claim E2E success until the browser is available and every scenario actually runs. Do not use production credentials or execute write-capable E2E tests against production. Browser installation must remain inside the isolated development environment and must not modify the production runtime.
 
 ## Deployment boundary
 
