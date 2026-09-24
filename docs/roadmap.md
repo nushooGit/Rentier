@@ -16,7 +16,7 @@ The product sequence below should not be reordered casually; move items only whe
 
 ## Phase 2 - Healthy product sequence
 
-1. Production email and password reset.
+1. Configure and verify production email delivery. The application-side password-reset flow is locally verified; provider credentials and external delivery remain an operations task.
 2. Move the authenticated application to `app.rentier.ro`.
 3. Build the public landing page on `rentier.ro`.
 4. Minimal internal admin for users, workspaces, activation/suspension, and statistics.

@@ -74,7 +74,7 @@ export default function Login({
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Forgot password?
+                                            Ai uitat parola?
                                         </TextLink>
                                     )}
                                 </div>
