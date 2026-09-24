@@ -121,3 +121,13 @@ The initial dedicated CI run after these edits passed all 149 Pint-checked files
 GitHub Actions for that commit finished successfully: **Codex environment** run `36034066633`, **tests** run `36034066490` (PHP 8.4, PHP 8.5, PostgreSQL), and **linter** run `36034066748`. All three workflows succeeded. No merge or deployment occurred.
 
 **Branch:** `chore/codex-cloud-setup`; **PR:** #3, draft, targeting `main`. **Exact next task:** review Coolify deployment and preview consequences before a separately approved merge. Then prepare a separate Linux-compatible Playwright launcher task.
+
+## Pre-merge deployment review (2026-09-24)
+
+Reviewed the PR #3 changes against `main`: changes are limited to Codex-only setup/validation scripts, a PR-only CI workflow, documentation, `.gitignore`, and formatting-only changes to one PHPDoc block and import order. There are **no changes** to `nixpacks.toml`, `deploy/coolify/*`, database migrations, Composer/npm manifests or lockfiles, or executable financial/authentication behavior. The existing `main` startup script requires `pdo_pgsql` and runs controlled migrations if the **live** `RENTIER_AUTO_MIGRATE=true` setting is enabled; PR #3 does not change that startup behavior.
+
+All three GitHub CI workflows on commit `367e29eda85799ef67bc8abcb4797e11040f2513` passed: Codex environment `36034380657`, tests `36034380530`, linter `36034380529`. Documentation and the issue register have since been updated to reflect the verified cloud settings, not the obsolete `git fetch origin` instructions.
+
+**Unverified external deployment condition:** the repository's Coolify runbook says production tracks `main`, but current live automatic deployment, GitHub webhook and preview-environment behavior cannot be confirmed from GitHub. Merging could therefore trigger an automatic production rebuild even though the production build/start files are unchanged. A production build may execute the existing controlled migration prestart if enabled, although this PR adds no migrations. Before any merge, the owner must confirm the live Coolify settings and authorize the possible redeployment. No Coolify resources, production credentials or databases were accessed; no merge or deployment performed.
+
+**Exact next task:** confirm in Coolify whether the Rentier application auto-deploys when `main` changes and whether preview deployments exist; independently approve the merge and any resulting deployment. Afterwards, prepare the Linux Playwright launcher on a separate branch and PR.
