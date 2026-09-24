@@ -101,3 +101,13 @@ RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/setup.sh
 ```
 
 Maintenance uses `RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/setup.sh`; agent validation uses `RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/validate.sh`. The opt-in is per command because setup and agent shells are separate. New CI evidence will be recorded after the PR branch runs.
+
+## Actual Codex Cloud validation and PHPStan fix (2026-09-24)
+
+The owner completed the first Codex Cloud runs on `rentier-development` with PHP 8.4 and Node 22. The disposable SQLite-only setup installed the locked dependencies, ran local migrations, and successfully built Vite assets after `NODE_USE_ENV_PROXY=1` was added for Bunny Fonts. These results are from the owner-provided Codex Cloud output, not the original Work runtime.
+
+Cloud validation with `NODE_USE_ENV_PROXY=1 RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/validate.sh` reported: **328/328 Laravel tests, 2,436 assertions; TypeScript, ESLint, Prettier and Vite passed**. PHPStan initially failed because the Codex PHP runtime was limited to 128 MiB. A separate Codex run of `./vendor/bin/phpstan analyse --memory-limit=1G` completed with exit 0 and 0 errors. Pint still reports the two pre-existing formatting issues in `bootstrap/app.php` and `app/Services/LeaseRentStatusCalculator.php`.
+
+The one-line memory fix has now been committed to this PR branch through the Rentier GitHub connection: `scripts/codex/validate.sh` runs `./vendor/bin/phpstan analyse --memory-limit=1G`. The initial local Codex commit `3d7b65eb43b0f96994b40aa5447fdebe436a4c04` was **not** pushed because its runtime could not reach GitHub; the change was applied directly to this branch instead. Check the latest PR head and its new CI run for independent verification. Do not report the full dedicated validation workflow as green until the existing Pint findings have been addressed in a separate, controlled formatting task.
+
+**Next task:** inspect the GitHub Actions results for the PHPStan memory fix; if PHPStan passes there, prepare an isolated, strictly formatting-only follow-up for the two Pint files with a diff review and regression checks. Keep this PR unmerged and do not deploy.
