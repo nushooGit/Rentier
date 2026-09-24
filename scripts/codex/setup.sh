@@ -38,7 +38,7 @@ else
     # Start from the project's example; replace only local runtime settings.
     sed -E '/^(APP_KEY|APP_ENV|APP_URL|DB_CONNECTION|DB_DATABASE|DB_URL|SESSION_DRIVER|CACHE_STORE|QUEUE_CONNECTION|MAIL_MAILER|RENTIER_AUTO_MIGRATE)=/d' .env.example > .env
     {
-        printf '\nAPP_ENV=local\nAPP_URL=http://127.0.0.1:8000\n'
+        printf '\nAPP_ENV=local\nAPP_URL=http://localhost\n'
         printf 'APP_KEY=base64:%s\n' "$(php -r 'echo base64_encode(random_bytes(32));')"
         printf 'DB_CONNECTION=sqlite\nDB_DATABASE=%s\nDB_URL=\n' "$database"
         printf 'SESSION_DRIVER=file\nCACHE_STORE=file\nQUEUE_CONNECTION=sync\nMAIL_MAILER=log\nRENTIER_AUTO_MIGRATE=false\n'

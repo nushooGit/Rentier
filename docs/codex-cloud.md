@@ -19,7 +19,7 @@ The setup build generates ignored Wayfinder route/action types and the Vite mani
 
 ## Manual Codex Cloud settings
 
-The preparation session cannot administer Codex Cloud or confirm its account settings. In [Codex environment settings](https://chatgpt.com/codex/settings/environments):
+No Codex Cloud management API is exposed to the preparation session, and its cloud browser is signed out of ChatGPT. Authentication is needed before cloud settings can be accessed. In [Codex environment settings](https://chatgpt.com/codex/settings/environments):
 
 1. Create/select a dedicated Rentier environment. Select only `nushooGit/Rentier` through the Rentier connection; do not grant other repository access.
 2. Choose the universal image. In **Set package versions**, select Node 22 and PHP 8.4 if offered. Verify PHP >= 8.4.1 and Composer 2 in the setup terminal. Do not add production secrets or application environment variables.
