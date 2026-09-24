@@ -1,0 +1,61 @@
+name: Isolated Playwright (Linux)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/e2e/**'
+      - 'playwright.e2e.config.ts'
+      - 'tests/e2e/**'
+      - 'app/Console/Commands/E2eBootstrapCommand.php'
+      - '.env.e2e.example'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/playwright-isolated.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  isolated-chromium:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, curl, dom, fileinfo, mbstring, pdo_sqlite, sqlite3, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+      - name: Validate Bash launcher
+        run: bash -n scripts/e2e/start-isolated.sh
+      - name: Install locked dependencies
+        run: |
+          composer install --no-interaction --prefer-dist --ignore-platform-req=ext-pdo_pgsql
+          npm ci --no-audit --no-fund
+      - name: Build assets
+        run: |
+          cp .env.e2e.example .env.e2e
+          npm run build
+      - name: Install isolated Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run isolated E2E against localhost only
+        run: npm run test:e2e:isolated
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: linux-playwright-failure-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
+          retention-days: 5
