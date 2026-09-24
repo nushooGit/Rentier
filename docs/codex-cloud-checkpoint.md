@@ -111,3 +111,13 @@ Cloud validation with `NODE_USE_ENV_PROXY=1 RENTIER_CODEX_SQLITE_ONLY=1 bash scr
 The one-line memory fix has now been committed to this PR branch through the Rentier GitHub connection: `scripts/codex/validate.sh` runs `./vendor/bin/phpstan analyse --memory-limit=1G`. The initial local Codex commit `3d7b65eb43b0f96994b40aa5447fdebe436a4c04` was **not** pushed because its runtime could not reach GitHub; the change was applied directly to this branch instead. Check the latest PR head and its new CI run for independent verification. Do not report the full dedicated validation workflow as green until the existing Pint findings have been addressed in a separate, controlled formatting task.
 
 **Next task:** inspect the GitHub Actions results for the PHPStan memory fix; if PHPStan passes there, prepare an isolated, strictly formatting-only follow-up for the two Pint files with a diff review and regression checks. Keep this PR unmerged and do not deploy.
+
+## Pint clean-up and CI completion (2026-09-24)
+
+Two pre-existing formatting issues were corrected on PR #3: import order in `bootstrap/app.php` (commit `8ea4c7158d2b9636d465ea586d031e4a75e9ce06`) and PHPStan docblock separation in `app/Services/LeaseRentStatusCalculator.php` (commit `959f721a7c1faf4ea0c2ef195adfe5a9d17df79f`). No executable financial or authentication logic changed.
+
+The initial dedicated CI run after these edits passed all 149 Pint-checked files, 328 Laravel tests / 2,436 assertions, PHPStan with `--memory-limit=1G`, TypeScript, ESLint, Prettier and Vite. Its SQLite-only job still expected the old Pint failure, so the workflow was updated to require all 11 validation commands to exit 0 (commit `04da17a1f38189ca4fd75fa459a41cec12253b17`).
+
+GitHub Actions for that commit finished successfully: **Codex environment** run `36034066633`, **tests** run `36034066490` (PHP 8.4, PHP 8.5, PostgreSQL), and **linter** run `36034066748`. All three workflows succeeded. No merge or deployment occurred.
+
+**Branch:** `chore/codex-cloud-setup`; **PR:** #3, draft, targeting `main`. **Exact next task:** review Coolify deployment and preview consequences before a separately approved merge. Then prepare a separate Linux-compatible Playwright launcher task.
