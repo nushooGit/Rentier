@@ -131,6 +131,10 @@ Do not point write-capable E2E tests at staging, beta, production, or `rentier.r
 
 The first Linux Codex run verified the launcher and discovered **9 tests in 3 files**. The E2E scenarios did **not** execute: downloading Playwright's Chromium build 1228 returned HTTP 403, with and without `NODE_USE_ENV_PROXY=1`. This is an environment blocker, not a passing E2E run. Install Chromium only in the isolated test runtime where its exact Playwright browser build can be fetched or is already available; then rerun `npm run test:e2e:isolated` and record the actual passing/failing scenario counts. Never run the write-capable isolated suite against production.
 
+### Verified isolated Linux CI run (2026-09-24)
+
+GitHub Actions [Isolated Playwright (Linux), run 36045489128](https://github.com/nushooGit/Rentier/actions/runs/36045489128) installed Playwright's pinned Chromium build 1228, launched the guarded local SQLite E2E application, used previously built Vite assets (without an HMR server under `CI=true`), and ran **9/9 Playwright tests successfully in 36.0 seconds**. This is verified on a disposable Linux GitHub runner, not in Codex Cloud and not on production. The prior Codex Cloud HTTP 403 for Chromium remains a separate environment limitation.
+
 ## Coverage
 
 Current smoke tests cover:
