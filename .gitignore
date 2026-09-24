@@ -31,3 +31,5 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+/.codex-local

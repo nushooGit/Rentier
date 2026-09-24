@@ -134,3 +134,5 @@ development and is not run automatically in production.
 - [Beta Deployment Readiness](docs/deployment-beta.md)
 - [Hetzner PostgreSQL Beta Deployment](docs/hetzner-deployment.md)
 - [E2E Smoke Tests](docs/e2e-smoke-tests.md)
+
+- [Codex Cloud Development Environment](docs/codex-cloud.md)

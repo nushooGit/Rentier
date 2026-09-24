@@ -2,7 +2,7 @@
 
 This file is the authoritative Rentier issue-status register.
 
-Last updated: 2026-09-18
+Last updated: 2026-09-24
 
 Rules:
 
@@ -91,6 +91,10 @@ Answers:
 7. Is this a real integrity bug, only a UX improvement, or already correctly implemented? Real integrity bug. Tenant-involved expenses can lose their lease/renter association even when the domain has an active lease context. UX auto-selection would help, but server-side integrity is incomplete.
 
 Intended next action: tenant-involved expenses must be associated with the applicable active lease; owner-only property expenses may remain lease-less; behavior with historical/future leases must be explicitly tested.
+
+## Codex Cloud Environment
+
+- ENV-01 — IN PROGRESS: reproducible locked dependency setup, guarded disposable SQLite bootstrap and read-only validation prepared on `chore/codex-cloud-setup`. Direct Codex Cloud configuration is unavailable in this session. See [checkpoint](codex-cloud-checkpoint.md) for actual execution evidence and the remaining cloud validation. This does not close or change product backlog items.
 
 ## Verification Log
 
