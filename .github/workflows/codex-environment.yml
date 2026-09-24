@@ -79,14 +79,13 @@ jobs:
         env:
           RENTIER_CODEX_SQLITE_ONLY: '1'
         run: |
-          bash scripts/codex/validate.sh || true
+          bash scripts/codex/validate.sh
           python3 - <<'PY'
           import csv
           with open('.codex-local/validation/results.tsv', newline='') as report:
               results = dict(csv.reader(report, delimiter='\t'))
           results.pop('command')
-          expected = {'composer run lint:check': '1'}
-          assert all(status == expected.get(command, '0') for command, status in results.items()), results
+          assert all(status == '0' for status in results.values()), results
           assert len(results) == 11, results
           PY
       - name: Ensure locked dependencies were preserved
