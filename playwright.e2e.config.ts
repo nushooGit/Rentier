@@ -19,13 +19,17 @@ const webServer: PlaywrightTestConfig['webServer'] = [
         reuseExistingServer: false,
         timeout: 180_000,
     },
-    {
-        name: 'Vite E2E assets',
-        command: 'npm run dev -- --host 127.0.0.1 --port 5174',
-        url: 'http://127.0.0.1:5174/@vite/client',
-        reuseExistingServer: false,
-        timeout: 180_000,
-    },
+    ...(process.env.CI
+        ? []
+        : [
+              {
+                  name: 'Vite E2E assets',
+                  command: 'npm run dev -- --host 127.0.0.1 --port 5174',
+                  url: 'http://127.0.0.1:5174/@vite/client',
+                  reuseExistingServer: false,
+                  timeout: 180_000,
+              },
+          ]),
 ];
 
 export default defineConfig({
