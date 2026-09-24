@@ -12,7 +12,9 @@ const webServer: PlaywrightTestConfig['webServer'] = [
     {
         name: 'Laravel E2E app',
         command:
-            'powershell -NoProfile -ExecutionPolicy Bypass -File scripts/e2e/start-isolated.ps1',
+            process.platform === 'win32'
+                ? 'powershell -NoProfile -ExecutionPolicy Bypass -File scripts/e2e/start-isolated.ps1'
+                : 'bash scripts/e2e/start-isolated.sh',
         url: `${baseURL}/login`,
         reuseExistingServer: false,
         timeout: 180_000,
