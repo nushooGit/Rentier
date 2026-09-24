@@ -96,13 +96,15 @@ npm run test:e2e
 ## Scripts
 
 - `npm run test:e2e` runs Chromium smoke tests.
-- `npm run test:e2e:isolated` resets a guarded local E2E SQLite database, seeds the verified E2E user, starts Laravel on `http://127.0.0.1:8010`, starts Vite on port `5174`, and runs the full authenticated Playwright suite.
+- `npm run test:e2e:isolated` selects the existing PowerShell launcher on Windows or `scripts/e2e/start-isolated.sh` on Linux/macOS. It resets only guarded `database/e2e.sqlite`, seeds the verified E2E user, starts Laravel on `http://127.0.0.1:8010`, starts Vite on port `5174`, and runs the authenticated Playwright suite.
 - `npm run test:e2e:headed` runs Chromium visibly for debugging.
 - `npm run test:e2e:ui` opens Playwright UI mode.
 
 ## Isolated local E2E
 
 The isolated command uses `.env.e2e`, created from `.env.e2e.example` when missing. It is local-only and is safe to reset because it points at `database/e2e.sqlite`, not the normal local database.
+
+On Windows, keep using `npm run test:e2e:isolated`; Playwright starts the PowerShell launcher. On Linux (including Codex Cloud), the same command starts `bash scripts/e2e/start-isolated.sh`. The Linux launcher refuses inherited `DB_URL`/`DATABASE_URL`, supplies only a local E2E URL and delegates database-reset safety to Laravel's guarded `e2e:bootstrap` command. Never copy production `.env` or use actual account credentials in this workflow.
 
 ```powershell
 npm run test:e2e:isolated
@@ -112,8 +114,8 @@ The bootstrap command is guarded and refuses to run unless:
 
 - `APP_ENV` is exactly `e2e`.
 - `DB_CONNECTION` is exactly `sqlite`.
-- `DB_DATABASE` resolves to a path that clearly contains `e2e`.
-- The database basename is not `database.sqlite`.
+- `DB_DATABASE` resolves to **exactly** `database/e2e.sqlite`, without alternate E2E-named files, path traversal or symlinks.
+- There is no external `DB_URL` for the SQLite connection.
 - `APP_URL` is `localhost` or `127.0.0.1` and does not contain `rentier.ro`.
 
 The seeded isolated account defaults to:
@@ -124,6 +126,10 @@ E2E_PASSWORD=password
 ```
 
 Do not point write-capable E2E tests at staging, beta, production, or `rentier.ro`. The write-capable tests also reject non-local `E2E_BASE_URL` values.
+
+## Browser availability in Codex Cloud
+
+The first Linux Codex run verified the launcher and discovered **9 tests in 3 files**. The E2E scenarios did **not** execute: downloading Playwright's Chromium build 1228 returned HTTP 403, with and without `NODE_USE_ENV_PROXY=1`. This is an environment blocker, not a passing E2E run. Install Chromium only in the isolated test runtime where its exact Playwright browser build can be fetched or is already available; then rerun `npm run test:e2e:isolated` and record the actual passing/failing scenario counts. Never run the write-capable isolated suite against production.
 
 ## Coverage
 
