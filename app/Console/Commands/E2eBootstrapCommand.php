@@ -79,6 +79,15 @@ class E2eBootstrapCommand extends Command
             $this->fail('Refusing E2E reset because DB_DATABASE points at the normal local SQLite database.');
         }
 
+        // Only the dedicated E2E database may be reset; reject path traversal,
+        // alternate SQLite files, symlinks and inherited external DB URLs.
+        if (basename($path) !== 'e2e.sqlite'
+            || realpath(dirname($path)) !== realpath(database_path())
+            || is_link($path)
+            || (string) config('database.connections.sqlite.url') !== '') {
+            $this->fail('Refusing E2E reset because the database is not the dedicated local database/e2e.sqlite.');
+        }
+
         return $path;
     }
 
