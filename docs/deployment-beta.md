@@ -51,7 +51,7 @@ CACHE_STORE=database
 QUEUE_CONNECTION=database
 
 MAIL_MAILER=smtp
-MAIL_SCHEME=tls
+MAIL_SCHEME=null
 MAIL_URL=null
 MAIL_HOST=smtp.example.com
 MAIL_PORT=587
@@ -74,7 +74,7 @@ Notes:
 - Keep `.env` outside version control.
 - Production beta should use PostgreSQL. Keep credentials only in the server-side `.env`.
 - `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.
-- Select and configure the production mail transport only in the deployment environment. For SMTP, the required integration values are `MAIL_MAILER`, `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`; `MAIL_URL` may replace the individual connection values, and `MAIL_EHLO_DOMAIN` is optional when the provider requires it. Never commit credentials.
+- Select and configure the production mail transport only in the deployment environment. For SMTP, the required integration values are `MAIL_MAILER`, `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`; Leave `MAIL_SCHEME=null` unless the selected provider requires an explicit supported transport scheme; STARTTLS on port 587 must not be expressed as `MAIL_SCHEME=tls`. `MAIL_URL` may replace the individual connection values, and `MAIL_EHLO_DOMAIN` is optional when the provider requires it. Never commit credentials.
 - Keep `MAIL_MAILER=log` for normal local development and `MAIL_MAILER=array` for automated tests/E2E. These transports intentionally do not deliver external email.
 - `SESSION_CONNECTION=null` makes database sessions use the default `DB_CONNECTION`; it does not disable the session database connection.
 - `SESSION_STORE=null` is intentional because the database session driver does not use a cache store.
