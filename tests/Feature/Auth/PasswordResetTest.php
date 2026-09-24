@@ -40,6 +40,44 @@ test('unknown email receives the same safe response without sending mail', funct
     Notification::assertNothingSent();
 });
 
+test('repeated reset requests cannot disclose whether the email belongs to an account', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $first = $this->post(route('password.email'), ['email' => $user->email]);
+    $throttled = $this->post(route('password.email'), ['email' => $user->email]);
+    $unknown = $this->post(route('password.email'), ['email' => 'necunoscut@example.com']);
+
+    foreach ([$first, $throttled, $unknown] as $response) {
+        $response
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', __('passwords.sent'));
+    }
+
+    Notification::assertSentTo($user, ResetPasswordNotification::class, 1);
+    Notification::assertCount(1);
+});
+
+test('JSON reset requests return the same response for unknown and throttled email', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    $first = $this->postJson(route('password.email'), ['email' => $user->email]);
+    $throttled = $this->postJson(route('password.email'), ['email' => $user->email]);
+    $unknown = $this->postJson(route('password.email'), ['email' => 'necunoscut@example.com']);
+
+    foreach ([$first, $throttled, $unknown] as $response) {
+        $response
+            ->assertOk()
+            ->assertJson(['message' => __('passwords.sent')]);
+    }
+
+    Notification::assertSentTo($user, ResetPasswordNotification::class, 1);
+    Notification::assertCount(1);
+});
+
 test('password reset request validates email in Romanian', function () {
     $response = $this->post(route('password.email'), ['email' => 'adresă-invalidă']);
 
