@@ -61,11 +61,12 @@ if [[ "${RENTIER_CODEX_SQLITE_ONLY:-}" == 1 ]]; then
     composer check-platform-reqs --format=json > .codex-local/platform-requirements.json || platform_status=$?
     php -r '
 $requirements = json_decode(file_get_contents($argv[1]), true);
-if (!is_array($requirements) || !in_array((int) $argv[2], [0, 1], true)) {
+if (!is_array($requirements)) {
     fwrite(STDERR, "Composer platform verification failed.\n");
     exit(1);
 }
 $seenPgsql = false;
+$missingPgsql = false;
 $failed = false;
 foreach ($requirements as $requirement) {
     if (!isset($requirement["name"], $requirement["status"])) {
@@ -75,6 +76,7 @@ foreach ($requirements as $requirement) {
     if ($requirement["name"] === "ext-pdo_pgsql") {
         $seenPgsql = true;
         if ($requirement["status"] !== "success") {
+            $missingPgsql = true;
             fwrite(STDERR, "SQLite-only: ignoring missing ext-pdo_pgsql.\n");
         }
     } elseif ($requirement["status"] !== "success") {
@@ -82,10 +84,14 @@ foreach ($requirements as $requirement) {
         $failed = true;
     }
 }
-if (!$seenPgsql || $failed) {
+if (!$seenPgsql || $failed || ((int) $argv[2] !== 0 && !$missingPgsql)) {
     exit(1);
 }
-' .codex-local/platform-requirements.json "$platform_status"
+' .codex-local/platform-requirements.json "$platform_status" || {
+        printf 'Composer check-platform-reqs exited %s; complete report:\n' "$platform_status" >&2
+        cat .codex-local/platform-requirements.json >&2
+        exit 1
+    }
 else
     composer install --no-interaction --prefer-dist
     composer check-platform-reqs
