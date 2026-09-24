@@ -23,7 +23,7 @@ run_check node-version node --version
 run_check npm-version npm --version
 # Dependency installation is done once by setup.sh, not repeated here.
 run_check tests php artisan test
-run_check php-types composer run types:check
+run_check php-types ./vendor/bin/phpstan analyse --memory-limit=1G
 run_check frontend-types npm run types:check
 run_check lint npm run lint:check
 run_check format npm run format:check
