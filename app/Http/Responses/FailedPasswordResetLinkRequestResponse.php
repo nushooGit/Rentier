@@ -12,11 +12,11 @@ class FailedPasswordResetLinkRequestResponse implements FailedPasswordResetLinkR
     public function __construct(private readonly string $status) {}
 
     /**
-     * Do not reveal whether an account exists for a submitted email address.
+     * Do not reveal account existence through unknown-user or per-account throttle responses.
      */
     public function toResponse($request)
     {
-        if ($this->status === PasswordBroker::INVALID_USER) {
+        if (in_array($this->status, [PasswordBroker::INVALID_USER, PasswordBroker::RESET_THROTTLED], true)) {
             $message = trans('passwords.sent');
 
             return $request->wantsJson()
