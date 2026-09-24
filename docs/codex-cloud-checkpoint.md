@@ -40,14 +40,14 @@ The attempt to provision PHP using `apt-get update` failed at the runtime privil
 
 ## Outstanding validation
 
-- Run the dedicated PR CI job and record its actual results. A green CI run is evidence for GitHub's runner only.
+- Dedicated PR CI executed; all requested checks except pre-existing Pint style issues passed. Full results are below. GitHub execution does not establish Codex Cloud readiness.
 - No direct cloud management API is exposed; the cloud browser redirected the environment settings URL to a signed-out ChatGPT page. Authentication is required. Cloud creation, setup binding and execution remain unconfirmed.
 - No Playwright run: isolated launcher currently depends on PowerShell.
 - The Ubuntu OS-runtime bootstrap documented for Cloud is not executed or verified here.
 
 ## Exact next task
 
-Finish initial environment validation only: inspect the PR's dedicated bootstrap/validation job, fix environment-script issues if any, then create/select the dedicated Codex Cloud environment with the manual settings in `docs/codex-cloud.md` and execute `bash scripts/codex/validate.sh` on this branch. Record actual runtime versions, test/assertion counts and every exit code. Keep the PR unmerged, and stop; do not implement backlog features.
+Authenticate to Codex Cloud and create/select the dedicated Rentier environment using `docs/codex-cloud.md`; bind setup/maintenance and run `bash scripts/codex/validate.sh` on this branch. Record cloud runtime versions, test/assertion counts and every exit code. Keep the PR unmerged. The two pre-existing Pint findings need a separately scoped formatting-only follow-up; no financial/authentication behavior changes. Stop before backlog work.
 
 ## Initial dedicated CI run
 
@@ -57,6 +57,32 @@ Run: https://github.com/nushooGit/Rentier/actions/runs/36004332182
 
 - PHP 8.4.26; Composer 2.10.3; Node 22.23.2; npm 10.9.8.
 - Full setup passed, including platform requirements, locked installations, independent APP_KEY, temporary SQLite forward migrations and initial Vite build. Both lockfiles remained unchanged.
-- PHP tests: 327 passed, 1 failed, 2,436 assertions. The local-context test expects `http://localhost`; setup had changed APP_URL to `http://127.0.0.1:8000`. This commit restores the example's localhost URL; rerun pending. No authentication code/test changed.
+- PHP tests: 327 passed, 1 failed, 2,436 assertions. The local-context test expects `http://localhost`; setup had changed APP_URL to `http://127.0.0.1:8000`. Follow-up commit `9fb03911d5169fb57ba79752e4cd70ceefce96a1` restores the example's localhost URL; its rerun passed all 328 tests. No authentication code/test changed.
 - PHPStan, TypeScript, ESLint, Prettier and final build passed (exit 0). The local frontend errors were consequences of missing generated files, resolved by complete setup.
 - Pint: exit 1, 149 files checked, 2 existing style issues in `app/Services/LeaseRentStatusCalculator.php` (braces/docblock spacing) and `bootstrap/app.php` (import ordering). Both files are identical to the base commit and remain untouched; do not change financial/authentication code in this environment-only task.
+
+## Final executable validation
+
+Validated implementation: `9fb03911d5169fb57ba79752e4cd70ceefce96a1`.
+Run: https://github.com/nushooGit/Rentier/actions/runs/36004675591
+Job: `bootstrap-and-validate` / `107649658378`.
+This checkpoint update changes documentation only; the validated scripts and workflow are unchanged.
+
+| Check | Result |
+|---|---|
+| PHP / Composer / Node / npm | PASS: 8.4.26 / 2.10.3 / 22.23.2 / 10.9.8 |
+| `composer install` / platform requirements | PASS, locked dependencies including require-dev |
+| `npm ci --no-audit --no-fund` | PASS, 433 packages |
+| Disposable SQLite setup and forward migrations | PASS |
+| `php artisan test` | PASS, **328 tests / 2,436 assertions**, no failures |
+| `composer run types:check` | PASS, PHPStan reports no errors |
+| `npm run types:check` | PASS |
+| `npm run lint:check` | PASS |
+| `npm run format:check` | PASS |
+| `npm run build` | PASS, setup build and requested final build |
+| `composer run lint:check` | FAIL, 149 files checked / 2 pre-existing style issues listed above |
+| Lockfile preservation | PASS |
+
+The dedicated workflow correctly remains red because it does not suppress Pint failures. Existing `tests` run `36004675612` passed all three jobs (PHP 8.4, PHP 8.5, PostgreSQL); existing `linter` run `36004675593` passed. Its mutating formatter is why a green legacy linter is not equivalent to a clean read-only Pint check.
+
+No cloud environment was created or configured, no cloud test execution is claimed, and no production system was accessed. The owner-facing report and PR carry the final documentation commit SHA.
