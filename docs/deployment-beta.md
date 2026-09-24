@@ -51,10 +51,13 @@ CACHE_STORE=database
 QUEUE_CONNECTION=database
 
 MAIL_MAILER=smtp
+MAIL_SCHEME=tls
+MAIL_URL=null
 MAIL_HOST=smtp.example.com
 MAIL_PORT=587
 MAIL_USERNAME=MAIL_USERNAME_PLACEHOLDER
 MAIL_PASSWORD=MAIL_PASSWORD_PLACEHOLDER
+MAIL_EHLO_DOMAIN=your-domain.example
 MAIL_FROM_ADDRESS=no-reply@your-domain.example
 MAIL_FROM_NAME="${APP_NAME}"
 
@@ -71,6 +74,8 @@ Notes:
 - Keep `.env` outside version control.
 - Production beta should use PostgreSQL. Keep credentials only in the server-side `.env`.
 - `APP_URL` must use the HTTPS production domain so signed email verification, password reset, and invitation links are generated correctly.
+- Select and configure the production mail transport only in the deployment environment. For SMTP, the required integration values are `MAIL_MAILER`, `MAIL_SCHEME`, `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_FROM_ADDRESS`, and `MAIL_FROM_NAME`; `MAIL_URL` may replace the individual connection values, and `MAIL_EHLO_DOMAIN` is optional when the provider requires it. Never commit credentials.
+- Keep `MAIL_MAILER=log` for normal local development and `MAIL_MAILER=array` for automated tests/E2E. These transports intentionally do not deliver external email.
 - `SESSION_CONNECTION=null` makes database sessions use the default `DB_CONNECTION`; it does not disable the session database connection.
 - `SESSION_STORE=null` is intentional because the database session driver does not use a cache store.
 - `SESSION_DOMAIN=null` creates a host-only cookie. Keep it host-only on the current production host instead of widening it to `.rentier.ro`.
@@ -152,7 +157,7 @@ The app includes migrations for users, sessions, cache, queues, passkeys, teams,
 ## Queues, scheduler, and mail
 
 - Team invitation notifications implement `ShouldQueue`, so beta needs a queue worker when `QUEUE_CONNECTION=database`.
-- Password reset and email verification mail require a real mail transport for beta.
+- Password reset now has a Romanian notification and always builds its link from `APP_URL`. Password reset, email verification, and invitations still require a configured real mail transport and provider-verified sender for beta delivery.
 - The scheduler deletes expired team invitations daily. Configure cron before beta.
 
 ## Storage

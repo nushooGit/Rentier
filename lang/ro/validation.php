@@ -2,6 +2,10 @@
 
 return [
     'custom' => [
+        'email' => [
+            'required' => 'Adresa de email este obligatorie.',
+            'email' => 'Adresa de email trebuie să fie validă.',
+        ],
         'property' => [
             'name' => [
                 'required' => 'Numele proprietății este obligatoriu.',
