@@ -2,7 +2,7 @@
 
 This file is the authoritative Rentier issue-status register.
 
-Last updated: 2026-09-18
+Last updated: 2026-09-24
 
 Rules:
 
@@ -91,6 +91,10 @@ Answers:
 7. Is this a real integrity bug, only a UX improvement, or already correctly implemented? Real integrity bug. Tenant-involved expenses can lose their lease/renter association even when the domain has an active lease context. UX auto-selection would help, but server-side integrity is incomplete.
 
 Intended next action: tenant-involved expenses must be associated with the applicable active lease; owner-only property expenses may remain lease-less; behavior with historical/future leases must be explicitly tested.
+
+## Codex Cloud Environment
+
+- ENV-01 — VERIFIED CI / CLOUD, PENDING MERGE: `rentier-development` is configured for `nushooGit/Rentier` with guarded, temporary SQLite-only setup and locked dependencies. Codex Cloud ran 328 Laravel tests / 2,436 assertions, TypeScript, ESLint, Prettier and Vite; PHPStan passed separately with a 1G limit. The latest PR #3 CI passed all three workflows, including 328 tests, PHPStan, clean Pint (149 files), frontend checks, PHP 8.4/8.5 and PostgreSQL. Deployment review confirms production Coolify is documented as tracking `main`, but live auto-deploy/preview settings could not be inspected; do not merge until those settings and production consequences have been confirmed. See [checkpoint](codex-cloud-checkpoint.md). This does not close or change product backlog items.
 
 ## Verification Log
 

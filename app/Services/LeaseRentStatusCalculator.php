@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @phpstan-import-type FinalizedMonth from RentPaymentAllocationCalculator
+ *
  * @phpstan-type Badge array{key: string, label: string, tone: string}
  * @phpstan-type AdvanceNotice array{key: string, label: string, period_key: string, amount: string, expected_amount: string}
  * @phpstan-type ArrearsSummary array{amount: string, month_count: int, months: list<FinalizedMonth>, oldest_due_date: string|null, days: int|null, has_partial: bool}

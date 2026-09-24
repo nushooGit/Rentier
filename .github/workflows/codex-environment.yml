@@ -1,0 +1,93 @@
+name: Codex environment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/codex/**'
+      - '.github/workflows/codex-environment.yml'
+      - 'composer.json'
+      - 'composer.lock'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.env.example'
+
+permissions:
+  contents: read
+
+jobs:
+  bootstrap-and-validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, curl, dom, fileinfo, mbstring, pdo_sqlite, pdo_pgsql, sqlite3, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+      - name: Check shell syntax
+        run: bash -n scripts/codex/guard.sh scripts/codex/setup.sh scripts/codex/validate.sh
+      - name: Bootstrap disposable SQLite environment
+        run: bash scripts/codex/setup.sh
+      - name: Validate application and formatting
+        run: bash scripts/codex/validate.sh
+      - name: Ensure locked dependencies were preserved
+        if: always()
+        run: git diff --exit-code -- composer.lock package-lock.json
+
+  sqlite-only-opt-in:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, curl, dom, fileinfo, mbstring, pdo_sqlite, :pdo_pgsql, sqlite3, xml, zip
+          tools: composer:v2
+          coverage: none
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
+        with:
+          node-version: '22'
+      - name: Confirm normal setup refuses missing PostgreSQL extension
+        run: |
+          php -r 'exit(extension_loaded("pdo_pgsql") ? 1 : 0);'
+          if bash scripts/codex/setup.sh; then
+            echo 'Normal setup accepted missing pdo_pgsql' >&2
+            exit 1
+          fi
+      - name: Confirm production override is refused
+        run: |
+          if RENTIER_CODEX_SQLITE_ONLY=1 APP_ENV=production bash scripts/codex/setup.sh; then
+            echo 'Production override was accepted' >&2
+            exit 1
+          fi
+      - name: Bootstrap SQLite-only environment
+        env:
+          RENTIER_CODEX_SQLITE_ONLY: '1'
+        run: bash scripts/codex/setup.sh
+      - name: Validate SQLite-only environment
+        env:
+          RENTIER_CODEX_SQLITE_ONLY: '1'
+        run: |
+          bash scripts/codex/validate.sh
+          python3 - <<'PY'
+          import csv
+          with open('.codex-local/validation/results.tsv', newline='') as report:
+              results = dict(csv.reader(report, delimiter='\t'))
+          results.pop('command')
+          assert all(status == '0' for status in results.values()), results
+          assert len(results) == 11, results
+          PY
+      - name: Ensure locked dependencies were preserved
+        if: always()
+        run: git diff --exit-code -- composer.lock package-lock.json
