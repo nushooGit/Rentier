@@ -94,7 +94,7 @@ Intended next action: tenant-involved expenses must be associated with the appli
 
 ## Codex Cloud Environment
 
-- ENV-01 — IN PROGRESS: reproducible locked dependency setup, guarded disposable SQLite bootstrap and read-only validation prepared on `chore/codex-cloud-setup`. GitHub CI validated setup and 328 tests / 2,436 assertions, PHPStan, frontend checks and build; read-only Pint finds two pre-existing style issues. Cloud browser authentication and direct Codex Cloud validation remain pending. See [checkpoint](codex-cloud-checkpoint.md) for actual execution evidence and the remaining cloud validation. This does not close or change product backlog items.
+- ENV-01 — IN PROGRESS: reproducible locked dependency setup, guarded disposable SQLite bootstrap and read-only validation prepared on `chore/codex-cloud-setup`. GitHub CI validated setup and 328 tests / 2,436 assertions, PHPStan, frontend checks and build; read-only Pint finds two pre-existing style issues. Explicit SQLite-only mode for the phpenv runtime lacking `pdo_pgsql` awaits dedicated CI and direct Codex Cloud validation. See [checkpoint](codex-cloud-checkpoint.md) for actual execution evidence and the remaining cloud validation. This does not close or change product backlog items.
 
 ## Verification Log
 

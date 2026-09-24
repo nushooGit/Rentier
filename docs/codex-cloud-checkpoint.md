@@ -86,3 +86,18 @@ This checkpoint update changes documentation only; the validated scripts and wor
 The dedicated workflow correctly remains red because it does not suppress Pint failures. Existing `tests` run `36004675612` passed all three jobs (PHP 8.4, PHP 8.5, PostgreSQL); existing `linter` run `36004675593` passed. Its mutating formatter is why a green legacy linter is not equivalent to a clean read-only Pint check.
 
 No cloud environment was created or configured, no cloud test execution is claimed, and no production system was accessed. The owner-facing report and PR carry the final documentation commit SHA.
+
+## phpenv PDO PostgreSQL follow-up (2026-09-24)
+
+The Codex Cloud PHP 8.4 runtime reportedly lacks `pdo_pgsql`; the active phpenv runtime was not accessible from this Work container, so extension compilation/enablement there remains unverified. Installing Ubuntu's PHP extension into a different runtime would not solve that mismatch. The setup now has an intentional `RENTIER_CODEX_SQLITE_ONLY=1` mode: only `ext-pdo_pgsql` may be absent, and only for the guarded disposable SQLite checkout. Normal setup and the existing full PostgreSQL CI job retain all requirements. Neither Composer lockfile nor application behavior changed.
+
+Exact Cloud setup-field command on the PR branch:
+
+```bash
+set -euo pipefail
+git fetch origin chore/codex-cloud-setup
+git switch --detach FETCH_HEAD
+RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/setup.sh
+```
+
+Maintenance uses `RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/setup.sh`; agent validation uses `RENTIER_CODEX_SQLITE_ONLY=1 bash scripts/codex/validate.sh`. The opt-in is per command because setup and agent shells are separate. New CI evidence will be recorded after the PR branch runs.

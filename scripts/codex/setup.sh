@@ -10,6 +10,7 @@ php -r 'exit(version_compare(PHP_VERSION, "8.4.1", ">=") ? 0 : 1);' || fail 'PHP
 [[ "$(composer --version --no-ansi)" == 'Composer version 2.'* ]] || fail 'Composer 2 is required.'
 node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major === 22 && minor >= 12 ? 0 : 1)' || fail 'Node 22.12+ (major 22) is required by locked Vite.'
 php -r '
+$sqliteOnly = getenv("RENTIER_CODEX_SQLITE_ONLY") === "1";
 $required = ["pdo_sqlite", "pdo_pgsql", "bcmath", "curl", "zip"];
 $lock = json_decode(file_get_contents("composer.lock"), true, flags: JSON_THROW_ON_ERROR);
 $root = json_decode(file_get_contents("composer.json"), true, flags: JSON_THROW_ON_ERROR);
@@ -20,7 +21,7 @@ foreach (array_merge([$root], $lock["packages"], $lock["packages-dev"]) as $pack
         }
     }
 }
-$missing = array_filter(array_unique($required), fn ($extension) => !extension_loaded($extension));
+$missing = array_filter(array_unique($required), fn ($extension) => !($sqliteOnly && $extension === "pdo_pgsql") && !extension_loaded($extension));
 if ($missing) {
     fwrite(STDERR, "Missing PHP extensions: ".implode(", ", $missing).PHP_EOL);
     exit(1);
@@ -52,8 +53,43 @@ composer --version
 node --version
 npm --version
 # Keep both lock files unchanged and include development dependencies.
-composer install --no-interaction --prefer-dist
-composer check-platform-reqs
+if [[ "${RENTIER_CODEX_SQLITE_ONLY:-}" == 1 ]]; then
+    composer install --no-interaction --prefer-dist --ignore-platform-req=ext-pdo_pgsql
+    # check-platform-reqs has no selective ignore flag. Inspect its complete
+    # machine-readable report and accept only the explicit PostgreSQL exception.
+    platform_status=0
+    composer check-platform-reqs --format=json > .codex-local/platform-requirements.json || platform_status=$?
+    php -r '
+$requirements = json_decode(file_get_contents($argv[1]), true);
+if (!is_array($requirements) || !in_array((int) $argv[2], [0, 1], true)) {
+    fwrite(STDERR, "Composer platform verification failed.\n");
+    exit(1);
+}
+$seenPgsql = false;
+$failed = false;
+foreach ($requirements as $requirement) {
+    if (!isset($requirement["name"], $requirement["status"])) {
+        fwrite(STDERR, "Invalid Composer platform report.\n");
+        exit(1);
+    }
+    if ($requirement["name"] === "ext-pdo_pgsql") {
+        $seenPgsql = true;
+        if ($requirement["status"] !== "success") {
+            fwrite(STDERR, "SQLite-only: ignoring missing ext-pdo_pgsql.\n");
+        }
+    } elseif ($requirement["status"] !== "success") {
+        fwrite(STDERR, $requirement["name"]." failed: ".$requirement["status"]."\n");
+        $failed = true;
+    }
+}
+if (!$seenPgsql || $failed) {
+    exit(1);
+}
+' .codex-local/platform-requirements.json "$platform_status"
+else
+    composer install --no-interaction --prefer-dist
+    composer check-platform-reqs
+fi
 npm ci --no-audit --no-fund
 # Only the generated /tmp SQLite database is used. No reset or seed operation.
 check_managed_env
