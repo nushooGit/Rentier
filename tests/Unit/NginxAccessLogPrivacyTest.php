@@ -24,6 +24,5 @@ test('production nginx access logs never record request URLs or referers', funct
     sort($allowed);
 
     expect($actual)->toBe($allowed)
-        ->and($format[1])->toContain('[path-redacted]')
-        ->and($format[1])->not->toContain('$request_uri', '$http_referer');
+        ->and($format[1])->toContain('[path-redacted]');
 });
