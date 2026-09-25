@@ -46,6 +46,26 @@ jobs:
       - name: Install Node Dependencies
         run: npm i
 
+      # Reproduce the no-dev Composer bootstrap in an isolated runner before
+      # adding development dependencies for the regular application tests.
+      - name: Production-mode Composer install (synthetic SQLite environment)
+        if: matrix.php-version == '8.4'
+        env:
+          APP_ENV: production
+          APP_DEBUG: 'false'
+          APP_URL: https://app.rentier.ro
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ':memory:'
+          CACHE_STORE: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+          MAIL_MAILER: log
+          RENTIER_AUTO_MIGRATE: 'false'
+        run: |
+          export APP_KEY="base64:$(php -r 'echo base64_encode(random_bytes(32));')"
+          export PASSKEYS_USER_HANDLE_SECRET="$(php -r 'echo bin2hex(random_bytes(32));')"
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader -vvv
+
       - name: Install Dependencies
         run: composer install --no-interaction --prefer-dist --optimize-autoloader
 
