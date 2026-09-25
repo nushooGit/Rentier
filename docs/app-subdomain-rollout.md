@@ -1,6 +1,6 @@
 # DOMAIN-01: app.rentier.ro preflight and safe rollout
 
-Status: preparation and dual-host routing verified. The Cloudflare `app.rentier.ro` DNS record and Coolify's second hostname are configured. No canonical `APP_URL` cutover, production database change, secret change or migration has been performed.
+Status: VERIFIED PRODUCTION on 2026-09-25. Canonical `APP_URL=https://app.rentier.ro` is live. Both hosts still route to the same Coolify application until WEB-01 has a tested public-host and legacy-link transition. No domain-cutover database migrations or authentication-key changes were performed.
 
 ## Target hosts
 
@@ -34,16 +34,15 @@ Keep one Laravel backend authentication system. Do not broaden session cookies t
 5. Only after `app.rentier.ro` passes, plan a separate WEB-01 landing deployment on `rentier.ro`. Provide a deliberate redirect strategy for old app links; avoid redirect loops and avoid serving both an active app and public landing from the same apex route.
 6. On any failed auth, signed-link, email, SSL, proxy or worker check: keep/revert the apex application, restore the previous canonical `APP_URL`/routing, and rerun smoke tests. Do not roll back or reset production data.
 
-## Verified progress and remaining release gates (2026-09-25)
+## Final production acceptance and remaining transitions (2026-09-25)
 
-- Owner-configured Cloudflare DNS `A app.rentier.ro → 78.47.50.142`, DNS-only, TTL Auto. The apex `rentier.ro` stays on the same IP.
-- Both hostnames were added to the **same** Coolify application (not a duplicate application); owner confirmed successful HTTPS `/up` on `rentier.ro` and `app.rentier.ro`. The canonical `APP_URL` has **not** been switched or independently verified on the new host.
-- Off-VPS backup copied to Windows from the 2026-09-24 Coolify run: PostgreSQL 17.10 custom-format archive, 159 TOC entries. Owner restored it into the isolated local PostgreSQL 17.11 database `rentier_restore_test` using `pg_restore --exit-on-error` (exit code 0), then confirmed 2 users, 2 properties, 1 lease, 6 rent payments and 4 expenses.
-- The **restored snapshot** contains **0 passkeys** as confirmed by a local read-only SQL query. This is **not** a live database check: confirm no passkeys were enrolled after the backup if preserving an existing RP ID would matter. Do not set `PASSKEYS_RELYING_PARTY_ID` on the strength of this historical snapshot alone.
-- PR #8 CI passed for PHP 8.4, PHP 8.5, PostgreSQL, linter and Codex environment on commit `fe9a2f7`; recheck the latest head after any documentation changes.
-- **Before merging**: establish whether Coolify automatically deploys `main`; merging PR #8 can rebuild the live application. Keep the current deployed application available and do not combine the merge with the canonical URL cutover.
-- **Before changing `APP_URL`**: confirm PR #8 deployment, check `RENTIER_AUTO_MIGRATE=false` and host-only sessions, take and download a **fresh** backup, verify current mail/reset-link URL handling, and retain the apex route and rollback configuration.
-- DNS and Coolify dual-host routing are complete, but production login, password reset, verification/invitations and host-only session checks on `app.rentier.ro` remain pending.
+- GitHub PR #8 was merged as `2d5201c` and manually deployed. The owner configured Cloudflare DNS-only routing for `app.rentier.ro` and kept both HTTPS hostnames on the **same** Coolify application. The fixed apex `ASSET_URL` was removed after cross-origin asset failures; same-origin assets now work on both hosts.
+- An earlier PostgreSQL custom-format backup was successfully restored on the owner's isolated local PostgreSQL instance with read-only row-count checks. The owner downloaded a fresh off-VPS backup immediately before changing the canonical URL.
+- Canonical `APP_URL=https://app.rentier.ro` was deployed. The owner verified both hosts' `/up` endpoints, successful login and logout on the new host, dashboard/properties navigation, delivery of a real password-reset email containing a new-host URL, and a host-only `rentier-session` cookie with `Secure`, `HttpOnly` and `SameSite=Lax`.
+- Supervisor reported Nginx, PHP-FPM, queue and scheduler RUNNING after the domain cutover. The later SEC-LOG-01 release (`566e04a`) was successfully deployed on 2026-09-25; a synthetic URL probe confirmed Nginx logs show `[path-redacted]` and a redacted Referer. See issue #9 and PRs #10/#11. Existing earlier log files remain sensitive.
+- The initial SEC-LOG-01 Docker build failed with Composer exit 255. A controlled retry later succeeded, and GitHub CI's isolated no-dev Composer check passed. The cause of the original failure remains **unconfirmed**; do not report a confirmed OOM or permanent fix.
+- Still pending before the **separate** WEB-01 public-site release: preserve or deliberately transition old apex-host signed verification/invitation links, direct application bookmarks and login traffic; do not redirect all requests blindly. Review live passkey enrollment if passkeys are in use (the older restored snapshot had zero; live count has not been checked). Keep host-only cookies, one queue/scheduler instance and existing SMTP/authentication secrets.
+- **Next task:** build and test a Romanian-first responsive public landing page in a separate branch/PR. Keep the existing apex application routed until the new public-host routing and legacy-link transition have been independently tested. Do not deploy or modify Cloudflare/Coolify for WEB-01 without explicit approval.
 
 ## Repository changes prepared for review
 
