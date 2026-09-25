@@ -94,10 +94,14 @@ MAIL_FROM_ADDRESS=no-reply@your-domain.example
 MAIL_FROM_NAME="${APP_NAME}"
 
 PASSKEYS_USER_HANDLE_SECRET=GENERATED_RANDOM_SECRET
+# Optional after approving a subdomain cutover, when existing passkeys use the parent-domain RP ID:
+# PASSKEYS_RELYING_PARTY_ID=rentier.ro
 VITE_APP_NAME="${APP_NAME}"
 ```
 
 Prefer the separate `DB_*` variables above for Coolify because they are explicit and match Laravel's config names. Remove `DB_URL` from the Coolify application environment when switching to this style so there is one database configuration source. This repository also supports Coolify's PostgreSQL URL as `DB_URL` for the `pgsql` connection because `config/database.php` maps `connections.pgsql.url` to `env('DB_URL')`; still set `DB_CONNECTION=pgsql`. The current config does not read `DATABASE_URL`.
+
+When moving to `app.rentier.ro`, use `APP_URL=https://app.rentier.ro` only in an approved cutover. If existing WebAuthn credentials were enrolled against the parent-domain RP ID, keep it through the optional `PASSKEYS_RELYING_PARTY_ID=rentier.ro`; allowed origins still come from `APP_URL`. Keep `PASSKEYS_USER_HANDLE_SECRET` unchanged, session cookies host-only, and test previously enrolled passkeys. See `docs/app-subdomain-rollout.md`.
 
 The database session driver uses the default `DB_CONNECTION` when `SESSION_CONNECTION=null`; no separate database connection is required. `SESSION_STORE=null` is also intentional because cache stores apply only to cache-backed session drivers, not database sessions. Keep `SESSION_DOMAIN=null` for a host-only cookie on the current production host, and keep `SESSION_SECURE_COOKIE=true` for HTTPS.
 
@@ -169,6 +173,8 @@ MAIL_FROM_ADDRESS=no-reply@your-domain.example
 MAIL_FROM_NAME="${APP_NAME}"
 
 PASSKEYS_USER_HANDLE_SECRET=GENERATED_RANDOM_SECRET
+# Optional after approving a subdomain cutover, when existing passkeys use the parent-domain RP ID:
+# PASSKEYS_RELYING_PARTY_ID=rentier.ro
 VITE_APP_NAME="${APP_NAME}"
 ```
 
