@@ -1,6 +1,22 @@
 <?php
 
 return [
+    'required' => 'Câmpul :attribute este obligatoriu.',
+    'confirmed' => 'Confirmarea câmpului :attribute nu coincide.',
+    'min' => [
+        'string' => 'Câmpul :attribute trebuie să aibă cel puțin :min caractere.',
+    ],
+    'password' => [
+        'letters' => 'Parola trebuie să conțină cel puțin o literă.',
+        'mixed' => 'Parola trebuie să conțină cel puțin o literă mare și una mică.',
+        'numbers' => 'Parola trebuie să conțină cel puțin o cifră.',
+        'symbols' => 'Parola trebuie să conțină cel puțin un simbol.',
+        'uncompromised' => 'Această parolă a apărut într-o breșă de securitate cunoscută. Alege altă parolă.',
+    ],
+    'attributes' => [
+        'password' => 'parolă',
+        'password_confirmation' => 'confirmarea parolei',
+    ],
     'custom' => [
         'email' => [
             'required' => 'Adresa de email este obligatorie.',
