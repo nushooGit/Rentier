@@ -1,6 +1,6 @@
 # DOMAIN-01: app.rentier.ro preflight and safe rollout
 
-Status: preparation only. No DNS, Coolify, production credentials, databases, or live routing changed by this document.
+Status: preparation and dual-host routing verified. The Cloudflare `app.rentier.ro` DNS record and Coolify's second hostname are configured. No canonical `APP_URL` cutover, production database change, secret change or migration has been performed.
 
 ## Target hosts
 
@@ -34,9 +34,16 @@ Keep one Laravel backend authentication system. Do not broaden session cookies t
 5. Only after `app.rentier.ro` passes, plan a separate WEB-01 landing deployment on `rentier.ro`. Provide a deliberate redirect strategy for old app links; avoid redirect loops and avoid serving both an active app and public landing from the same apex route.
 6. On any failed auth, signed-link, email, SSL, proxy or worker check: keep/revert the apex application, restore the previous canonical `APP_URL`/routing, and rerun smoke tests. Do not roll back or reset production data.
 
-## Current gate
+## Verified progress and remaining release gates (2026-09-25)
 
-This document records **no** actual DNS change, server change, backup result or production subdomain verification. The exact Coolify and Cloudflare steps must be tailored to a read-only configuration inspection when the infrastructure change is approved.
+- Owner-configured Cloudflare DNS `A app.rentier.ro → 78.47.50.142`, DNS-only, TTL Auto. The apex `rentier.ro` stays on the same IP.
+- Both hostnames were added to the **same** Coolify application (not a duplicate application); owner confirmed successful HTTPS `/up` on `rentier.ro` and `app.rentier.ro`. The canonical `APP_URL` has **not** been switched or independently verified on the new host.
+- Off-VPS backup copied to Windows from the 2026-09-24 Coolify run: PostgreSQL 17.10 custom-format archive, 159 TOC entries. Owner restored it into the isolated local PostgreSQL 17.11 database `rentier_restore_test` using `pg_restore --exit-on-error` (exit code 0), then confirmed 2 users, 2 properties, 1 lease, 6 rent payments and 4 expenses.
+- The **restored snapshot** contains **0 passkeys** as confirmed by a local read-only SQL query. This is **not** a live database check: confirm no passkeys were enrolled after the backup if preserving an existing RP ID would matter. Do not set `PASSKEYS_RELYING_PARTY_ID` on the strength of this historical snapshot alone.
+- PR #8 CI passed for PHP 8.4, PHP 8.5, PostgreSQL, linter and Codex environment on commit `fe9a2f7`; recheck the latest head after any documentation changes.
+- **Before merging**: establish whether Coolify automatically deploys `main`; merging PR #8 can rebuild the live application. Keep the current deployed application available and do not combine the merge with the canonical URL cutover.
+- **Before changing `APP_URL`**: confirm PR #8 deployment, check `RENTIER_AUTO_MIGRATE=false` and host-only sessions, take and download a **fresh** backup, verify current mail/reset-link URL handling, and retain the apex route and rollback configuration.
+- DNS and Coolify dual-host routing are complete, but production login, password reset, verification/invitations and host-only session checks on `app.rentier.ro` remain pending.
 
 ## Repository changes prepared for review
 
