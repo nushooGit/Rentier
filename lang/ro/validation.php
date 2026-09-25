@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'min' => ['string' => 'Câmpul :attribute trebuie să conțină cel puțin :min caractere.'],
+    'password' => [
+        'mixed' => 'Câmpul :attribute trebuie să conțină litere mari și mici.',
+        'numbers' => 'Câmpul :attribute trebuie să conțină o cifră.',
+        'symbols' => 'Câmpul :attribute trebuie să conțină un caracter special.',
+    ],
     'custom' => [
         'email' => [
             'required' => 'Adresa de email este obligatorie.',
