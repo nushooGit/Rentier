@@ -17,7 +17,8 @@ class ResetPasswordNotification extends ResetPassword
             ->line('Ai primit acest mesaj deoarece a fost solicitată resetarea parolei contului tău.')
             ->action('Resetează parola', $this->resetUrl($notifiable))
             ->line("Linkul de resetare expiră în {$expiresInMinutes} de minute.")
-            ->line('Dacă nu ai solicitat resetarea parolei, poți ignora acest mesaj.');
+            ->line('Dacă nu ai solicitat resetarea parolei, poți ignora acest mesaj.')
+            ->salutation("Cu respect,\nEchipa Rentier");
     }
 
     protected function resetUrl($notifiable): string
