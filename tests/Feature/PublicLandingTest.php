@@ -25,7 +25,6 @@ test('public landing describes only implemented landlord workflows', function ()
         ->toContain('app.rentier.ro');
 });
 
-
 test('public apex root renders the landing while app root sends guests to login', function () {
     config(['app.url' => 'https://app.rentier.ro']);
 
@@ -36,7 +35,6 @@ test('public apex root renders the landing while app root sends guests to login'
     $this->get('https://app.rentier.ro/')
         ->assertRedirect('https://app.rentier.ro/login');
 });
-
 
 test('authenticated app root enters the current workspace dashboard', function () {
     config(['app.url' => 'https://app.rentier.ro']);

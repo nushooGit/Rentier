@@ -3,6 +3,7 @@
 namespace App\Http\Responses\Concerns;
 
 use App\Models\Team;
+use App\Support\PlatformAdmin;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\URL;
 
@@ -10,6 +11,14 @@ trait RedirectsToCurrentTeam
 {
     protected function redirectPathForCurrentTeam(Request $request, string $redirect): string
     {
+        if (PlatformAdmin::isAdminHost($request)) {
+            $adminUrl = PlatformAdmin::adminUrl();
+
+            abort_if($adminUrl === null, 500);
+
+            return rtrim($adminUrl, '/').'/';
+        }
+
         $team = $this->currentTeam($request);
 
         URL::defaults(['current_team' => $team->slug]);
