@@ -57,7 +57,9 @@ test.describe('public and auth smoke', () => {
 
     test('login theme toggle persists and auth UI is reviewable', async ({ page }) => {
         await page.addInitScript(() => {
-            localStorage.setItem('appearance', 'light');
+            if (!localStorage.getItem('appearance')) {
+                localStorage.setItem('appearance', 'light');
+            }
         });
 
         await page.setViewportSize({ width: 1440, height: 1000 });
