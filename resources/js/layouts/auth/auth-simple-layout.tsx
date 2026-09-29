@@ -8,7 +8,7 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="relative min-h-svh overflow-hidden bg-slate-100 dark:bg-[#06101d]">
+        <div className="relative min-h-svh overflow-hidden bg-[#07111f] dark:bg-[#06101d]">
             <div
                 className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_15%,rgba(52,211,153,0.12),transparent_28%),radial-gradient(circle_at_80%_0%,rgba(59,130,246,0.10),transparent_30%)]"
                 aria-hidden="true"
