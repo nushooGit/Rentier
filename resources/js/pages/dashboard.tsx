@@ -1,6 +1,14 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
-import Heading from '@/components/heading';
+import {
+    AlertTriangle,
+    Building2,
+    CircleDollarSign,
+    ReceiptText,
+    TrendingUp,
+    WalletCards,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import { Badge } from '@/components/ui/badge';
 import { formatDateLong } from '@/lib/date';
@@ -46,22 +54,48 @@ function SummaryCard({
     value,
     description,
     testId,
+    icon: Icon,
+    tone = 'default',
 }: {
     label: string;
     value: string | number;
     description?: string;
     testId?: string;
+    icon?: LucideIcon;
+    tone?: 'default' | 'success' | 'danger' | 'warning' | 'info';
 }) {
+    const toneClasses = {
+        default: 'border-border/70 bg-card text-foreground',
+        success:
+            'border-emerald-200/80 bg-emerald-50/80 text-emerald-950 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-100',
+        danger:
+            'border-rose-200/80 bg-rose-50/80 text-rose-950 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-100',
+        warning:
+            'border-amber-200/80 bg-amber-50/80 text-amber-950 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-100',
+        info: 'border-sky-200/80 bg-sky-50/80 text-sky-950 dark:border-sky-400/20 dark:bg-sky-400/10 dark:text-sky-100',
+    };
+
     return (
         <section
-            className="rounded-lg border p-3 sm:p-3.5"
+            className={`rounded-2xl border p-4 shadow-sm ${toneClasses[tone]} sm:p-5`}
             data-test={testId}
             data-testid={testId}
         >
-            <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="mt-1 text-lg font-semibold">{value}</p>
+            <div className="flex items-start justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] opacity-60">
+                    {label}
+                </p>
+                {Icon ? (
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-current/5">
+                        <Icon className="size-4" aria-hidden="true" />
+                    </span>
+                ) : null}
+            </div>
+            <p className="mt-3 text-2xl font-semibold tracking-tight sm:text-[1.7rem]">
+                {value}
+            </p>
             {description ? (
-                <p className="mt-1 text-xs text-muted-foreground">
+                <p className="mt-1.5 text-xs leading-5 opacity-60">
                     {description}
                 </p>
             ) : null}
@@ -86,9 +120,9 @@ function PaymentMethodBreakdownCard({
     );
 
     return (
-        <section className="rounded-lg border p-3 sm:p-3.5">
-            <p className="text-xs text-muted-foreground">
-                Încasări chirie pe metode
+        <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Încasări pe metode
             </p>
             <div className="mt-2 space-y-1.5 text-sm">
                 {methods.length > 0 ? (
@@ -130,7 +164,7 @@ function FinancialLeaseLine({
     return (
         <Link
             href={href}
-            className="block rounded-md bg-muted/40 p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="block rounded-xl border border-transparent bg-muted/40 p-3 text-sm transition-colors hover:border-border hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             data-test="dashboard-lease-link"
             aria-label={`Vezi contractul pentru ${lease.property_name}`}
         >
@@ -295,151 +329,205 @@ export default function Dashboard({
                 onOpenChange={setShowInvitations}
             />
 
-            <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
-                <Heading
-                    variant="small"
-                    title="Dashboard"
-                    description="Rezumat financiar pentru workspace-ul curent"
-                />
+            <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#0b1a2b] via-[#0c2031] to-[#0d2a32] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                                Panou de control
+                            </p>
+                            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
+                                Situația lunii, dintr-o privire.
+                            </h1>
+                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
+                                {currentTeam?.name
+                                    ? `Workspace: ${currentTeam.name}`
+                                    : 'Rezumatul workspace-ului curent'}
+                            </p>
+                        </div>
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300">
+                            <Building2 className="size-4 text-emerald-300" aria-hidden="true" />
+                            {summary.property_count} proprietăți · {summary.active_lease_count} contracte active
+                        </div>
+                    </div>
+                </section>
 
-                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     <SummaryCard
-                        label="Chirie estimată luna asta"
-                        value={formatMoney(
-                            summary.estimated_monthly_rent,
-                            summary.currency,
-                        )}
-                        description={`${summary.active_lease_count} contracte active`}
-                    />
-                    <SummaryCard
-                        label="Profit estimat luna asta"
-                        value={formatMoney(
-                            summary.current_month_profit,
-                            summary.currency,
-                        )}
-                        description="Chirie estimată minus cheltuieli suportate de proprietar"
-                    />
-                    <SummaryCard
-                        label="Rezultat operațional"
-                        value={formatMoney(
-                            summary.operational_cash_result,
-                            summary.currency,
-                        )}
-                        description="Chirie încasată minus cheltuieli plătite efectiv de proprietar"
-                    />
-                    <SummaryCard
-                        label="Chirie încasată"
+                        label="Încasat luna asta"
                         value={formatMoney(
                             summary.current_month_payments,
                             summary.currency,
                         )}
-                        description="Plăți de chirie încasate luna asta, fără garanții"
+                        description="Chirii încasate, fără garanții"
                         testId="dashboard-rent-collected"
+                        icon={WalletCards}
+                        tone="success"
                     />
                     <SummaryCard
-                        label="Rest chirie de încasat"
+                        label="Rest de încasat"
                         value={formatMoney(
                             summary.remaining_rent,
                             summary.currency,
                         )}
-                        description="Restul aferent lunii curente"
-                    />
-                </div>
-
-                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-                    <PaymentMethodBreakdownCard
-                        methods={rentPaymentMethodBreakdown}
-                        currency={summary.currency}
-                    />
-                </div>
-
-                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-                    <SummaryCard
-                        label="Total de încasat"
-                        value={formatMoney(
-                            summary.total_receivable,
-                            summary.currency,
-                        )}
-                        description="Chirie restantă + garanții restante + de recuperat"
+                        description={`${summary.overdue_month_count} luni restante în evidență`}
+                        icon={AlertTriangle}
+                        tone={summary.overdue_count > 0 ? 'danger' : 'default'}
                     />
                     <SummaryCard
-                        label="Garanții de încasat"
-                        value={formatMoney(
-                            summary.expected_guarantees,
-                            summary.currency,
-                        )}
-                        description="Din contracte active, separat de chirie"
-                    />
-                    <SummaryCard
-                        label="Garanții încasate"
-                        value={formatMoney(
-                            summary.collected_guarantees,
-                            summary.currency,
-                        )}
-                        description="Nu intră în profit"
-                    />
-                    <SummaryCard
-                        label="Garanții restante"
-                        value={formatMoney(
-                            summary.remaining_guarantees,
-                            summary.currency,
-                        )}
-                    />
-                    <SummaryCard
-                        label="De recuperat de la chiriași"
-                        value={formatMoney(
-                            summary.recoverable_expenses,
-                            summary.currency,
-                        )}
-                    />
-                </div>
-
-                <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
-                    <SummaryCard
-                        label="Cheltuieli suportate de proprietar"
+                        label="Cheltuieli luna asta"
                         value={formatMoney(
                             summary.current_month_expenses,
                             summary.currency,
                         )}
-                        description="Responsabilitate economică, nu plată efectivă"
+                        description="Suportate economic de proprietar"
+                        icon={ReceiptText}
+                        tone="warning"
                     />
                     <SummaryCard
-                        label="Scăzut din chirie"
+                        label="De recuperat"
                         value={formatMoney(
-                            summary.current_month_rent_deductions,
+                            summary.recoverable_expenses,
                             summary.currency,
                         )}
-                        description="Reduce restul de chirie"
-                    />
-                    <SummaryCard
-                        label="De rambursat către chiriaș"
-                        value={formatMoney(
-                            summary.tenant_reimbursement_expenses,
-                            summary.currency,
-                        )}
-                        description="Datorie către chiriaș, nu de încasat"
-                    />
-                    <SummaryCard
-                        label="De scăzut din utilități"
-                        value={formatMoney(
-                            summary.utility_deduction_expenses,
-                            summary.currency,
-                        )}
-                    />
-                    <SummaryCard
-                        label="Chirii întârziate"
-                        value={summary.overdue_count}
-                        description={`${summary.overdue_month_count} luni restante · ${formatMoney(
-                            summary.overdue_rent,
-                            summary.currency,
-                        )}`}
-                    />
-                    <SummaryCard
-                        label="Grad de ocupare"
-                        value={summary.occupancy_label}
-                        description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
+                        description="Sume de recuperat de la chiriași"
+                        icon={CircleDollarSign}
+                        tone="info"
                     />
                 </div>
+
+                <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                        <div>
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                Necesită atenția ta
+                            </p>
+                            <h2 className="mt-1 text-lg font-semibold tracking-tight">
+                                Ce merită verificat acum
+                            </h2>
+                        </div>
+                        <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[620px]">
+                            <div className="rounded-xl bg-rose-50 px-3 py-2.5 dark:bg-rose-400/10">
+                                <p className="text-xs text-rose-700 dark:text-rose-300">
+                                    Chirii întârziate
+                                </p>
+                                <p className="mt-1 text-lg font-semibold text-rose-950 dark:text-rose-100">
+                                    {summary.overdue_count}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-400/10">
+                                <p className="text-xs text-amber-700 dark:text-amber-300">
+                                    Scadențe următoarele 7 zile
+                                </p>
+                                <p className="mt-1 text-lg font-semibold text-amber-950 dark:text-amber-100">
+                                    {upcomingPayments.length}
+                                </p>
+                            </div>
+                            <div className="rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-white/5">
+                                <p className="text-xs text-slate-600 dark:text-slate-300">
+                                    Fără contract activ
+                                </p>
+                                <p className="mt-1 text-lg font-semibold">
+                                    {propertiesWithoutActiveLease.length}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div className="mb-3 flex items-center gap-2">
+                        <TrendingUp className="size-4 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
+                        <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                            Detalii financiare
+                        </h2>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <SummaryCard
+                            label="Chirie estimată"
+                            value={formatMoney(
+                                summary.estimated_monthly_rent,
+                                summary.currency,
+                            )}
+                            description={`${summary.active_lease_count} contracte active`}
+                        />
+                        <SummaryCard
+                            label="Profit estimat"
+                            value={formatMoney(
+                                summary.current_month_profit,
+                                summary.currency,
+                            )}
+                            description="Chirie estimată minus cheltuieli suportate"
+                        />
+                        <SummaryCard
+                            label="Rezultat operațional"
+                            value={formatMoney(
+                                summary.operational_cash_result,
+                                summary.currency,
+                            )}
+                            description="Încasări minus plăți efective"
+                        />
+                        <SummaryCard
+                            label="Total de încasat"
+                            value={formatMoney(
+                                summary.total_receivable,
+                                summary.currency,
+                            )}
+                            description="Chirie + garanții + recuperări"
+                        />
+                        <SummaryCard
+                            label="Garanții de încasat"
+                            value={formatMoney(
+                                summary.expected_guarantees,
+                                summary.currency,
+                            )}
+                        />
+                        <SummaryCard
+                            label="Garanții încasate"
+                            value={formatMoney(
+                                summary.collected_guarantees,
+                                summary.currency,
+                            )}
+                        />
+                        <SummaryCard
+                            label="Garanții restante"
+                            value={formatMoney(
+                                summary.remaining_guarantees,
+                                summary.currency,
+                            )}
+                        />
+                        <SummaryCard
+                            label="Grad de ocupare"
+                            value={summary.occupancy_label}
+                            description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
+                        />
+                        <SummaryCard
+                            label="Scăzut din chirie"
+                            value={formatMoney(
+                                summary.current_month_rent_deductions,
+                                summary.currency,
+                            )}
+                        />
+                        <SummaryCard
+                            label="De rambursat chiriașului"
+                            value={formatMoney(
+                                summary.tenant_reimbursement_expenses,
+                                summary.currency,
+                            )}
+                        />
+                        <SummaryCard
+                            label="De scăzut din utilități"
+                            value={formatMoney(
+                                summary.utility_deduction_expenses,
+                                summary.currency,
+                            )}
+                        />
+                        <PaymentMethodBreakdownCard
+                            methods={rentPaymentMethodBreakdown}
+                            currency={summary.currency}
+                        />
+                    </div>
+                </section>
 
                 {Number(summary.unsettled_tenant_paid_owner_expenses) > 0 ? (
                     <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:p-3.5">
@@ -456,8 +544,8 @@ export default function Dashboard({
                     </section>
                 ) : null}
 
-                <div className="grid gap-3 lg:grid-cols-4">
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Chirii întârziate
                         </h2>
@@ -482,7 +570,7 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Plăți care urmează
                         </h2>
@@ -507,7 +595,7 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Chirii plătite în avans
                         </h2>
@@ -531,7 +619,7 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Proprietăți fără contract activ
                         </h2>
@@ -544,7 +632,7 @@ export default function Dashboard({
                                             currentTeamSlug,
                                             property.id,
                                         ])}
-                                        className="block rounded-md bg-muted/40 p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="block rounded-xl border border-transparent bg-muted/40 p-3 text-sm transition-colors hover:border-border hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-property-link"
                                         aria-label={`Vezi proprietatea ${property.name}`}
                                     >
@@ -574,7 +662,7 @@ export default function Dashboard({
                 </div>
 
                 <div className="grid gap-3 lg:grid-cols-3">
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Contracte recente
                         </h2>
@@ -587,7 +675,7 @@ export default function Dashboard({
                                             currentTeamSlug,
                                             lease.id,
                                         ])}
-                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-lease-link"
                                         aria-label={`Vezi contractul pentru ${lease.renter_name}`}
                                     >
@@ -622,7 +710,7 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">Plăți recente</h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentPayments.length > 0 ? (
@@ -633,7 +721,7 @@ export default function Dashboard({
                                             currentTeamSlug,
                                             payment.id,
                                         ])}
-                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-payment-link"
                                         aria-label={`Vezi plata pentru ${payment.renter_name}`}
                                     >
@@ -666,7 +754,7 @@ export default function Dashboard({
                         </div>
                     </section>
 
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
                             Cheltuieli recente
                         </h2>
@@ -679,7 +767,7 @@ export default function Dashboard({
                                             currentTeamSlug,
                                             expense.id,
                                         ])}
-                                        className="flex items-start justify-between gap-3 rounded-md p-2 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                        className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-expense-link"
                                         aria-label={`Vezi cheltuiala ${expense.title}`}
                                     >
