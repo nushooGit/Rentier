@@ -23,7 +23,7 @@ test.describe('authenticated landlord smoke', () => {
         await login(page);
         await expect(
             page.getByRole('heading', {
-                name: 'Situația lunii, dintr-o privire.',
+                name: 'Panou de control',
             }),
         ).toBeVisible();
         await page.screenshot({
@@ -178,7 +178,7 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.goto(`/${teamSlug}/dashboard`);
         await expect(
-            page.getByRole('heading', { name: 'Situația lunii, dintr-o privire.' }),
+            page.getByRole('heading', { name: 'Panou de control' }),
         ).toBeVisible();
         await expect(page.getByText('Detalii financiare')).toBeVisible();
         await expect(page.getByText(propertyName).first()).toBeVisible();
