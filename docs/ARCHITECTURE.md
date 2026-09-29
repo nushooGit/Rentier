@@ -1,6 +1,6 @@
 # Architecture
 
-Rentier is a Laravel SaaS application for property rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first landlord and renter portal experiences over the same backend.
+Rentier is a Laravel property operating platform, currently centered on rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first portal experiences over the same backend. The approved long-term multi-portal direction is documented in [Rentier Platform Direction](product-platform-direction.md).
 
 ## High-Level Architecture
 

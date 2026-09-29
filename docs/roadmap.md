@@ -25,3 +25,17 @@ The product sequence below should not be reordered casually; move items only whe
 7. Later subscriptions, support, audit, and advanced tools.
 
 Deferred advanced work includes support tooling, audit logs, documents/invoices, tenant portal, utilities/maintenance, and ANAF research.
+
+
+## Approved platform direction
+
+The long-term product direction is broader than landlord rental management and is documented in `docs/product-platform-direction.md`.
+
+Key guardrails:
+- keep `app.rentier.ro` as the landlord/rental portal;
+- add `home.rentier.ro` later for owner-occupied/secondary-home management;
+- use one Rentier identity and shared property records across portals;
+- design shared property lifecycle plus utilities/invoice foundations before Home implementation;
+- defer public rental-market mapping and building/association administration until the shared foundations are mature.
+
+This direction does not reorder the active sprint automatically. New implementation work still enters the issue register and is delivered in small, tested increments.
