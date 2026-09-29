@@ -25,13 +25,17 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        $middleware->web(append: [
-            RedirectApexApplicationRequests::class,
-            HandleAppearance::class,
-            HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
-            SetTeamUrlDefaults::class,
-        ]);
+        $middleware->web(
+            prepend: [
+                RedirectApexApplicationRequests::class,
+            ],
+            append: [
+                HandleAppearance::class,
+                HandleInertiaRequests::class,
+                AddLinkHeadersForPreloadedAssets::class,
+                SetTeamUrlDefaults::class,
+            ],
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
