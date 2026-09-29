@@ -6,15 +6,15 @@ import { edit as editAppearance } from '@/routes/appearance';
 export default function Appearance() {
     return (
         <>
-            <Head title="Appearance settings" />
+            <Head title="Aspect" />
 
-            <h1 className="sr-only">Appearance settings</h1>
+            <h1 className="sr-only">Setări de aspect</h1>
 
             <div className="space-y-6">
                 <Heading
                     variant="small"
-                    title="Appearance settings"
-                    description="Update the appearance settings for your account"
+                    title="Aspect"
+                    description="Alege tema luminoasă, întunecată sau tema sistemului."
                 />
                 <AppearanceTabs />
             </div>
@@ -25,7 +25,7 @@ export default function Appearance() {
 Appearance.layout = {
     breadcrumbs: [
         {
-            title: 'Appearance settings',
+            title: 'Aspect',
             href: editAppearance(),
         },
     ],

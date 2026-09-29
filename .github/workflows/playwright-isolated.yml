@@ -10,6 +10,11 @@ on:
       - 'routes/web.php'
       - 'resources/js/pages/welcome.tsx'
       - 'resources/js/pages/dashboard.tsx'
+      - 'resources/js/hooks/use-appearance.tsx'
+      - 'resources/js/components/appearance-tabs.tsx'
+      - 'resources/js/components/theme-toggle.tsx'
+      - 'resources/js/pages/auth/**'
+      - 'resources/js/layouts/auth/**'
       - 'resources/js/components/app-*.tsx'
       - 'resources/js/components/nav-*.tsx'
       - 'resources/js/components/team-switcher.tsx'
@@ -71,6 +76,22 @@ jobs:
         with:
           name: ui-05-dashboard-review-screenshots
           path: test-results/ui-05-review/
+          if-no-files-found: ignore
+          retention-days: 5
+      - name: Upload UI-03 auth review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-03-auth-review-screenshots
+          path: test-results/ui-03-auth-review/
+          if-no-files-found: ignore
+          retention-days: 5
+      - name: Upload UI-06 theme review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ui-06-theme-review-screenshots
+          path: test-results/ui-06-theme-review/
           if-no-files-found: ignore
           retention-days: 5
       - name: Upload failure diagnostics
