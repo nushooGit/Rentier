@@ -14,7 +14,8 @@ class WorkspaceController extends Controller
     {
         $workspaces = Team::query()
             ->withCount(['members', 'properties', 'leases'])
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(200)
             ->get()
             ->map(fn (Team $team): array => [

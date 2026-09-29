@@ -22,12 +22,14 @@ class DashboardController extends Controller
                 'leases' => Lease::query()->count(),
             ],
             'recentUsers' => User::query()
-                ->latest()
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
                 ->limit(5)
                 ->get(['id', 'name', 'email', 'created_at']),
             'recentWorkspaces' => Team::query()
                 ->withCount(['members', 'properties'])
-                ->latest()
+                ->orderByDesc('created_at')
+                ->orderByDesc('id')
                 ->limit(5)
                 ->get(['id', 'name', 'slug', 'is_personal', 'created_at']),
         ]);

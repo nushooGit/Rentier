@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\User;
 use App\Support\PlatformAdmin;
 use Closure;
 use Illuminate\Http\RedirectResponse;
@@ -22,7 +21,7 @@ class EnsurePlatformAdmin
             return redirect()->guest('/login');
         }
 
-        abort_unless($user instanceof User && PlatformAdmin::allows($user), 403);
+        abort_unless(PlatformAdmin::allows($user), 403);
 
         if (! $user->hasVerifiedEmail()) {
             return redirect('/email/verify');

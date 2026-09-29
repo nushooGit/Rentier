@@ -15,7 +15,8 @@ class UserController extends Controller
     {
         $users = User::query()
             ->withCount('teams')
-            ->latest()
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(200)
             ->get()
             ->map(fn (User $user): array => [
