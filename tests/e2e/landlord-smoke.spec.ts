@@ -18,6 +18,25 @@ test.describe('authenticated landlord smoke', () => {
         await login(page);
     });
 
+    test('theme toggle switches the authenticated shell to dark mode', async ({ page }) => {
+        await page.addInitScript(() => {
+            localStorage.setItem('appearance', 'light');
+        });
+        await login(page);
+        await expect(page.locator('html')).not.toHaveClass(/dark/);
+
+        await page.getByTestId('theme-toggle').click();
+        await expect(page.locator('html')).toHaveClass(/dark/);
+        await expect
+            .poll(() => page.evaluate(() => localStorage.getItem('appearance')))
+            .toBe('dark');
+
+        await page.screenshot({
+            path: 'test-results/ui-06-theme-review/dashboard-dark-desktop.png',
+            fullPage: true,
+        });
+    });
+
     test('captures UI-05 dashboard review screenshots', async ({ page }) => {
         await page.setViewportSize({ width: 1440, height: 1000 });
         await login(page);
