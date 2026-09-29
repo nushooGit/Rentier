@@ -7,6 +7,8 @@ on:
       - 'scripts/e2e/**'
       - 'playwright.e2e.config.ts'
       - 'tests/e2e/**'
+      - 'routes/web.php'
+      - 'resources/js/pages/welcome.tsx'
       - 'app/Console/Commands/E2eBootstrapCommand.php'
       - '.env.e2e.example'
       - 'package.json'
