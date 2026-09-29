@@ -30,7 +30,7 @@ export async function login(page: Page) {
     await page.getByTestId('login-button').click();
     await expect(page).toHaveURL(/\/dashboard(?:\?|$)/);
     await expect(
-        page.getByRole('heading', { name: 'Dashboard' }),
+        page.getByRole('heading', { name: 'Panou de control' }),
     ).toBeVisible();
 }
 
@@ -63,7 +63,7 @@ export async function createScenarioTeam(page: Page, teamName: string) {
 
     await page.goto(`/${slug}/dashboard`);
     await expect(
-        page.getByRole('heading', { name: 'Dashboard' }),
+        page.getByRole('heading', { name: 'Panou de control' }),
     ).toBeVisible();
 
     return slug;
