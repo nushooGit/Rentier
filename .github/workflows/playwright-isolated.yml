@@ -13,6 +13,7 @@ on:
       - 'resources/js/components/app-*.tsx'
       - 'resources/js/components/nav-*.tsx'
       - 'resources/js/components/team-switcher.tsx'
+      - 'resources/js/components/mobile-bottom-nav.tsx'
       - 'resources/css/app.css'
       - 'app/Console/Commands/E2eBootstrapCommand.php'
       - '.env.e2e.example'
