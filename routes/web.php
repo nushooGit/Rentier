@@ -7,9 +7,32 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::get('/', function (Request $request) {
+    $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+    $isDedicatedAppHost = is_string($appHost)
+        && str_starts_with($appHost, 'app.')
+        && $request->getHost() === $appHost;
+
+    if (! $isDedicatedAppHost) {
+        return Inertia::render('welcome');
+    }
+
+    $user = $request->user();
+
+    if (! $user) {
+        return redirect()->route('login');
+    }
+
+    $team = $user->currentTeam ?? $user->personalTeam();
+
+    return $team
+        ? redirect()->route('dashboard', ['current_team' => $team->slug])
+        : redirect()->route('teams.index');
+})->name('home');
 
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
