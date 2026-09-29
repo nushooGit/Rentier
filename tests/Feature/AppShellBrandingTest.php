@@ -5,6 +5,7 @@ test('authenticated app shell uses Rentier branding instead of starter kit links
     $sidebar = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
     $navigation = file_get_contents(resource_path('js/components/nav-main.tsx'));
     $workspace = file_get_contents(resource_path('js/components/team-switcher.tsx'));
+    $mobileNavigation = file_get_contents(resource_path('js/components/mobile-bottom-nav.tsx'));
 
     expect($logo)
         ->toContain('Rentier')
@@ -22,6 +23,13 @@ test('authenticated app shell uses Rentier branding instead of starter kit links
         ->toContain('Workspace-uri')
         ->toContain('Workspace nou')
         ->toContain('Alege workspace');
+
+    expect($mobileNavigation)
+        ->toContain("label: 'Acasă'")
+        ->toContain("label: 'Proprietăți'")
+        ->toContain("label: 'Contracte'")
+        ->toContain("label: 'Plăți'")
+        ->toContain("label: 'Cheltuieli'");
 });
 
 test('dashboard prioritizes primary landlord signals without changing financial source fields', function () {
