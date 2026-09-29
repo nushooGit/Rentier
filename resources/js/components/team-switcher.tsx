@@ -107,7 +107,7 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                 sideOffset={inHeader ? undefined : 4}
             >
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                    Teams
+                    Workspace-uri
                 </DropdownMenuLabel>
                 {teams.map((team) => (
                     <DropdownMenuItem
