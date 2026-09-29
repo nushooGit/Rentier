@@ -49,6 +49,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Run isolated E2E against localhost only
         run: npm run test:e2e:isolated
+      - name: Upload WEB-01 review screenshots
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: web-01-review-screenshots
+          path: test-results/web-01-review/
+          if-no-files-found: ignore
+          retention-days: 5
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
