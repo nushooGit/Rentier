@@ -34,6 +34,18 @@ Keep one Laravel backend authentication system. Do not broaden session cookies t
 5. Only after `app.rentier.ro` passes, plan a separate WEB-01 landing deployment on `rentier.ro`. Provide a deliberate redirect strategy for old app links; avoid redirect loops and avoid serving both an active app and public landing from the same apex route.
 6. On any failed auth, signed-link, email, SSL, proxy or worker check: keep/revert the apex application, restore the previous canonical `APP_URL`/routing, and rerun smoke tests. Do not roll back or reset production data.
 
+## Canonical-host follow-up (2026-09-29)
+
+After the public landing and app UI were live, production verification showed that the apex host still exposed `/login` and workspace routes because both hostnames intentionally remained attached to the same Laravel application for legacy-link compatibility. This created a second host-only session entry point on `rentier.ro`.
+
+The follow-up strategy is deliberately narrower than a blanket host redirect:
+- browser navigation to login, workspace CRUD pages and settings on `rentier.ro` redirects to the same path/query on canonical `https://app.rentier.ro`;
+- direct apex login POST is intercepted before authentication and sent to the canonical login screen;
+- `rentier.ro/` remains the public landing;
+- legacy password-reset and signed email-verification URLs on the apex are not blanket-redirected because host changes can invalidate or disrupt old token/signed-link flows;
+- no session cookie broadening is introduced.
+
+This transition can be tightened further only after the legacy reset/verification compatibility window is intentionally retired and separately tested.
 ## Final production acceptance and remaining transitions (2026-09-25)
 
 - GitHub PR #8 was merged as `2d5201c` and manually deployed. The owner configured Cloudflare DNS-only routing for `app.rentier.ro` and kept both HTTPS hostnames on the **same** Coolify application. The fixed apex `ASSET_URL` was removed after cross-origin asset failures; same-origin assets now work on both hosts.
