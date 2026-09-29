@@ -25,7 +25,7 @@ export function requireLocalBaseURL() {
 
 export async function login(page: Page) {
     await page.goto('/login');
-    await page.getByLabel('Email address').fill(e2eEmail);
+    await page.getByLabel('Adresă de email').fill(e2eEmail);
     await page.locator('input[name="password"]').fill(e2ePassword);
     await page.getByTestId('login-button').click();
     await expect(page).toHaveURL(/\/dashboard(?:\?|$)/);
