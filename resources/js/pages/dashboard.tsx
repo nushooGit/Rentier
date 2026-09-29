@@ -352,7 +352,7 @@ export default function Dashboard({
                     </div>
                 </section>
 
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
                     <SummaryCard
                         label="Încasat luna asta"
                         value={formatMoney(
@@ -406,7 +406,7 @@ export default function Dashboard({
                                 Ce merită verificat acum
                             </h2>
                         </div>
-                        <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[620px]">
+                        <div className="grid grid-cols-3 gap-2 lg:min-w-[620px]">
                             <div className="rounded-xl bg-rose-50 px-3 py-2.5 dark:bg-rose-400/10">
                                 <p className="text-xs text-rose-700 dark:text-rose-300">
                                     Chirii întârziate
@@ -442,7 +442,7 @@ export default function Dashboard({
                             Detalii financiare
                         </h2>
                     </div>
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-4">
                         <SummaryCard
                             label="Chirie estimată"
                             value={formatMoney(
