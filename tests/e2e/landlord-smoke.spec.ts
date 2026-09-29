@@ -20,7 +20,9 @@ test.describe('authenticated landlord smoke', () => {
 
     test('theme toggle switches the authenticated shell to dark mode', async ({ page }) => {
         await page.addInitScript(() => {
-            localStorage.setItem('appearance', 'light');
+            if (!localStorage.getItem('appearance')) {
+                localStorage.setItem('appearance', 'light');
+            }
         });
         await login(page);
         await expect(page.locator('html')).not.toHaveClass(/dark/);
