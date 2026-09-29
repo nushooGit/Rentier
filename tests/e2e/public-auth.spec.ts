@@ -3,16 +3,28 @@ import { expect, test } from '@playwright/test';
 test.describe('public and auth smoke', () => {
     test('home and login pages load', async ({ page }) => {
         await page.goto('/');
-        await expect(page).toHaveTitle(/Welcome|Rentier|Laravel/);
-        await expect(page.getByRole('link', { name: 'Log in' })).toBeVisible();
+        await expect(page).toHaveTitle(
+            /Administrare chirii pentru proprietari.*Rentier/,
+        );
+        await expect(
+            page.getByRole('heading', {
+                name: /Ai grijă de proprietăți\. Rentier ține evidența\./,
+            }),
+        ).toBeVisible();
+        await expect(
+            page.getByText('Contracte, chirii, garanții și cheltuieli', {
+                exact: false,
+            }),
+        ).toBeVisible();
 
-        const registerLink = page.getByRole('link', { name: 'Register' });
+        const loginLink = page.getByRole('link', { name: 'Intră în cont' });
+        await expect(loginLink).toBeVisible();
+        await expect(loginLink).toHaveAttribute(
+            'href',
+            'http://127.0.0.1:8010/login',
+        );
 
-        if (await registerLink.isVisible()) {
-            await expect(registerLink).toHaveAttribute('href', '/register');
-        }
-
-        await page.getByRole('link', { name: 'Log in' }).click();
+        await loginLink.click();
         await expect(page).toHaveURL(/\/login$/);
         await expect(
             page.getByRole('heading', { name: 'Log in to your account' }),
