@@ -30,10 +30,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 RedirectPublicHostToApp::class,
             ],
             append: [
-            HandleAppearance::class,
-            HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
-            SetTeamUrlDefaults::class,
+                HandleAppearance::class,
+                HandleInertiaRequests::class,
+                AddLinkHeadersForPreloadedAssets::class,
+                SetTeamUrlDefaults::class,
             ],
         );
     })
