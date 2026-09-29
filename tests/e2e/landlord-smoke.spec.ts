@@ -178,9 +178,9 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.goto(`/${teamSlug}/dashboard`);
         await expect(
-            page.getByRole('heading', { name: 'Dashboard' }),
+            page.getByRole('heading', { name: 'Situația lunii, dintr-o privire.' }),
         ).toBeVisible();
-        await expect(page.getByText('Rezumat financiar')).toBeVisible();
+        await expect(page.getByText('Detalii financiare')).toBeVisible();
         await expect(page.getByText(propertyName).first()).toBeVisible();
     });
 });
