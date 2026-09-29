@@ -36,7 +36,7 @@ test('dashboard prioritizes primary landlord signals without changing financial 
     $dashboard = file_get_contents(resource_path('js/pages/dashboard.tsx'));
 
     expect($dashboard)
-        ->toContain('Situația lunii, dintr-o privire.')
+        ->toContain('Panou de control')
         ->toContain('Încasat luna asta')
         ->toContain('Rest de încasat')
         ->toContain('Cheltuieli luna asta')
