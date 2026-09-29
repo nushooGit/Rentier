@@ -4,9 +4,8 @@ import {
     AlertTriangle,
     Building2,
     CircleDollarSign,
-    ReceiptText,
+    LayoutDashboard,
     TrendingUp,
-    WalletCards,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
