@@ -1,15 +1,33 @@
 <?php
 
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\Teams\TeamInvitationController;
+use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Http\Middleware\EnsureTeamMembership;
+use App\Http\Middleware\RejectAdminHost;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+
+$adminHost = parse_url((string) config('rentier.admin_url'), PHP_URL_HOST);
+
+if (is_string($adminHost) && $adminHost !== '') {
+    Route::domain($adminHost)
+        ->middleware(EnsurePlatformAdmin::class)
+        ->name('admin.')
+        ->group(function () {
+            Route::get('/', AdminDashboardController::class)->name('dashboard');
+            Route::get('users', AdminUserController::class)->name('users.index');
+            Route::get('workspaces', AdminWorkspaceController::class)->name('workspaces.index');
+        });
+}
 
 Route::get('/', function (Request $request) {
     $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
@@ -35,7 +53,7 @@ Route::get('/', function (Request $request) {
 })->name('home');
 
 Route::prefix('{current_team}')
-    ->middleware(['auth', 'verified', EnsureTeamMembership::class])
+    ->middleware(['auth', 'verified', RejectAdminHost::class, EnsureTeamMembership::class])
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::resource('properties', PropertyController::class);
@@ -48,7 +66,7 @@ Route::prefix('{current_team}')
         Route::resource('expenses', ExpenseController::class);
     });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', RejectAdminHost::class])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
     Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
 });

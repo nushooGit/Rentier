@@ -20,6 +20,17 @@ Rentier is a Laravel SaaS application for property rental management. The backen
 - Portal selection should be based on authorized relationships and UI context, not separate login systems.
 - Authentication changes should be deliberate and tested because they affect all portal experiences.
 
+## Internal Platform Admin Strategy
+
+Internal platform administration is a separate operational surface from landlord workspace membership.
+
+- Use the same Laravel authentication system and the same `users` table.
+- Serve the internal surface from a dedicated host configured by `RENTIER_ADMIN_URL` (production target: `https://admin.rentier.ro`).
+- Keep session cookies host-only. Logging into `app.rentier.ro` must not silently create an authenticated session on `admin.rentier.ro`, or vice versa.
+- Platform-admin access must be independent from workspace owner/member roles. The first MVP increment uses a deployment-only email allowlist (`RENTIER_PLATFORM_ADMIN_EMAILS`) so no workspace role can grant platform access.
+- Do not expose normal landlord workspace routes from the admin host.
+- Start with read-only user/workspace visibility and aggregate statistics. Persistent activation/suspension requires a separately reviewed data migration and access-enforcement change.
+
 ## Landlord and Renter Portal Strategy
 
 The product may expose two primary portal experiences:
