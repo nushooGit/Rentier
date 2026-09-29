@@ -27,7 +27,7 @@ test.describe('public and auth smoke', () => {
         await loginLink.click();
         await expect(page).toHaveURL(/\/login$/);
         await expect(
-            page.getByRole('heading', { name: 'Log in to your account' }),
+            page.getByRole('heading', { name: 'Bine ai revenit' }),
         ).toBeVisible();
     });
 
@@ -55,6 +55,41 @@ test.describe('public and auth smoke', () => {
         });
     });
 
+    test('login theme toggle persists and auth UI is reviewable', async ({ page }) => {
+        await page.addInitScript(() => {
+            localStorage.setItem('appearance', 'light');
+        });
+
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await page.goto('/login');
+        await expect(
+            page.getByRole('heading', { name: 'Bine ai revenit' }),
+        ).toBeVisible();
+        await expect(page.locator('html')).not.toHaveClass(/dark/);
+        await page.screenshot({
+            path: 'test-results/ui-03-auth-review/login-light-desktop.png',
+            fullPage: true,
+        });
+
+        await page.getByTestId('theme-toggle').click();
+        await expect(page.locator('html')).toHaveClass(/dark/);
+        await expect
+            .poll(() => page.evaluate(() => localStorage.getItem('appearance')))
+            .toBe('dark');
+        await page.screenshot({
+            path: 'test-results/ui-03-auth-review/login-dark-desktop.png',
+            fullPage: true,
+        });
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.reload();
+        await expect(page.locator('html')).toHaveClass(/dark/);
+        await page.screenshot({
+            path: 'test-results/ui-03-auth-review/login-dark-mobile.png',
+            fullPage: true,
+        });
+    });
+
     test('registration page is either available or intentionally disabled', async ({
         page,
         request,
@@ -66,7 +101,7 @@ test.describe('public and auth smoke', () => {
 
             await page.goto('/login');
             await expect(
-                page.getByRole('heading', { name: 'Log in to your account' }),
+                page.getByRole('heading', { name: 'Bine ai revenit' }),
             ).toBeVisible();
             await expect(page.getByTestId('register-link')).toHaveCount(0);
 
@@ -87,7 +122,7 @@ test.describe('public and auth smoke', () => {
 
         await page.goto('/login');
         await expect(
-            page.getByRole('heading', { name: 'Log in to your account' }),
+            page.getByRole('heading', { name: 'Bine ai revenit' }),
         ).toBeVisible();
         await expect(page.getByTestId('register-link')).toHaveCount(0);
     });
