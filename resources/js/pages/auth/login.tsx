@@ -31,7 +31,7 @@ export default function Login({
 
     return (
         <>
-            <Head title="Log in" />
+            <Head title="Autentificare" />
 
             {teamInvitation && (
                 <TeamInvitationAlert
@@ -40,7 +40,11 @@ export default function Login({
                 />
             )}
 
-            <PasskeyVerify />
+            <PasskeyVerify
+                label="Intră cu passkey"
+                loadingLabel="Se verifică..."
+                separator="sau continuă cu email"
+            />
 
             <Form
                 {...store.form()}
@@ -49,9 +53,9 @@ export default function Login({
             >
                 {({ processing, errors }) => (
                     <>
-                        <div className="grid gap-6">
+                        <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
+                                <Label htmlFor="email">Adresă de email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -60,14 +64,15 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="email@example.com"
+                                    placeholder="nume@exemplu.ro"
+                                    className="h-11"
                                 />
                                 <InputError message={errors.email} />
                             </div>
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">Parolă</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
@@ -84,7 +89,8 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Password"
+                                    placeholder="Parola ta"
+                                    className="h-11"
                                 />
                                 <InputError message={errors.password} />
                             </div>
@@ -95,30 +101,30 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Remember me</Label>
+                                <Label htmlFor="remember">Ține-mă minte</Label>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-4 w-full"
+                                className="mt-2 h-11 w-full bg-emerald-300 font-semibold text-slate-950 hover:bg-emerald-200 dark:bg-emerald-300 dark:text-slate-950 dark:hover:bg-emerald-200"
                                 tabIndex={4}
                                 disabled={processing}
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Log in
+                                Autentificare
                             </Button>
                         </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
-                                Don't have an account?{' '}
+                                Nu ai cont?{' '}
                                 <TextLink
                                     href={registerUrl}
                                     data-test="register-link"
                                     tabIndex={5}
                                 >
-                                    Sign up
+                                    Creează cont
                                 </TextLink>
                             </div>
                         )}
@@ -127,7 +133,7 @@ export default function Login({
             </Form>
 
             {status && (
-                <div className="mb-4 text-center text-sm font-medium text-green-600">
+                <div className="mt-5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-center text-sm font-medium text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-300">
                     {status}
                 </div>
             )}
@@ -136,6 +142,6 @@ export default function Login({
 }
 
 Login.layout = {
-    title: 'Log in to your account',
-    description: 'Enter your email and password below to log in',
+    title: 'Bine ai revenit',
+    description: 'Introdu adresa de email și parola pentru a continua în Rentier.',
 };
