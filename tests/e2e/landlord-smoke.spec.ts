@@ -18,6 +18,30 @@ test.describe('authenticated landlord smoke', () => {
         await login(page);
     });
 
+    test('captures UI-05 dashboard review screenshots', async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await login(page);
+        await expect(
+            page.getByRole('heading', {
+                name: 'Situația lunii, dintr-o privire.',
+            }),
+        ).toBeVisible();
+        await page.screenshot({
+            path: 'test-results/ui-05-review/dashboard-desktop.png',
+            fullPage: true,
+        });
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.reload();
+        await expect(
+            page.getByText('Necesită atenția ta'),
+        ).toBeVisible();
+        await page.screenshot({
+            path: 'test-results/ui-05-review/dashboard-mobile.png',
+            fullPage: true,
+        });
+    });
+
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
