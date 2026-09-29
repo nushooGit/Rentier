@@ -19,7 +19,8 @@ The product sequence below should not be reordered casually; move items only whe
 1. Production email delivery and the password-reset flow are verified in production. Keep provider credentials deployment-only and retain delivery monitoring as an operations concern.
 2. Move the authenticated application to `app.rentier.ro`.
 3. Build the public landing page on `rentier.ro`.
-4. Minimal internal admin for users, workspaces, activation/suspension, and statistics.
-5. Later subscriptions, support, audit, and advanced tools.
+4. Refresh the authenticated landlord app shell and dashboard UI so the product no longer presents Laravel starter-kit identity. This owner-prioritized UI pass should preserve existing domain logic and be delivered in small reviewable increments.
+5. Minimal internal admin for users, workspaces, activation/suspension, and statistics.
+6. Later subscriptions, support, audit, and advanced tools.
 
 Deferred advanced work includes support tooling, audit logs, documents/invoices, tenant portal, utilities/maintenance, and ANAF research.
