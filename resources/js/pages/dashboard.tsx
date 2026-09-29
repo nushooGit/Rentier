@@ -330,71 +330,127 @@ export default function Dashboard({
             />
 
             <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
-                <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-gradient-to-br from-[#0b1a2b] via-[#0c2031] to-[#0d2a32] px-5 py-6 text-white shadow-sm sm:px-7 sm:py-7">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+                <section className="rounded-3xl border border-slate-800 bg-[#0b111c] px-5 py-5 text-white shadow-sm sm:px-7">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
-                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                                Panou de control
-                            </p>
-                            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.03em] sm:text-4xl">
-                                Situația lunii, dintr-o privire.
-                            </h1>
-                            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                                {currentTeam?.name
-                                    ? `Workspace: ${currentTeam.name}`
-                                    : 'Rezumatul workspace-ului curent'}
+                            <div className="flex items-center gap-3">
+                                <span className="flex size-10 items-center justify-center rounded-xl border border-sky-400/25 bg-sky-400/10 text-sky-300">
+                                    <LayoutDashboard className="size-5" aria-hidden="true" />
+                                </span>
+                                <div>
+                                    <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-300">
+                                        Privire de ansamblu
+                                    </p>
+                                    <h1 className="mt-0.5 text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
+                                        Panou de control
+                                    </h1>
+                                </div>
+                            </div>
+                            <p className="mt-2 text-sm text-slate-400">
+                                Situația curentă pentru {currentTeam?.name ?? 'workspace-ul Rentier'}.
                             </p>
                         </div>
-                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300">
+                        <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-300">
                             <Building2 className="size-4 text-emerald-300" aria-hidden="true" />
                             {summary.property_count} proprietăți · {summary.active_lease_count} contracte active
                         </div>
                     </div>
                 </section>
 
-                <div className="grid grid-cols-2 gap-2.5 xl:grid-cols-4">
-                    <SummaryCard
-                        label="Încasat luna asta"
-                        value={formatMoney(
-                            summary.current_month_payments,
-                            summary.currency,
-                        )}
-                        description="Chirii încasate, fără garanții"
-                        testId="dashboard-rent-collected"
-                        icon={WalletCards}
-                        tone="success"
-                    />
-                    <SummaryCard
-                        label="Rest de încasat"
-                        value={formatMoney(
-                            summary.remaining_rent,
-                            summary.currency,
-                        )}
-                        description={`${summary.overdue_month_count} luni restante în evidență`}
-                        icon={AlertTriangle}
-                        tone={summary.overdue_count > 0 ? 'danger' : 'default'}
-                    />
-                    <SummaryCard
-                        label="Cheltuieli luna asta"
-                        value={formatMoney(
-                            summary.current_month_expenses,
-                            summary.currency,
-                        )}
-                        description="Suportate economic de proprietar"
-                        icon={ReceiptText}
-                        tone="warning"
-                    />
-                    <SummaryCard
-                        label="De recuperat"
-                        value={formatMoney(
-                            summary.recoverable_expenses,
-                            summary.currency,
-                        )}
-                        description="Sume de recuperat de la chiriași"
-                        icon={CircleDollarSign}
-                        tone="info"
-                    />
-                </div>
+                <section className="overflow-hidden rounded-3xl border border-slate-800 bg-[#111722] text-white shadow-sm">
+                    <div className="grid lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
+                        <div className="border-b border-white/8 p-5 sm:p-6 lg:border-r lg:border-b-0">
+                            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
+                                Încasat luna asta
+                            </p>
+                            <p
+                                className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-emerald-300 sm:text-5xl"
+                                data-test="dashboard-rent-collected"
+                                data-testid="dashboard-rent-collected"
+                            >
+                                {formatMoney(
+                                    summary.current_month_payments,
+                                    summary.currency,
+                                )}
+                            </p>
+                            <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">
+                                Chirii încasate în luna curentă, fără garanții.
+                            </p>
+                            <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
+                                <span>{summary.active_lease_count} contracte active</span>
+                                <span>{summary.property_count} proprietăți în portofoliu</span>
+                            </div>
+                        </div>
+
+                        <div className="border-b border-white/8 p-5 lg:border-r lg:border-b-0">
+                            <div className="flex items-start justify-between gap-3">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                    Rest de încasat
+                                </p>
+                                <span className="flex size-8 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-400/10 text-rose-300">
+                                    <AlertTriangle className="size-4" aria-hidden="true" />
+                                </span>
+                            </div>
+                            <p className="mt-5 text-3xl font-semibold tracking-tight">
+                                {formatMoney(
+                                    summary.remaining_rent,
+                                    summary.currency,
+                                )}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                                Rest aferent lunii curente.
+                            </p>
+                        </div>
+
+                        <div className="border-b border-white/8 p-5 lg:border-r lg:border-b-0">
+                            <div className="flex items-start justify-between gap-3">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                    De recuperat
+                                </p>
+                                <span className="flex size-8 items-center justify-center rounded-lg border border-amber-300/20 bg-amber-300/10 text-amber-200">
+                                    <CircleDollarSign className="size-4" aria-hidden="true" />
+                                </span>
+                            </div>
+                            <p className="mt-5 text-3xl font-semibold tracking-tight text-amber-200">
+                                {formatMoney(
+                                    summary.recoverable_expenses,
+                                    summary.currency,
+                                )}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                                Cheltuieli de recuperat de la chiriași.
+                            </p>
+                        </div>
+
+                        <div className="p-5">
+                            <div className="flex items-start justify-between gap-3">
+                                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
+                                    Grad de ocupare
+                                </p>
+                                <span className="flex size-8 items-center justify-center rounded-lg border border-sky-400/20 bg-sky-400/10 text-sky-300">
+                                    <Building2 className="size-4" aria-hidden="true" />
+                                </span>
+                            </div>
+                            <p className="mt-5 text-3xl font-semibold tracking-tight text-sky-300">
+                                {summary.occupancy_label}
+                            </p>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                                {summary.occupancy_rate}% din {summary.property_count} proprietăți
+                            </p>
+                            <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
+                                <div
+                                    className="h-full rounded-full bg-sky-400"
+                                    style={{
+                                        width: `${Math.min(
+                                            100,
+                                            Math.max(0, Number(summary.occupancy_rate)),
+                                        )}%`,
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -408,24 +464,24 @@ export default function Dashboard({
                         </div>
                         <div className="grid grid-cols-3 gap-2 lg:min-w-[620px]">
                             <div className="rounded-xl bg-rose-50 px-3 py-2.5 dark:bg-rose-400/10">
-                                <p className="text-xs text-rose-700 dark:text-rose-300">
-                                    Chirii întârziate
+                                <p className="text-[11px] text-rose-700 dark:text-rose-300">
+                                    Restanțe
                                 </p>
                                 <p className="mt-1 text-lg font-semibold text-rose-950 dark:text-rose-100">
                                     {summary.overdue_count}
                                 </p>
                             </div>
                             <div className="rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-400/10">
-                                <p className="text-xs text-amber-700 dark:text-amber-300">
-                                    Scadențe următoarele 7 zile
+                                <p className="text-[11px] text-amber-700 dark:text-amber-300">
+                                    Următoarele 7 zile
                                 </p>
                                 <p className="mt-1 text-lg font-semibold text-amber-950 dark:text-amber-100">
                                     {upcomingPayments.length}
                                 </p>
                             </div>
                             <div className="rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-white/5">
-                                <p className="text-xs text-slate-600 dark:text-slate-300">
-                                    Fără contract activ
+                                <p className="text-[11px] text-slate-600 dark:text-slate-300">
+                                    Fără contract
                                 </p>
                                 <p className="mt-1 text-lg font-semibold">
                                     {propertiesWithoutActiveLease.length}
@@ -497,9 +553,12 @@ export default function Dashboard({
                             )}
                         />
                         <SummaryCard
-                            label="Grad de ocupare"
-                            value={summary.occupancy_label}
-                            description={`${summary.occupancy_rate}% din ${summary.property_count} proprietăți`}
+                            label="Cheltuieli luna asta"
+                            value={formatMoney(
+                                summary.current_month_expenses,
+                                summary.currency,
+                            )}
+                            description="Suportate economic de proprietar"
                         />
                         <SummaryCard
                             label="Scăzut din chirie"
