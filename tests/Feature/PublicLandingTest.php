@@ -23,3 +23,15 @@ test('public landing describes only implemented landlord workflows', function ()
         ->toContain('Rentier este în beta privată.')
         ->toContain('app.rentier.ro');
 });
+
+
+test('public apex root renders the landing while app root sends guests to login', function () {
+    config(['app.url' => 'https://app.rentier.ro']);
+
+    $this->get('https://rentier.ro/')
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->component('welcome'));
+
+    $this->get('https://app.rentier.ro/')
+        ->assertRedirect('https://app.rentier.ro/login');
+});
