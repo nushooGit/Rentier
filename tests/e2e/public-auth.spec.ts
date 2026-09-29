@@ -31,6 +31,30 @@ test.describe('public and auth smoke', () => {
         ).toBeVisible();
     });
 
+    test('captures WEB-01 desktop and mobile review screenshots', async ({ page }) => {
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        await page.goto('/');
+        await expect(
+            page.getByRole('heading', {
+                name: /Ai grijă de proprietăți\. Rentier ține evidența\./,
+            }),
+        ).toBeVisible();
+        await page.screenshot({
+            path: 'test-results/web-01-review/desktop.png',
+            fullPage: true,
+        });
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.reload();
+        await expect(
+            page.getByRole('link', { name: 'Intră în cont' }),
+        ).toBeVisible();
+        await page.screenshot({
+            path: 'test-results/web-01-review/mobile.png',
+            fullPage: true,
+        });
+    });
+
     test('registration page is either available or intentionally disabled', async ({
         page,
         request,
