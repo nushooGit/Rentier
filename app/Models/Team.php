@@ -28,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
+ * @property-read Collection<int, Document> $documents
  * @property-read Collection<int, Expense> $expenses
  * @property-read Collection<int, TeamInvitation> $invitations
  * @property-read Collection<int, Lease> $leases
@@ -150,6 +151,14 @@ class Team extends Model
     public function rentPayments(): HasMany
     {
         return $this->hasMany(RentPayment::class);
+    }
+
+    /**
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
     }
 
     /**

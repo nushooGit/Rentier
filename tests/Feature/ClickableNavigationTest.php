@@ -95,3 +95,14 @@ test('expense settlement labels use directional reimbursement wording', function
         ->toContain('expense.paid_by')
         ->toContain('expense.responsible_party');
 });
+
+
+test('documents index exposes upload download and delete controls', function () {
+    $source = pageSource('documents/index.tsx');
+
+    expect($source)
+        ->toContain('data-test="document-file-input"')
+        ->toContain('data-test="document-upload-button"')
+        ->toContain('data-test="document-download-link"')
+        ->toContain('data-test="document-delete-button"');
+});

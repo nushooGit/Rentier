@@ -119,6 +119,19 @@ Do not run migrations during the Docker image build. Never run `migrate:fresh`, 
 
 Application logs are visible in Coolify's application logs. The container sends Nginx, PHP-FPM, queue worker, scheduler, and Supervisor logs to stdout/stderr where practical.
 
+### Private document storage
+
+The Landlord v1 document module writes file bytes to Laravel's private local disk at `/app/storage/app/private` inside the Coolify application container.
+
+Before enabling document uploads in production:
+
+- configure persistent Coolify storage for `/app/storage/app/private` (preferred, so future private uploads share the same durable root);
+- keep that path private and never map it to a public web URL;
+- confirm the application process can write to the mounted path;
+- upload a disposable test document, redeploy once, and confirm the file can still be downloaded after the redeploy.
+
+Do not treat container-local storage as durable. If a persistent volume has not been confirmed, the document feature is a production deployment blocker even when application CI is green. Changing Coolify persistent-storage configuration is an infrastructure action and requires explicit owner approval.
+
 Run Playwright against the deployed URL with test-only beta credentials:
 
 ```bash

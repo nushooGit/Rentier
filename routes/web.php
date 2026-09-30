@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
 use App\Http\Controllers\Admin\WorkspaceShowController as AdminWorkspaceShowController;
 use App\Http\Controllers\Admin\WorkspaceSuspensionController as AdminWorkspaceSuspensionController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
@@ -78,6 +79,8 @@ Route::prefix('{current_team}')
         Route::patch('expenses/{expense}/undo-reimbursed', [ExpenseController::class, 'undoReimbursed'])->name('expenses.undo-reimbursed');
         Route::patch('expenses/{expense}/undo-recovered', [ExpenseController::class, 'undoRecovered'])->name('expenses.undo-recovered');
         Route::resource('expenses', ExpenseController::class);
+        Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+        Route::resource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
     });
 
 Route::middleware(['auth', RejectAdminHost::class])->group(function () {

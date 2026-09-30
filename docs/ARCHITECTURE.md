@@ -1,6 +1,6 @@
 # Architecture
 
-Rentier is a Laravel SaaS application for property rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first landlord and renter portal experiences over the same backend.
+Rentier is a Laravel property operating platform, currently centered on rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first portal experiences over the same backend. The approved long-term multi-portal direction is documented in [Rentier Platform Direction](product-platform-direction.md).
 
 ## High-Level Architecture
 
@@ -29,7 +29,7 @@ Internal platform administration is a separate operational surface from landlord
 - Keep session cookies host-only. Logging into `app.rentier.ro` must not silently create an authenticated session on `admin.rentier.ro`, or vice versa.
 - Platform-admin access must be independent from workspace owner/member roles. The first MVP increment uses a deployment-only email allowlist (`RENTIER_PLATFORM_ADMIN_EMAILS`) so no workspace role can grant platform access.
 - Do not expose normal landlord workspace routes from the admin host.
-- Start with read-only user/workspace visibility and aggregate statistics. Persistent activation/suspension requires a separately reviewed data migration and access-enforcement change.
+- The current MVP admin baseline includes user/workspace visibility, aggregate statistics and separately reviewed user/workspace suspension/reactivation. Keep future subscription/billing controls separate until a real subscription model exists.
 
 ## Landlord and Renter Portal Strategy
 
@@ -64,7 +64,7 @@ Expenses track landlord costs for a property, such as repairs, supplies, taxes, 
 
 Maintenance tickets track renter or landlord reported issues, status, priority, assignment, notes, documents, and resolution.
 
-Documents store metadata and relationships for uploaded files such as lease agreements, invoices, receipts, notices, and identity or compliance documents where appropriate.
+Documents store metadata and relationships for uploaded files such as lease agreements, invoices, receipts, notices, and property documents where appropriate. Files are private by default and are served only through authorized application routes.
 
 Messages support communication between landlords, renters, and possibly organization members. Keep messaging simple during the MVP.
 
@@ -110,3 +110,24 @@ Rentier must be mobile-first and responsive from the beginning because it may la
 - Desktop: dashboards, tables, and reporting can use denser layouts, but must not be the only usable experience.
 - Navigation should support portal switching and organization/workspace context without assuming a wide sidebar.
 - Use responsive components that can survive future app-shell embedding.
+
+
+## Document Storage Strategy
+
+The Landlord v1 document module stores document metadata in the application database and file bytes on Laravel's private `local` disk under `storage/app/private`.
+
+- Never expose uploaded documents through the public storage symlink.
+- Download/delete authorization must be enforced through Laravel policies and workspace scoping.
+- Production local-file storage must live on a persistent Coolify volume before real documents are accepted; container-local ephemeral storage is not sufficient.
+- Keep the stored disk/path on each document so a later move to S3-compatible object storage does not require changing the document domain model.
+- Do not add OCR, e-signature or provider integrations to the initial document MVP.
+
+## Product Sequencing Rule
+
+The approved sequence is:
+
+1. complete the landlord product gate defined in `docs/landlord-v1-scope.md`;
+2. build a focused public growth/SEO layer on `rentier.ro`;
+3. only then begin the larger Home/Market/building-administration expansion.
+
+Shared domain design should still avoid choices that block future Home reuse, especially for documents, utilities, invoices, maintenance and property history.
