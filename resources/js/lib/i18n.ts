@@ -24,6 +24,67 @@ const ro = {
     'language.romanian': 'Română',
     'language.english': 'English',
     'mobile.primaryNavigation': 'Navigație principală',
+
+    'auth.shell.heroTitle': 'Proprietățile tale, organizate într-un singur loc.',
+    'auth.shell.heroDescription': 'Contracte, chirii, garanții și costuri într-o interfață construită pentru proprietarii din România.',
+    'auth.shell.bulletIncome': 'Încasări și restanțe urmărite clar',
+    'auth.shell.bulletFlow': 'Contracte și proprietăți legate într-un singur flux',
+    'auth.shell.bulletCosts': 'Costuri și sume de recuperat la vedere',
+
+    'auth.login.head': 'Autentificare',
+    'auth.login.title': 'Bine ai revenit',
+    'auth.login.description': 'Introdu adresa de email și parola pentru a continua în Rentier.',
+    'auth.login.passkey': 'Intră cu passkey',
+    'auth.login.passkeyLoading': 'Se verifică...',
+    'auth.login.separator': 'sau continuă cu email',
+    'auth.login.email': 'Adresă de email',
+    'auth.login.emailPlaceholder': 'nume@exemplu.ro',
+    'auth.login.password': 'Parolă',
+    'auth.login.passwordPlaceholder': 'Parola ta',
+    'auth.login.forgot': 'Ai uitat parola?',
+    'auth.login.remember': 'Ține-mă minte',
+    'auth.login.submit': 'Autentificare',
+    'auth.login.noAccount': 'Nu ai cont?',
+    'auth.login.createAccount': 'Creează cont',
+
+    'auth.forgot.head': 'Ai uitat parola?',
+    'auth.forgot.title': 'Ai uitat parola?',
+    'auth.forgot.description': 'Introdu adresa de email pentru a primi un link de resetare a parolei.',
+    'auth.forgot.submit': 'Trimite linkul de resetare',
+    'auth.forgot.backPrefix': 'Sau revino la',
+    'auth.forgot.back': 'autentificare',
+
+    'auth.reset.head': 'Resetează parola',
+    'auth.reset.title': 'Resetează parola',
+    'auth.reset.description': 'Introdu și confirmă noua parolă.',
+    'auth.reset.newPassword': 'Parolă nouă',
+    'auth.reset.confirmPassword': 'Confirmă parola',
+    'auth.reset.submit': 'Resetează parola',
+
+    'auth.confirm.head': 'Confirmă parola',
+    'auth.confirm.title': 'Confirmă parola',
+    'auth.confirm.description': 'Aceasta este o zonă securizată. Confirmă parola înainte de a continua.',
+    'auth.confirm.passkey': 'Confirmă cu passkey',
+    'auth.confirm.passkeyLoading': 'Se confirmă...',
+    'auth.confirm.separator': 'sau confirmă cu parola',
+    'auth.confirm.submit': 'Confirmă parola',
+
+    'auth.verify.head': 'Verifică adresa de email',
+    'auth.verify.title': 'Verifică adresa de email',
+    'auth.verify.description': 'Verifică adresa de email folosind linkul pe care tocmai ți l-am trimis.',
+    'auth.verify.sent': 'Un nou link de verificare a fost trimis la adresa ta de email.',
+    'auth.verify.resend': 'Retrimite emailul de verificare',
+
+    'auth.twoFactor.head': 'Autentificare în doi pași',
+    'auth.twoFactor.recoveryTitle': 'Cod de recuperare',
+    'auth.twoFactor.recoveryDescription': 'Confirmă accesul la cont introducând unul dintre codurile tale de recuperare.',
+    'auth.twoFactor.recoveryToggle': 'autentifică-te cu un cod de autentificare',
+    'auth.twoFactor.codeTitle': 'Cod de autentificare',
+    'auth.twoFactor.codeDescription': 'Introdu codul furnizat de aplicația ta de autentificare.',
+    'auth.twoFactor.codeToggle': 'autentifică-te cu un cod de recuperare',
+    'auth.twoFactor.recoveryPlaceholder': 'Introdu codul de recuperare',
+    'auth.twoFactor.continue': 'Continuă',
+    'auth.twoFactor.or': 'sau poți',
 } as const;
 
 type TranslationKey = keyof typeof ro;
@@ -51,6 +112,67 @@ const en: Record<TranslationKey, string> = {
     'language.romanian': 'Română',
     'language.english': 'English',
     'mobile.primaryNavigation': 'Primary navigation',
+
+    'auth.shell.heroTitle': 'Your properties, organized in one place.',
+    'auth.shell.heroDescription': 'Leases, rent, deposits and costs in an interface built for landlords.',
+    'auth.shell.bulletIncome': 'Income and arrears tracked clearly',
+    'auth.shell.bulletFlow': 'Leases and properties connected in one flow',
+    'auth.shell.bulletCosts': 'Costs and recoverable amounts at a glance',
+
+    'auth.login.head': 'Log in',
+    'auth.login.title': 'Welcome back',
+    'auth.login.description': 'Enter your email address and password to continue to Rentier.',
+    'auth.login.passkey': 'Log in with passkey',
+    'auth.login.passkeyLoading': 'Checking...',
+    'auth.login.separator': 'or continue with email',
+    'auth.login.email': 'Email address',
+    'auth.login.emailPlaceholder': 'name@example.com',
+    'auth.login.password': 'Password',
+    'auth.login.passwordPlaceholder': 'Your password',
+    'auth.login.forgot': 'Forgot password?',
+    'auth.login.remember': 'Remember me',
+    'auth.login.submit': 'Log in',
+    'auth.login.noAccount': 'No account yet?',
+    'auth.login.createAccount': 'Create account',
+
+    'auth.forgot.head': 'Forgot password?',
+    'auth.forgot.title': 'Forgot password?',
+    'auth.forgot.description': 'Enter your email address to receive a password reset link.',
+    'auth.forgot.submit': 'Send reset link',
+    'auth.forgot.backPrefix': 'Or return to',
+    'auth.forgot.back': 'log in',
+
+    'auth.reset.head': 'Reset password',
+    'auth.reset.title': 'Reset password',
+    'auth.reset.description': 'Enter and confirm your new password.',
+    'auth.reset.newPassword': 'New password',
+    'auth.reset.confirmPassword': 'Confirm password',
+    'auth.reset.submit': 'Reset password',
+
+    'auth.confirm.head': 'Confirm password',
+    'auth.confirm.title': 'Confirm password',
+    'auth.confirm.description': 'This is a secure area. Confirm your password before continuing.',
+    'auth.confirm.passkey': 'Confirm with passkey',
+    'auth.confirm.passkeyLoading': 'Confirming...',
+    'auth.confirm.separator': 'or confirm with password',
+    'auth.confirm.submit': 'Confirm password',
+
+    'auth.verify.head': 'Verify email address',
+    'auth.verify.title': 'Verify email address',
+    'auth.verify.description': 'Verify your email address using the link we just sent you.',
+    'auth.verify.sent': 'A new verification link has been sent to your email address.',
+    'auth.verify.resend': 'Resend verification email',
+
+    'auth.twoFactor.head': 'Two-factor authentication',
+    'auth.twoFactor.recoveryTitle': 'Recovery code',
+    'auth.twoFactor.recoveryDescription': 'Confirm access to your account by entering one of your recovery codes.',
+    'auth.twoFactor.recoveryToggle': 'log in using an authentication code',
+    'auth.twoFactor.codeTitle': 'Authentication code',
+    'auth.twoFactor.codeDescription': 'Enter the code provided by your authenticator application.',
+    'auth.twoFactor.codeToggle': 'log in using a recovery code',
+    'auth.twoFactor.recoveryPlaceholder': 'Enter recovery code',
+    'auth.twoFactor.continue': 'Continue',
+    'auth.twoFactor.or': 'or you can',
 };
 
 const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };
@@ -64,6 +186,10 @@ export function useI18n() {
     return {
         locale,
         t: (key: TranslationKey) => messages[locale][key] ?? ro[key],
+        translate: (value?: string) =>
+            value && value in ro
+                ? messages[locale][value as TranslationKey]
+                : (value ?? ''),
     };
 }
 
