@@ -128,3 +128,57 @@ export function expenseStatusLabel(value: ExpenseStatus) {
     const labels = currentAppLocale() === 'en' ? expenseStatusLabelsEn : expenseStatusLabels;
     return labels[value] ?? value;
 }
+
+
+export type ExpenseSettlementKind =
+    | 'none'
+    | 'reimbursement_due'
+    | 'reimbursed'
+    | 'recovery_due'
+    | 'recovered';
+
+export function expenseSettlementStateLabel(kind: ExpenseSettlementKind) {
+    const isEnglish = currentAppLocale() === 'en';
+
+    return {
+        none: '',
+        reimbursement_due: isEnglish ? 'To reimburse' : 'De rambursat',
+        reimbursed: isEnglish ? 'Reimbursed' : 'Rambursat',
+        recovery_due: isEnglish ? 'To recover' : 'De recuperat',
+        recovered: isEnglish ? 'Recovered' : 'Recuperat',
+    }[kind];
+}
+
+export function expenseSettlementActionLabel(kind: ExpenseSettlementKind) {
+    const isEnglish = currentAppLocale() === 'en';
+
+    return {
+        none: '',
+        reimbursement_due: isEnglish ? 'Mark as reimbursed' : 'Marchează ca rambursat',
+        reimbursed: isEnglish ? 'Undo reimbursement' : 'Anulează rambursarea',
+        recovery_due: isEnglish ? 'Mark as recovered' : 'Marchează ca recuperat',
+        recovered: isEnglish ? 'Undo recovery' : 'Anulează recuperarea',
+    }[kind];
+}
+
+export function expenseSettledLabel(
+    kind: ExpenseSettlementKind,
+    settledAt?: string | null,
+) {
+    if (!settledAt || (kind !== 'reimbursed' && kind !== 'recovered')) {
+        return null;
+    }
+
+    const isEnglish = currentAppLocale() === 'en';
+    const date = new Intl.DateTimeFormat(isEnglish ? 'en-GB' : 'ro-RO', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+    }).format(new Date(settledAt));
+
+    if (kind === 'reimbursed') {
+        return isEnglish ? `Reimbursed on ${date}` : `Rambursat la ${date}`;
+    }
+
+    return isEnglish ? `Recovered on ${date}` : `Recuperat la ${date}`;
+}
