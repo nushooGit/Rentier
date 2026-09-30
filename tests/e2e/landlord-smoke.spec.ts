@@ -128,6 +128,26 @@ test.describe('authenticated landlord smoke', () => {
         );
     });
 
+    test('English property cards do not render Romanian rent status badges', async ({
+        page,
+    }) => {
+        test.setTimeout(60_000);
+        requireLocalBaseURL();
+
+        await login(page);
+        await page.getByTestId('locale-switcher').click();
+        await page.getByRole('menuitem', { name: /English/ }).click();
+
+        const teamSlug = currentTeamSlug(page);
+        await page.goto(`/${teamSlug}/properties`);
+
+        await expect(page.getByText('Plătită parțial')).toHaveCount(0);
+        await expect(page.getByText(/Restanță:/)).toHaveCount(0);
+        await expect(page.getByText(/luni restante/)).toHaveCount(0);
+        await expect(page.getByText(/Încasat:/)).toHaveCount(0);
+        await expect(page.getByText(/Scăzut din chirie:/)).toHaveCount(0);
+    });
+
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
