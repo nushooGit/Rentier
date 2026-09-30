@@ -135,11 +135,13 @@ export function paymentPeriodLabel(month: number | null, year: number | null) {
 
     const date = new Date(Date.UTC(year, month - 1, 1));
 
-    return new Intl.DateTimeFormat(currentIntlLocale(), {
+    const label = new Intl.DateTimeFormat(currentIntlLocale(), {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
     }).format(date);
+
+    return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 export function paymentPeriodLabelFromDate(value: string) {
