@@ -458,8 +458,15 @@ const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };
 export function translateKey(
     key: TranslationKey,
     locale: AppLocale = currentAppLocale(),
+    params: Record<string, string | number> = {},
 ) {
-    return messages[locale][key] ?? ro[key];
+    let value = messages[locale][key] ?? ro[key];
+
+    for (const [name, replacement] of Object.entries(params)) {
+        value = value.replaceAll(`{${name}}`, String(replacement));
+    }
+
+    return value;
 }
 
 export function useI18n() {
@@ -470,7 +477,8 @@ export function useI18n() {
 
     return {
         locale,
-        t: (key: TranslationKey) => translateKey(key, locale),
+        t: (key: TranslationKey, params: Record<string, string | number> = {}) =>
+            translateKey(key, locale, params),
         translate: (value?: string) =>
             value && value in ro
                 ? messages[locale][value as TranslationKey]
