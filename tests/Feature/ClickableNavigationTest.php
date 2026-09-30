@@ -33,7 +33,7 @@ test('payments index includes card links and keeps action controls', function ()
     expect($source)
         ->toContain('data-test="payment-card-link"')
         ->toContain('href={show([currentTeamSlug, payment.id])}')
-        ->toContain('Tip:')
+        ->toContain("t('payments.field.type')")
         ->toContain('data-test="payment-view-link"')
         ->toContain('data-test="payment-edit-link"')
         ->toContain('deletePayment(payment)')
@@ -88,8 +88,8 @@ test('expense settlement labels use directional reimbursement wording', function
     expect($form)
         ->toContain('paidBy')
         ->toContain('responsibleParty')
-        ->toContain('se recuperează de la chiriaș')
-        ->toContain('se rambursează către chiriaș');
+        ->toContain("t('expenses.form.ownerPaysRenterCost')")
+        ->toContain("t('expenses.form.renterPaysOwnerCost')");
 
     expect($show)
         ->toContain('expense.paid_by')

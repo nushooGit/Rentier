@@ -5,9 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import { translateKey, useI18n } from '@/lib/i18n';
-import { currentAppLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
-import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
+import {
+    paymentMethodLabel,
+    paymentPeriodLabel,
+    paymentPeriodLabelFromDate,
+    paymentSummaryStatusLabel,
+    paymentTypeLabel,
+} from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
 
@@ -15,48 +20,11 @@ type Props = {
     payments: RentPayment[];
 };
 
-const monthNamesRo = [
-    'Ianuarie',
-    'Februarie',
-    'Martie',
-    'Aprilie',
-    'Mai',
-    'Iunie',
-    'Iulie',
-    'August',
-    'Septembrie',
-    'Octombrie',
-    'Noiembrie',
-    'Decembrie',
-];
-
-const monthNamesEn = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-];
-
-function formatRentPeriod(month: number | null, year: number | null) {
-    if (month === null || year === null) {
-        return translateKey('payments.index.noPeriod');
-    }
-
-    const monthNames = currentAppLocale() === 'en' ? monthNamesEn : monthNamesRo;
-
-    return `${monthNames[month - 1] ?? month} ${year}`;
-}
-
 function paymentBadgeLabel(payment: RentPayment) {
-    return payment.status_summary.status_label;
+    return paymentSummaryStatusLabel(
+        payment.payment_type,
+        payment.status_summary.status_key,
+    );
 }
 
 function paymentContext(payment: RentPayment) {
@@ -81,7 +49,7 @@ function paymentContext(payment: RentPayment) {
         )}`;
     }
 
-    return formatRentPeriod(payment.period_month, payment.period_year);
+    return paymentPeriodLabel(payment.period_month, payment.period_year);
 }
 
 function paymentMetaLine(payment: RentPayment) {
@@ -107,7 +75,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
             <span className="font-medium text-foreground">{t('payments.section.allocation')}:</span>
             {payment.allocation_summary.breakdown.map((allocation) => (
                 <span key={allocation.period_key}>
-                    {allocation.period_label} -{' '}
+                    {paymentPeriodLabelFromDate(allocation.period_date)} -{' '}
                     {formatMoney(allocation.amount, payment.currency)}
                 </span>
             ))}
@@ -175,7 +143,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                                 {payment.renter.name}
                                             </h2>
                                             <p className="mt-1 text-sm text-muted-foreground">
-                                                {payment.property.name} - Tip:{' '}
+                                                {payment.property.name} - {t('payments.field.type')}:{' '}
                                                 {paymentTypeLabel(
                                                     payment.payment_type,
                                                 )}
@@ -247,10 +215,10 @@ export default function PaymentsIndex({ payments }: Props) {
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <WalletCards className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există încasări încă
+                            {t('payments.index.emptyTitle')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Înregistrează prima încasare pentru un contract existent.
+                            {t('payments.index.emptyDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -267,7 +235,7 @@ export default function PaymentsIndex({ payments }: Props) {
 PaymentsIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Încasări',
+            title: translateKey('nav.payments'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],

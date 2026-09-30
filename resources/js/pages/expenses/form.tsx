@@ -182,10 +182,10 @@ export default function ExpenseForm({
     );
     const settlementHelpText =
         effectivePaidBy === 'owner' && effectiveResponsibleParty === 'tenant'
-            ? 'Dacă proprietarul plătește o cost suportat de chiriaș, aceasta se recuperează de la chiriaș.'
+            ? t('expenses.form.ownerPaysRenterCost')
             : effectivePaidBy === 'tenant' &&
                 effectiveResponsibleParty === 'owner'
-              ? 'Dacă chiriașul plătește o cost suportat de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
+              ? t('expenses.form.renterPaysOwnerCost')
               : null;
 
     return (
@@ -229,7 +229,7 @@ export default function ExpenseForm({
                         </Field>
                     </FormSection>
 
-                    <FormSection title="Proprietate și contract">
+                    <FormSection title={t('expenses.form.propertyLease')}>
                         <Field className="md:col-span-2">
                             <Label htmlFor="property_id">{t('common.property')}</Label>
                             <select
@@ -245,7 +245,7 @@ export default function ExpenseForm({
                                 data-test="expense-property-select"
                             >
                                 <option value="" disabled>
-                                    Alege proprietatea
+                                    {t('common.chooseProperty')}
                                 </option>
                                 {properties.map((property) => (
                                     <option
@@ -270,7 +270,7 @@ export default function ExpenseForm({
                                     setSelectedLeaseId(event.target.value)
                                 }
                             >
-                                <option value="">Fără contract</option>
+                                <option value="">{t('common.noLease')}</option>
                                 {propertyLeases.map((lease) => (
                                     <option key={lease.id} value={lease.id}>
                                         {lease.label}
@@ -280,14 +280,13 @@ export default function ExpenseForm({
                             <InputError message={errors.lease_id} />
                             {tenantInvolved && applicableLeases.length === 1 ? (
                                 <p className="text-xs text-muted-foreground">
-                                    Costul va fi asociat contractului activ
-                                    la data selectată.
+                                    {t('expenses.form.activeLeaseHelp')}
                                 </p>
                             ) : null}
                         </Field>
                     </FormSection>
 
-                    <FormSection title="Sumă și plată">
+                    <FormSection title={t('expenses.form.amountPayment')}>
                         <Field>
                             <Label htmlFor="amount">{t('expenses.field.amount')}</Label>
                             <Input
@@ -321,7 +320,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="expense_date">
-                                Data costului
+                                {t('expenses.field.date')}
                             </Label>
                             <DateInput
                                 id="expense_date"
@@ -368,7 +367,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="responsible_party">
-                                Cine suportă costul?
+                                {t('expenses.form.responsibleQuestion')}
                             </Label>
                             <select
                                 id="responsible_party"
@@ -400,7 +399,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="settlement_type">Decontare</Label>
+                            <Label htmlFor="settlement_type">{t('expenses.field.settlement')}</Label>
                             <select
                                 id="settlement_type"
                                 name="settlement_type"
@@ -435,15 +434,11 @@ export default function ExpenseForm({
                         <div className="space-y-1 text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
                             {!hasActiveTenantContext ? (
                                 <p>
-                                    Nu există contract activ pentru această
-                                    proprietate la data selectată. Poți
-                                    înregistra doar costuri plătite și
-                                    suportate de proprietar.
+                                    {t('expenses.form.noActiveLeaseHelp')}
                                 </p>
                             ) : null}
                             <p>
-                                Costurile suportate de chiriaș nu afectează
-                                profitul proprietarului.
+                                {t('expenses.form.renterProfitHelp')}
                             </p>
                             {settlementHelpText ? (
                                 <p>{settlementHelpText}</p>
@@ -453,7 +448,7 @@ export default function ExpenseForm({
 
                     <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
                         <h2 className="text-sm font-semibold tracking-tight sm:text-base">
-                            Note
+                            {t('common.notes')}
                         </h2>
                         <Field>
                             <Label htmlFor="notes">{t('common.notes')}</Label>
