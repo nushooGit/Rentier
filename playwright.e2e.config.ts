@@ -7,6 +7,7 @@ process.env.E2E_BASE_URL = baseURL;
 process.env.E2E_EMAIL = process.env.E2E_EMAIL || 'e2e@rentier.test';
 process.env.E2E_PASSWORD = process.env.E2E_PASSWORD || 'password';
 process.env.E2E_ISOLATED = '1';
+process.env.APP_TIMEZONE = 'Europe/Bucharest';
 
 const webServer: PlaywrightTestConfig['webServer'] = [
     {
