@@ -16,6 +16,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import { translateKey, useI18n } from '@/lib/i18n';
+import { documentCategoryLabel } from '@/pages/documents/labels';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -270,7 +271,7 @@ export default function DocumentsIndex({
                                                     key={category.value}
                                                     value={category.value}
                                                 >
-                                                    {category.label}
+                                                    {documentCategoryLabel(category.value)}
                                                 </option>
                                             ))}
                                         </select>
@@ -358,7 +359,7 @@ export default function DocumentsIndex({
                                         <Label htmlFor="expires_on">
                                             {t('documents.expiresAt')}
                                             <span className="ml-1 font-normal text-muted-foreground">
-                                                (opțional)
+                                                {t('documents.optional')}
                                             </span>
                                         </Label>
                                         <DateInput
@@ -450,7 +451,7 @@ export default function DocumentsIndex({
                                             key={category.value}
                                             value={category.value}
                                         >
-                                            {category.label}
+                                            {documentCategoryLabel(category.value)}
                                         </option>
                                     ))}
                                 </select>
@@ -553,7 +554,7 @@ export default function DocumentsIndex({
                                                 {document.original_name}
                                             </p>
                                             <p className="mt-0.5 text-sm text-muted-foreground">
-                                                {document.category_label}
+                                                {documentCategoryLabel(document.category)}
                                             </p>
                                         </div>
                                     </div>
