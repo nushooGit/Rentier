@@ -50,7 +50,7 @@ test('dashboard prioritizes primary landlord signals without changing financial 
         ->toContain('Panou de control')
         ->toContain('Încasat luna asta')
         ->toContain('Rest de încasat')
-        ->toContain('Cheltuieli luna asta')
+        ->toContain('Costuri luna asta')
         ->toContain('De recuperat')
         ->toContain('Necesită atenția ta')
         ->toContain('Detalii financiare')
