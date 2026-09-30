@@ -4,7 +4,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { currentAppLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
 import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
@@ -15,7 +15,7 @@ type Props = {
     payments: RentPayment[];
 };
 
-const monthNames = [
+const monthNamesRo = [
     'Ianuarie',
     'Februarie',
     'Martie',
@@ -30,10 +30,27 @@ const monthNames = [
     'Decembrie',
 ];
 
+const monthNamesEn = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+];
+
 function formatRentPeriod(month: number | null, year: number | null) {
     if (month === null || year === null) {
-        return currentAppLocale() === 'en' ? 'No rent period' : 'Fără perioadă de chirie';
+        return translateKey('payments.index.noPeriod');
     }
+
+    const monthNames = currentAppLocale() === 'en' ? monthNamesEn : monthNamesRo;
 
     return `${monthNames[month - 1] ?? month} ${year}`;
 }
@@ -52,8 +69,8 @@ function paymentContext(payment: RentPayment) {
         );
         const prefix =
             expectedAmount > 0 && collectedAmount > expectedAmount
-                ? '{t('payments.index.overDeposit')}'
-                : 'Garanție';
+                ? translateKey('payments.index.overDeposit')
+                : paymentTypeLabel('guarantee');
 
         return `${prefix}: ${formatMoney(
             payment.guarantee_summary.collected_amount,
@@ -74,6 +91,8 @@ function paymentMetaLine(payment: RentPayment) {
 }
 
 function AllocationSummary({ payment }: { payment: RentPayment }) {
+    const { t } = useI18n();
+
     if (
         payment.payment_type === 'guarantee' ||
         !payment.allocation_summary ||
@@ -85,7 +104,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
 
     return (
         <div className="mt-1 grid gap-1 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Alocare chirie:</span>
+            <span className="font-medium text-foreground">{t('payments.section.allocation')}:</span>
             {payment.allocation_summary.breakdown.map((allocation) => (
                 <span key={allocation.period_key}>
                     {allocation.period_label} -{' '}
@@ -94,7 +113,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
             ))}
             {Number(payment.allocation_summary.unallocated_amount) > 0 ? (
                 <span className="font-medium text-amber-700">
-                    Sold nealocat:{' '}
+                    {t('payments.field.unallocated')}:{' '}
                     {formatMoney(
                         payment.allocation_summary.unallocated_amount,
                         payment.currency,
@@ -111,11 +130,7 @@ export default function PaymentsIndex({ payments }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deletePayment = (payment: RentPayment) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi această plată? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('payments.index.deleteConfirm'))) {
             return;
         }
 
