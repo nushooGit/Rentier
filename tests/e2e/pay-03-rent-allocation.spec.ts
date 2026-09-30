@@ -58,7 +58,7 @@ test.describe('PAY-03 rent payment allocation', () => {
             .filter({ hasText: propertyName });
         await expect(propertyCard).toContainText('Plătită luna aceasta');
         await expect(propertyCard).toContainText(
-            `Plătită în avans până în ${next.inlineLabel}`,
+            `Plătită în avans până în ${next.label}`,
         );
 
         await page.goto(`/${teamSlug}/dashboard`);
@@ -173,11 +173,11 @@ test.describe('PAY-03 rent payment allocation', () => {
         await page.goto(`/${teamSlug}/properties`);
         await expect(
             page.getByTestId('property-card').filter({ hasText: propertyName }),
-        ).toContainText(`Plătită în avans până în ${next.inlineLabel}`);
+        ).toContainText(`Plătită în avans până în ${next.label}`);
         await expect(
             page.getByTestId('property-card').filter({ hasText: propertyName }),
         ).toContainText(
-            `Avans pentru ${following.inlineLabel}: 1.000 RON / 2.500 RON`,
+            `Avans pentru ${following.label}: 1.000 RON / 2.500 RON`,
         );
 
         await page.goto(`/${teamSlug}/dashboard`);
