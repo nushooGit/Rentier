@@ -1,6 +1,6 @@
 # Architecture
 
-Rentier is a Laravel SaaS application for property rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first landlord and renter portal experiences over the same backend.
+Rentier is a Laravel property operating platform, currently centered on rental management. The backend owns authentication, authorization, data integrity, and domain rules. The frontend uses Inertia React to provide mobile-first portal experiences over the same backend. The approved long-term multi-portal direction is documented in [Rentier Platform Direction](product-platform-direction.md).
 
 ## High-Level Architecture
 
@@ -19,17 +19,6 @@ Rentier is a Laravel SaaS application for property rental management. The backen
 - A single user account may act as a landlord, renter, or both.
 - Portal selection should be based on authorized relationships and UI context, not separate login systems.
 - Authentication changes should be deliberate and tested because they affect all portal experiences.
-
-## Internal Platform Admin Strategy
-
-Internal platform administration is a separate operational surface from landlord workspace membership.
-
-- Use the same Laravel authentication system and the same `users` table.
-- Serve the internal surface from a dedicated host configured by `RENTIER_ADMIN_URL` (production target: `https://admin.rentier.ro`).
-- Keep session cookies host-only. Logging into `app.rentier.ro` must not silently create an authenticated session on `admin.rentier.ro`, or vice versa.
-- Platform-admin access must be independent from workspace owner/member roles. The first MVP increment uses a deployment-only email allowlist (`RENTIER_PLATFORM_ADMIN_EMAILS`) so no workspace role can grant platform access.
-- Do not expose normal landlord workspace routes from the admin host.
-- Start with read-only user/workspace visibility and aggregate statistics. Persistent activation/suspension requires a separately reviewed data migration and access-enforcement change.
 
 ## Landlord and Renter Portal Strategy
 
@@ -110,3 +99,15 @@ Rentier must be mobile-first and responsive from the beginning because it may la
 - Desktop: dashboards, tables, and reporting can use denser layouts, but must not be the only usable experience.
 - Navigation should support portal switching and organization/workspace context without assuming a wide sidebar.
 - Use responsive components that can survive future app-shell embedding.
+
+
+## Product Sequencing Rule
+
+The long-term multi-portal architecture does not mean the portal expansion starts immediately.
+
+The approved sequence is:
+1. complete the landlord product gate defined in `docs/landlord-v1-scope.md`;
+2. build a focused public growth/SEO layer on `rentier.ro`;
+3. only then begin the larger Home/Market/building-administration expansion.
+
+Shared domain design should still avoid choices that block future Home reuse, especially for documents, utilities, invoices, maintenance and property history.
