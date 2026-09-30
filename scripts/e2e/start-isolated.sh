@@ -15,6 +15,7 @@ fi
 
 export APP_ENV=e2e
 export APP_URL=http://127.0.0.1:8010
+export APP_TIMEZONE=Europe/Bucharest
 export E2E_BASE_URL=http://127.0.0.1:8010
 export E2E_EMAIL="${E2E_EMAIL:-e2e@rentier.test}"
 export E2E_PASSWORD="${E2E_PASSWORD:-password}"
