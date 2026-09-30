@@ -22,7 +22,8 @@ test('authentication UI uses Rentier branding and the localization layer', funct
         ->toContain("'auth.login.email': 'Email address'");
 
     expect($login)
-        ->toContain("t('auth.login.title')")
+        ->toContain("title: 'auth.login.title'")
+        ->toContain("description: 'auth.login.description'")
         ->toContain("t('auth.login.email')")
         ->toContain("t('auth.login.password')")
         ->toContain("t('auth.login.remember')")
