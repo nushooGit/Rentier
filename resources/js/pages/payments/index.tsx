@@ -179,7 +179,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                                 {payment.renter.name}
                                             </h2>
                                             <p className="mt-1 text-sm text-muted-foreground">
-                                                {payment.property.name} - Tip:{' '}
+                                                {payment.property.name} - {t('common.type')}:{' '}
                                                 {paymentTypeLabel(
                                                     payment.payment_type,
                                                 )}
