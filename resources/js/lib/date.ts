@@ -200,9 +200,11 @@ export function formatMonthYear(
         return date;
     }
 
-    return new Intl.DateTimeFormat(locale, {
+    const formatted = new Intl.DateTimeFormat(locale, {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
     }).format(parsedDate);
+
+    return formatted.charAt(0).toUpperCase() + formatted.slice(1);
 }
