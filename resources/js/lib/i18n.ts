@@ -1,5 +1,5 @@
 import { usePage } from '@inertiajs/react';
-import { normalizeAppLocale, type AppLocale } from '@/lib/locale';
+import { currentAppLocale, normalizeAppLocale, type AppLocale } from '@/lib/locale';
 
 const ro = {
     'app.tagline': 'Administrare chirii',
@@ -415,6 +415,13 @@ const en: Record<TranslationKey, string> = {
 
 const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };
 
+export function translateKey(
+    key: TranslationKey,
+    locale: AppLocale = currentAppLocale(),
+) {
+    return messages[locale][key] ?? ro[key];
+}
+
 export function useI18n() {
     const page = usePage();
     const locale = normalizeAppLocale(
@@ -423,7 +430,7 @@ export function useI18n() {
 
     return {
         locale,
-        t: (key: TranslationKey) => messages[locale][key] ?? ro[key],
+        t: (key: TranslationKey) => translateKey(key, locale),
         translate: (value?: string) =>
             value && value in ro
                 ? messages[locale][value as TranslationKey]
