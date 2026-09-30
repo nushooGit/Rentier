@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
@@ -112,7 +113,7 @@ export default function PaymentForm({
                 <>
                     <FormSection title="Detalii încasare">
                         <Field className="md:col-span-2">
-                            <Label htmlFor="lease_id">Contract</Label>
+                            <Label htmlFor="lease_id">{t('common.lease')}</Label>
                             <select
                                 id="lease_id"
                                 name="lease_id"
@@ -137,7 +138,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="payment_type">Tip încasare</Label>
+                            <Label htmlFor="payment_type">{t('payments.field.type')}</Label>
                             <select
                                 id="payment_type"
                                 name="payment_type"
@@ -161,7 +162,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="method">Metodă</Label>
+                            <Label htmlFor="method">{t('payments.field.method')}</Label>
                             <select
                                 id="method"
                                 name="method"
@@ -190,7 +191,7 @@ export default function PaymentForm({
                         }
                     >
                         <Field>
-                            <Label htmlFor="amount">Sumă</Label>
+                            <Label htmlFor="amount">{t('payments.field.amount')}</Label>
                             <Input
                                 id="amount"
                                 name="amount"
@@ -206,7 +207,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -325,7 +326,7 @@ export default function PaymentForm({
                             Note
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"
