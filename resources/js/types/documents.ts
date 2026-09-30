@@ -21,7 +21,9 @@ export type DocumentPropertyOption = {
 export type DocumentLeaseOption = {
     id: number;
     property_id: number;
-    label: string;
+    renter_name: string;
+    start_date: string;
+    end_date: string | null;
 };
 
 export type RentierDocument = {
