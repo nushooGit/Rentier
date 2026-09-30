@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
     FileText,
+    FolderOpen,
     LayoutDashboard,
     ReceiptText,
     WalletCards,
@@ -20,6 +21,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
 import { index as paymentsIndex } from '@/routes/payments';
@@ -65,6 +67,13 @@ export function AppSidebar() {
                 ? expensesIndex(page.props.currentTeam.slug)
                 : '/',
             icon: ReceiptText,
+        },
+        {
+            title: 'Documente',
+            href: page.props.currentTeam
+                ? documentsIndex(page.props.currentTeam.slug)
+                : '/',
+            icon: FolderOpen,
         },
     ];
 

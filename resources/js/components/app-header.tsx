@@ -4,6 +4,7 @@ import {
     Building2,
     FileText,
     Folder,
+    FolderOpen,
     LayoutGrid,
     Menu,
     ReceiptText,
@@ -45,6 +46,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
 import { index as paymentsIndex } from '@/routes/payments';
@@ -103,6 +105,11 @@ export function AppHeader({ breadcrumbs = [] }: Props) {
             title: 'Cheltuieli',
             href: currentTeam ? expensesIndex(currentTeam.slug) : '/',
             icon: ReceiptText,
+        },
+        {
+            title: 'Documente',
+            href: currentTeam ? documentsIndex(currentTeam.slug) : '/',
+            icon: FolderOpen,
         },
     ];
 

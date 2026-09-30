@@ -29,7 +29,8 @@ test('authenticated app shell uses Rentier branding instead of starter kit links
         ->toContain("label: 'Proprietăți'")
         ->toContain("label: 'Contracte'")
         ->toContain("label: 'Plăți'")
-        ->toContain("label: 'Cheltuieli'");
+        ->toContain("label: 'Cheltuieli'")
+        ->toContain("label: 'Documente'");
 });
 
 test('dashboard prioritizes primary landlord signals without changing financial source fields', function () {
