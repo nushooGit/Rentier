@@ -63,6 +63,71 @@ test.describe('authenticated landlord smoke', () => {
         });
     });
 
+    test('English locale is complete on landlord forms and document categories', async ({
+        page,
+    }) => {
+        test.setTimeout(60_000);
+        requireLocalBaseURL();
+
+        const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const propertyName = `E2E EN Property ${suffix}`;
+
+        await login(page);
+        await page.getByTestId('locale-switcher').click();
+        await page.getByRole('menuitem', { name: /English/ }).click();
+        await expect(
+            page.getByRole('heading', { name: 'Dashboard' }),
+        ).toBeVisible();
+
+        const teamSlug = currentTeamSlug(page);
+
+        await page.goto(`/${teamSlug}/properties/create`);
+        await expect(page.getByText('Property name')).toBeVisible();
+        await page.getByTestId('property-name-input').fill(propertyName);
+        await page.getByTestId('property-type-select').selectOption('apartment');
+        await page.getByTestId('property-status-select').selectOption('available');
+        await page.getByTestId('property-city-input').fill('Bucharest');
+        await page
+            .getByTestId('property-address-input')
+            .fill(`English Street ${suffix}`);
+        await page.locator('#monthly_rent_amount').fill('1800');
+        await page.getByTestId('property-save-button').click();
+        await expect(page).toHaveURL(new RegExp(`/${teamSlug}/properties`));
+        await expect(page.getByText(propertyName)).toBeVisible();
+
+        await page.goto(`/${teamSlug}/leases/create`);
+        await expect(page.getByText('Start date')).toBeVisible();
+        await expect(page.getByText('End date')).toBeVisible();
+        await expect(page.getByText('Renter phone')).toBeVisible();
+        await expect(page.getByText('Monthly rent')).toBeVisible();
+        await expect(page.getByText('Due day')).toBeVisible();
+        await expect(page.getByText('Data început')).toHaveCount(0);
+        await expect(page.getByText('Telefon chiriaș')).toHaveCount(0);
+
+        await page.goto(`/${teamSlug}/payments/create`);
+        await expect(page.getByText('Choose lease')).toBeVisible();
+        await expect(page.getByText('Income type')).toBeVisible();
+        await expect(page.getByText('Received date')).toBeVisible();
+        await expect(page.getByText('Rent month')).toBeVisible();
+        await expect(page.getByText('Rent year')).toBeVisible();
+        await expect(page.getByText('Nesetat')).toHaveCount(0);
+
+        await page.goto(`/${teamSlug}/expenses/create`);
+        await expect(page.getByText('Property and lease')).toBeVisible();
+        await expect(page.getByText('Amount and payment')).toBeVisible();
+        await expect(page.getByText('Who bears the cost?')).toBeVisible();
+        await expect(page.getByText('Decontare')).toHaveCount(0);
+
+        await page.goto(`/${teamSlug}/documents`);
+        await expect(page.locator('#category')).toBeVisible();
+        await expect(page.locator('#category')).toContainText('Lease contract');
+        await expect(page.locator('#category')).toContainText('Addendum');
+        await expect(page.locator('#category')).toContainText('Handover report');
+        await expect(page.locator('#category')).not.toContainText(
+            'Contract de închiriere',
+        );
+    });
+
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
