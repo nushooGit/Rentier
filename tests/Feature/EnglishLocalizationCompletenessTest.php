@@ -11,6 +11,7 @@ test('english landlord surfaces do not keep Romanian runtime copy in the affecte
         'js/pages/documents/index.tsx',
         'js/pages/leases/form.tsx',
         'js/pages/properties/show.tsx',
+        'js/pages/properties/index.tsx',
     ];
 
     $forbidden = [
@@ -33,6 +34,11 @@ test('english landlord surfaces do not keep Romanian runtime copy in the affecte
         'Alege proprietatea',
         'Alege contractul',
         'Fără contract',
+        'Plătită parțial',
+        'Restanță:',
+        'luni restante',
+        'Scăzut din chirie',
+        'Încasat:',
     ];
 
     foreach ($paths as $path) {
@@ -52,6 +58,8 @@ test('runtime labels are derived from stable semantic values instead of backend 
     $expenseIndex = file_get_contents(resource_path('js/pages/expenses/index.tsx'));
     $documents = file_get_contents(resource_path('js/pages/documents/labels.ts'));
     $documentIndex = file_get_contents(resource_path('js/pages/documents/index.tsx'));
+    $propertyLabels = file_get_contents(resource_path('js/pages/properties/labels.ts'));
+    $propertyIndex = file_get_contents(resource_path('js/pages/properties/index.tsx'));
 
     expect($payments)
         ->toContain('paymentSummaryStatusLabel')
@@ -82,4 +90,14 @@ test('runtime labels are derived from stable semantic values instead of backend 
         ->toContain('documentCategoryLabel(document.category)')
         ->not->toContain('{category.label}')
         ->not->toContain('{document.category_label}');
+
+    expect($propertyLabels)
+        ->toContain('propertyRentStatusBadgeLabel')
+        ->toContain('propertyAdvanceNoticeLabel');
+
+    expect($propertyIndex)
+        ->toContain('propertyRentStatusBadgeLabel')
+        ->toContain('propertyAdvanceNoticeLabel')
+        ->not->toContain('{badge.label}')
+        ->not->toContain('{notice.label}');
 });
