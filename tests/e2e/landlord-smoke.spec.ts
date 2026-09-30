@@ -105,7 +105,7 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByText('Telefon chiriaș')).toHaveCount(0);
 
         await page.goto(`/${teamSlug}/payments/create`);
-        await expect(page.getByText('Choose lease')).toBeVisible();
+        await expect(page.getByTestId('payment-lease-select')).toContainText('Choose lease');
         await expect(page.getByText('Income type')).toBeVisible();
         await expect(page.getByText('Received date')).toBeVisible();
         await expect(page.getByText('Rent month')).toBeVisible();
