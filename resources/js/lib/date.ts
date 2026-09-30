@@ -184,3 +184,25 @@ export function parseDateInputToIso(value: string, locale = currentIntlLocale())
 
 export const formatDateForDisplay = formatDateLong;
 export const formatDate = formatDateLong;
+
+
+export function formatMonthYear(
+    date?: string | null,
+    locale = currentIntlLocale(),
+) {
+    if (!date) {
+        return locale === DEFAULT_LOCALE ? 'Nesetat' : 'Not set';
+    }
+
+    const parsedDate = createUtcDate(date);
+
+    if (!parsedDate) {
+        return date;
+    }
+
+    return new Intl.DateTimeFormat(locale, {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+    }).format(parsedDate);
+}
