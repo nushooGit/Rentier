@@ -277,7 +277,7 @@ test.describe('authenticated landlord smoke', () => {
             .getByTestId('property-card')
             .filter({ hasText: propertyName });
 
-        await expect(propertyCard).toContainText('Paid this month');
+        await expect(propertyCard).toContainText('Due today');
         await expect(propertyCard).not.toContainText('Plătită');
         await expect(propertyCard).not.toContainText('Restanță');
         await expect(propertyCard).not.toContainText('luni restante');
