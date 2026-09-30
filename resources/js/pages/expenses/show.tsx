@@ -3,12 +3,16 @@ import { ArrowLeft, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { formatMoney } from '@/lib/money';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
     expenseResponsiblePartyLabel,
+    expenseSettlementActionLabel,
+    expenseSettlementStateLabel,
     expenseSettlementTypeLabel,
+    expenseSettledLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import { destroy, edit, index, show } from '@/routes/expenses';
@@ -17,17 +21,6 @@ import type { Expense } from '@/types';
 type Props = {
     expense: Expense;
 };
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
-
-    return `${Number(amount).toLocaleString('ro-RO', {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
-}
 
 function Detail({
     label,
@@ -39,7 +32,7 @@ function Detail({
     return (
         <div>
             <dt className="text-sm text-muted-foreground">{label}</dt>
-            <dd className="mt-1 text-sm font-medium">{value ?? 'Nesetat'}</dd>
+            <dd className="mt-1 text-sm font-medium">{value ?? translateKey('common.notSet')}</dd>
         </div>
     );
 }
@@ -50,7 +43,7 @@ export default function ExpenseShow({ expense }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteExpense = () => {
-        if (!window.confirm(`Ștergi ${expense.title}?`)) {
+        if (!window.confirm(t('expenses.show.deleteConfirm', { name: expense.title }))) {
             return;
         }
 
@@ -81,8 +74,11 @@ export default function ExpenseShow({ expense }: Props) {
                                 {formatMoney(expense.amount, expense.currency)}
                             </h1>
                             <Badge variant="secondary">
-                                {expense.settlement_state.label ??
-                                    expenseStatusLabel(expense.status)}
+                                {expense.settlement_state.kind !== 'none'
+                                    ? expenseSettlementStateLabel(
+                                          expense.settlement_state.kind,
+                                      )
+                                    : expenseStatusLabel(expense.status)}
                             </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -98,7 +94,9 @@ export default function ExpenseShow({ expense }: Props) {
                         {expense.settlement_state.action_label ? (
                             <Button variant="outline" onClick={settleExpense}>
                                 <CheckCircle2 />
-                                {expense.settlement_state.action_label}
+                                {expenseSettlementActionLabel(
+                                    expense.settlement_state.kind,
+                                )}
                             </Button>
                         ) : null}
                         <Button asChild>
@@ -166,13 +164,19 @@ export default function ExpenseShow({ expense }: Props) {
                         <Detail
                             label={t('common.status')}
                             value={
-                                expense.settlement_state.label ??
-                                expenseStatusLabel(expense.status)
+                                expense.settlement_state.kind !== 'none'
+                                    ? expenseSettlementStateLabel(
+                                          expense.settlement_state.kind,
+                                      )
+                                    : expenseStatusLabel(expense.status)
                             }
                         />
                         <Detail
                             label={t('expenses.field.settled')}
-                            value={expense.settlement_state.settled_label}
+                            value={expenseSettledLabel(
+                                expense.settlement_state.kind,
+                                expense.settled_at,
+                            )}
                         />
                     </dl>
                 </section>
@@ -196,7 +200,7 @@ ExpenseShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Costuri & decontări',
+            title: translateKey('expenses.index.title'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
