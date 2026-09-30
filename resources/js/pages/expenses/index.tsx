@@ -11,6 +11,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import {
     expenseCategoryLabel,
@@ -39,11 +40,11 @@ type Props = {
 };
 
 const summaryItems = [
-    ['Total cheltuieli', 'total'],
-    ['Suportate de proprietar', 'owner_supported'],
-    ['Suportate de chiriaș', 'tenant_supported'],
-    ['Plătite de proprietar', 'owner_paid'],
-    ['Plătite de chiriaș', 'tenant_paid'],
+    ['expenses.index.total', 'total'],
+    ['expenses.index.ownerSupported', 'owner_supported'],
+    ['expenses.index.renterSupported', 'tenant_supported'],
+    ['expenses.index.ownerPaid', 'owner_paid'],
+    ['expenses.index.renterPaid', 'tenant_paid'],
 ] as const;
 
 export default function ExpensesIndex({
@@ -53,15 +54,12 @@ export default function ExpensesIndex({
     summary,
 }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
     const selectedCategory = filters.category;
 
     const deleteExpense = (expense: Expense) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi această cheltuială? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('expenses.index.deleteConfirm'))) {
             return;
         }
 
@@ -75,7 +73,9 @@ export default function ExpensesIndex({
 
         if (
             !window.confirm(
-                `Sigur vrei să continui cu acțiunea „${expense.settlement_state.action_label}”?`,
+                t('expenses.index.actionConfirm', {
+                    action: expense.settlement_state.action_label,
+                }),
             )
         ) {
             return;
@@ -93,17 +93,17 @@ export default function ExpensesIndex({
 
     return (
         <>
-            <Head title="Cheltuieli" />
+            <Head title={t('expenses.index.title')} />
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Cheltuieli"
-                        description="Urmărește costurile pe proprietăți și contracte"
+                        title={t('expenses.index.title')}
+                        description={t('expenses.index.description')}
                     />
                     <Button asChild data-test="expense-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Cheltuială nouă
+                            <Plus /> {t('expenses.index.new')}
                         </Link>
                     </Button>
                 </div>
@@ -116,7 +116,7 @@ export default function ExpensesIndex({
                         size="sm"
                         asChild
                     >
-                        <Link href={categoryHref(null)}>Toate</Link>
+                        <Link href={categoryHref(null)}>{t('common.all')}</Link>
                     </Button>
                     {expenseCategories.map((category) => (
                         <Button
@@ -136,12 +136,12 @@ export default function ExpensesIndex({
                     ))}
                 </div>
 
-                <section className="grid gap-2.5 rounded-lg border p-3 sm:p-3.5 lg:grid-cols-[1fr_1.1fr]">
+                <section className="grid gap-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm lg:grid-cols-[1fr_1.1fr]">
                     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                         {summaryItems.map(([label, key]) => (
-                            <div key={key} className="rounded-md border p-2.5">
+                            <div key={key} className="rounded-xl border border-border/70 bg-background/65 p-3">
                                 <p className="text-xs text-muted-foreground">
-                                    {label}
+                                    {t(label)}
                                 </p>
                                 <p className="mt-1 text-sm font-medium">
                                     {formatMoney(summary[key])}
@@ -173,14 +173,14 @@ export default function ExpensesIndex({
                         {expenses.map((expense) => (
                             <article
                                 key={expense.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="expense-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, expense.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="expense-card-link"
-                                    aria-label={`Vezi cheltuiala ${expense.title}`}
+                                    aria-label={t('expenses.index.view', { name: expense.title })}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
@@ -258,8 +258,8 @@ export default function ExpensesIndex({
                                             }
                                         >
                                             {expense.affects_owner_profit
-                                                ? 'Afectează profitul'
-                                                : 'Nu afectează profitul'}
+                                                ? t('expenses.profit.affects')
+                                                : t('expenses.profit.notAffects')}
                                         </Badge>
                                     </div>
                                     {expense.settlement_state.settled_label ? (
@@ -324,7 +324,7 @@ export default function ExpensesIndex({
                                         size="sm"
                                         type="button"
                                         onClick={() => deleteExpense(expense)}
-                                        aria-label="Șterge cheltuiala"
+                                        aria-label={t('expenses.index.delete')}
                                         data-test="expense-delete-button"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -340,11 +340,11 @@ export default function ExpensesIndex({
                             Nu există cheltuieli
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă prima cheltuială pentru o proprietate.
+                            Adaugă primul cost pentru o proprietate.
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Cheltuială nouă
+                                <Plus /> {t('expenses.index.new')}
                             </Link>
                         </Button>
                     </div>
@@ -357,7 +357,7 @@ export default function ExpensesIndex({
 ExpensesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Cheltuieli',
+            title: 'Costuri & decontări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],

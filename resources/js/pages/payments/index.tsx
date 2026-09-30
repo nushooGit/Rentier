@@ -4,6 +4,8 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { currentAppLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
 import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
@@ -13,7 +15,7 @@ type Props = {
     payments: RentPayment[];
 };
 
-const monthNames = [
+const monthNamesRo = [
     'Ianuarie',
     'Februarie',
     'Martie',
@@ -28,10 +30,27 @@ const monthNames = [
     'Decembrie',
 ];
 
+const monthNamesEn = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+];
+
 function formatRentPeriod(month: number | null, year: number | null) {
     if (month === null || year === null) {
-        return 'Fără perioadă de chirie';
+        return translateKey('payments.index.noPeriod');
     }
+
+    const monthNames = currentAppLocale() === 'en' ? monthNamesEn : monthNamesRo;
 
     return `${monthNames[month - 1] ?? month} ${year}`;
 }
@@ -50,8 +69,8 @@ function paymentContext(payment: RentPayment) {
         );
         const prefix =
             expectedAmount > 0 && collectedAmount > expectedAmount
-                ? 'Garanție depășită'
-                : 'Garanție';
+                ? translateKey('payments.index.overDeposit')
+                : paymentTypeLabel('guarantee');
 
         return `${prefix}: ${formatMoney(
             payment.guarantee_summary.collected_amount,
@@ -72,6 +91,8 @@ function paymentMetaLine(payment: RentPayment) {
 }
 
 function AllocationSummary({ payment }: { payment: RentPayment }) {
+    const { t } = useI18n();
+
     if (
         payment.payment_type === 'guarantee' ||
         !payment.allocation_summary ||
@@ -83,7 +104,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
 
     return (
         <div className="mt-1 grid gap-1 text-xs text-muted-foreground">
-            <span className="font-medium text-foreground">Alocare chirie:</span>
+            <span className="font-medium text-foreground">{t('payments.section.allocation')}:</span>
             {payment.allocation_summary.breakdown.map((allocation) => (
                 <span key={allocation.period_key}>
                     {allocation.period_label} -{' '}
@@ -92,7 +113,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
             ))}
             {Number(payment.allocation_summary.unallocated_amount) > 0 ? (
                 <span className="font-medium text-amber-700">
-                    Sold nealocat:{' '}
+                    {t('payments.field.unallocated')}:{' '}
                     {formatMoney(
                         payment.allocation_summary.unallocated_amount,
                         payment.currency,
@@ -105,14 +126,11 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
 
 export default function PaymentsIndex({ payments }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deletePayment = (payment: RentPayment) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi această plată? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('payments.index.deleteConfirm'))) {
             return;
         }
 
@@ -121,18 +139,18 @@ export default function PaymentsIndex({ payments }: Props) {
 
     return (
         <>
-            <Head title="Plăți" />
+            <Head title={t('nav.payments')} />
 
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Plăți"
-                        description="Urmărește încasările manuale pentru contracte"
+                        title={t('nav.payments')}
+                        description={t('payments.index.description')}
                     />
                     <Button asChild data-test="payment-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Plată nouă
+                            <Plus /> {t('payments.index.new')}
                         </Link>
                     </Button>
                 </div>
@@ -142,14 +160,14 @@ export default function PaymentsIndex({ payments }: Props) {
                         {payments.map((payment) => (
                             <article
                                 key={payment.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="payment-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, payment.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="payment-card-link"
-                                    aria-label={`Vezi plata pentru ${payment.renter.name}`}
+                                    aria-label={t('payments.index.view', { name: payment.renter.name })}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
@@ -216,7 +234,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                         size="sm"
                                         type="button"
                                         onClick={() => deletePayment(payment)}
-                                        aria-label="Șterge plata"
+                                        aria-label={t('payments.index.delete')}
                                         data-test="payment-delete-button"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -229,14 +247,14 @@ export default function PaymentsIndex({ payments }: Props) {
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <WalletCards className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există plăți încă
+                            Nu există încasări încă
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă o plată pentru un contract existent.
+                            Înregistrează prima încasare pentru un contract existent.
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Plată nouă
+                                <Plus /> {t('payments.index.new')}
                             </Link>
                         </Button>
                     </div>
@@ -249,7 +267,7 @@ export default function PaymentsIndex({ payments }: Props) {
 PaymentsIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Plăți',
+            title: 'Încasări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],

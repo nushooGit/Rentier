@@ -3,6 +3,7 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import { paymentMethodLabel } from '@/pages/payments/labels';
 import { destroy, edit, index, show } from '@/routes/payments';
@@ -55,6 +56,7 @@ function Detail({
 }
 
 function AllocationDetails({ payment }: { payment: RentPayment }) {
+    const { t } = useI18n();
     if (
         payment.payment_type === 'guarantee' ||
         !payment.allocation_summary ||
@@ -65,8 +67,8 @@ function AllocationDetails({ payment }: { payment: RentPayment }) {
     }
 
     return (
-        <section className="rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-base font-medium">Alocare chirie</h2>
+        <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
+            <h2 className="text-base font-medium">{t('payments.section.allocation')}</h2>
             <div className="mt-2.5 grid gap-1.5 text-sm">
                 {payment.allocation_summary.breakdown.map((allocation) => (
                     <div
@@ -83,7 +85,7 @@ function AllocationDetails({ payment }: { payment: RentPayment }) {
                 ))}
                 {Number(payment.allocation_summary.unallocated_amount) > 0 ? (
                     <div className="flex items-center justify-between gap-3 text-amber-700">
-                        <span>Sold nealocat</span>
+                        <span>{t('payments.field.unallocated')}</span>
                         <span className="font-medium">
                             {formatMoney(
                                 payment.allocation_summary.unallocated_amount,
@@ -99,10 +101,11 @@ function AllocationDetails({ payment }: { payment: RentPayment }) {
 
 export default function PaymentShow({ payment }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deletePayment = () => {
-        if (!window.confirm(`Ștergi plata pentru ${payment.renter.name}?`)) {
+        if (!window.confirm(`${t('payments.confirmDelete')} ${payment.renter.name}`)) {
             return;
         }
 
@@ -111,12 +114,12 @@ export default function PaymentShow({ payment }: Props) {
 
     return (
         <>
-            <Head title={`Plată ${payment.renter.name}`} />
-            <div className="mx-auto flex w-full max-w-6xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <Head title={`Încasare ${payment.renter.name}`} />
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
                     <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                            Sumă încasată
+                            {t('payments.summary.received')}
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-semibold tracking-normal">
@@ -133,49 +136,49 @@ export default function PaymentShow({ payment }: Props) {
                     <div className="flex flex-col-reverse gap-2 sm:flex-row">
                         <Button variant="outline" asChild>
                             <Link href={index(currentTeamSlug)}>
-                                <ArrowLeft /> Înapoi
+                                <ArrowLeft /> {t('common.back')}
                             </Link>
                         </Button>
                         <Button asChild>
                             <Link href={edit([currentTeamSlug, payment.id])}>
-                                <Pencil /> Editează
+                                <Pencil /> {t('common.edit')}
                             </Link>
                         </Button>
                         <Button variant="destructive" onClick={deletePayment}>
-                            <Trash2 /> Șterge
+                            <Trash2 /> {t('common.delete')}
                         </Button>
                     </div>
                 </div>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
-                    <h2 className="text-base font-medium">Detalii plată</h2>
+                <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
+                    <h2 className="text-base font-medium">{t('payments.section.details')}</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
-                            label="Contract"
+                            label={t('common.lease')}
                             value={contractLabel(payment)}
                         />
                         <Detail
-                            label="Proprietate"
+                            label={t('common.property')}
                             value={payment.property.name}
                         />
-                        <Detail label="Chiriaș" value={payment.renter.name} />
+                        <Detail label={t('common.renter')} value={payment.renter.name} />
                         <Detail
-                            label="Metodă"
+                            label={t('payments.field.method')}
                             value={paymentMethodLabel(payment.method)}
                         />
                         <Detail
-                            label="Data încasării"
+                            label={t('payments.field.date')}
                             value={formatDateLong(payment.payment_date)}
                         />
                         <Detail
-                            label="Perioada chiriei"
+                            label={t('payments.field.period')}
                             value={formatRentPeriod(
                                 payment.period_month,
                                 payment.period_year,
                             )}
                         />
                         <Detail
-                            label="Status"
+                            label={t('common.status')}
                             value={payment.status_summary.status_label}
                         />
                     </dl>
@@ -184,8 +187,8 @@ export default function PaymentShow({ payment }: Props) {
                 <AllocationDetails payment={payment} />
 
                 {payment.notes ? (
-                    <section className="rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-base font-medium">Note</h2>
+                    <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-base font-medium">{t('common.notes')}</h2>
                         <p className="mt-2.5 text-sm whitespace-pre-wrap">
                             {payment.notes}
                         </p>
@@ -202,7 +205,7 @@ PaymentShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Plăți',
+            title: 'Încasări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {

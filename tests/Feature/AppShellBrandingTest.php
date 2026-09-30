@@ -1,51 +1,68 @@
 <?php
 
-test('authenticated app shell uses Rentier branding instead of starter kit links', function () {
+test('authenticated app shell uses Rentier branding and localized product navigation', function () {
     $logo = file_get_contents(resource_path('js/components/app-logo.tsx'));
     $sidebar = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
     $navigation = file_get_contents(resource_path('js/components/nav-main.tsx'));
     $workspace = file_get_contents(resource_path('js/components/team-switcher.tsx'));
     $mobileNavigation = file_get_contents(resource_path('js/components/mobile-bottom-nav.tsx'));
+    $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
 
     expect($logo)
         ->toContain('Rentier')
-        ->toContain('Administrare chirii')
+        ->toContain("t('app.tagline')")
         ->not->toContain('Laravel Starter Kit');
 
     expect($sidebar)
+        ->toContain("t('nav.payments')")
+        ->toContain("t('nav.expenses')")
         ->not->toContain('laravel/react-starter-kit')
         ->not->toContain('laravel.com/docs');
 
     expect($navigation)
-        ->toContain('Principal');
+        ->toContain("t('nav.main')");
 
     expect($workspace)
-        ->toContain('Workspace-uri')
-        ->toContain('Workspace nou')
-        ->toContain('Alege workspace');
+        ->toContain("t('team.workspaces')")
+        ->toContain("t('team.new')")
+        ->toContain("t('team.select')");
 
     expect($mobileNavigation)
-        ->toContain("label: 'Acasă'")
-        ->toContain("label: 'Proprietăți'")
-        ->toContain("label: 'Contracte'")
-        ->toContain("label: 'Plăți'")
-        ->toContain("label: 'Cheltuieli'")
-        ->toContain("label: 'Documente'");
+        ->toContain("t('nav.home')")
+        ->toContain("t('nav.properties')")
+        ->toContain("t('nav.leases')")
+        ->toContain("t('nav.payments')")
+        ->toContain("t('nav.expenses')")
+        ->toContain("t('nav.documents')");
+
+    expect($translations)
+        ->toContain("'app.tagline': 'Administrare chirii'")
+        ->toContain("'nav.payments': 'Încasări'")
+        ->toContain("'nav.expenses': 'Costuri'")
+        ->toContain("'nav.payments': 'Income'")
+        ->toContain("'nav.expenses': 'Costs'");
 });
 
 test('dashboard prioritizes primary landlord signals without changing financial source fields', function () {
     $dashboard = file_get_contents(resource_path('js/pages/dashboard.tsx'));
+    $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
 
     expect($dashboard)
-        ->toContain('Panou de control')
-        ->toContain('Încasat luna asta')
-        ->toContain('Rest de încasat')
-        ->toContain('Cheltuieli luna asta')
-        ->toContain('De recuperat')
-        ->toContain('Necesită atenția ta')
-        ->toContain('Detalii financiare')
+        ->toContain("t('dashboard.title')")
+        ->toContain("t('dashboard.collectedThisMonth')")
+        ->toContain("t('dashboard.remaining')")
+        ->toContain("t('dashboard.costsThisMonth')")
+        ->toContain("t('dashboard.recoverable')")
+        ->toContain("t('dashboard.attention')")
+        ->toContain("t('dashboard.financialDetails')")
         ->toContain('summary.current_month_payments')
         ->toContain('summary.remaining_rent')
         ->toContain('summary.current_month_expenses')
         ->toContain('summary.recoverable_expenses');
+
+    expect($translations)
+        ->toContain("'dashboard.title': 'Panou de control'")
+        ->toContain("'dashboard.title': 'Dashboard'")
+        ->toContain("'dashboard.collectedThisMonth': 'Încasat luna asta'")
+        ->toContain("'dashboard.collectedThisMonth': 'Collected this month'");
 });

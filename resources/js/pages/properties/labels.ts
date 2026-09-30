@@ -1,3 +1,4 @@
+import { currentAppLocale } from '@/lib/locale';
 import type { PropertyStatus, PropertyType } from '@/types';
 
 export const propertyTypeLabels: Record<PropertyType, string> = {
@@ -9,6 +10,15 @@ export const propertyTypeLabels: Record<PropertyType, string> = {
     other: 'Altul',
 };
 
+const propertyTypeLabelsEn: Record<PropertyType, string> = {
+    studio: 'Studio',
+    apartment: 'Apartment',
+    house: 'House',
+    commercial_space: 'Commercial space',
+    office: 'Office',
+    other: 'Other',
+};
+
 export const propertyStatusLabels: Record<PropertyStatus, string> = {
     available: 'Liberă',
     occupied: 'Ocupată',
@@ -16,10 +26,19 @@ export const propertyStatusLabels: Record<PropertyStatus, string> = {
     inactive: 'Inactivă',
 };
 
+const propertyStatusLabelsEn: Record<PropertyStatus, string> = {
+    available: 'Available',
+    occupied: 'Occupied',
+    renovation: 'Under renovation',
+    inactive: 'Inactive',
+};
+
 export function propertyTypeLabel(value: PropertyType) {
-    return propertyTypeLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? propertyTypeLabelsEn : propertyTypeLabels;
+    return labels[value] ?? value;
 }
 
 export function propertyStatusLabel(value: PropertyStatus) {
-    return propertyStatusLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? propertyStatusLabelsEn : propertyStatusLabels;
+    return labels[value] ?? value;
 }

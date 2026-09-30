@@ -1,8 +1,14 @@
+import { currentAppLocale } from '@/lib/locale';
 import type { PaymentMethod, PaymentStatus, PaymentType } from '@/types';
 
 export const paymentTypeLabels: Record<PaymentType, string> = {
     rent: 'Chirie',
     guarantee: 'Garanție',
+};
+
+const paymentTypeLabelsEn: Record<PaymentType, string> = {
+    rent: 'Rent',
+    guarantee: 'Deposit',
 };
 
 export const paymentStatusLabels: Record<PaymentStatus, string> = {
@@ -12,6 +18,13 @@ export const paymentStatusLabels: Record<PaymentStatus, string> = {
     cancelled: 'Anulată',
 };
 
+const paymentStatusLabelsEn: Record<PaymentStatus, string> = {
+    paid: 'Paid in full',
+    partial: 'Partially paid',
+    pending: 'Pending',
+    cancelled: 'Cancelled',
+};
+
 export const paymentMethodLabels: Record<PaymentMethod, string> = {
     cash: 'Numerar',
     bank_transfer: 'Transfer bancar',
@@ -19,14 +32,28 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
     other: 'Altă metodă',
 };
 
+const paymentMethodLabelsEn: Record<PaymentMethod, string> = {
+    cash: 'Cash',
+    bank_transfer: 'Bank transfer',
+    card: 'Card',
+    other: 'Other method',
+};
+
 export function paymentStatusLabel(value: PaymentStatus) {
-    return paymentStatusLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? paymentStatusLabelsEn : paymentStatusLabels;
+    return labels[value] ?? value;
 }
 
 export function paymentTypeLabel(value: PaymentType) {
-    return paymentTypeLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? paymentTypeLabelsEn : paymentTypeLabels;
+    return labels[value] ?? value;
 }
 
 export function paymentMethodLabel(value?: PaymentMethod | null) {
-    return value ? (paymentMethodLabels[value] ?? value) : 'Nesetat';
+    if (!value) {
+        return currentAppLocale() === 'en' ? 'Not set' : 'Nesetat';
+    }
+
+    const labels = currentAppLocale() === 'en' ? paymentMethodLabelsEn : paymentMethodLabels;
+    return labels[value] ?? value;
 }

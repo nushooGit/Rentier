@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -51,20 +51,20 @@ function FormSection({
     gridClassName?: string;
 }) {
     return (
-        <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold tracking-tight sm:text-base">{title}</h2>
             <div className={`grid gap-3 ${gridClassName}`}>{children}</div>
         </section>
     );
 }
 
-const inputClassName = 'md:h-8';
+const inputClassName = 'h-10';
 
 const selectClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 const textareaClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
 export default function PaymentForm({
     action,
@@ -73,6 +73,7 @@ export default function PaymentForm({
     leases,
     paymentMethods,
 }: Props) {
+    const { t } = useI18n();
     const now = new Date();
     const [paymentType, setPaymentType] = useState<PaymentType>(
         payment?.payment_type ?? 'rent',
@@ -110,9 +111,9 @@ export default function PaymentForm({
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii plată">
+                    <FormSection title={t('payments.section.details')}>
                         <Field className="md:col-span-2">
-                            <Label htmlFor="lease_id">Contract</Label>
+                            <Label htmlFor="lease_id">{t('common.lease')}</Label>
                             <select
                                 id="lease_id"
                                 name="lease_id"
@@ -137,7 +138,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="payment_type">Tip plată</Label>
+                            <Label htmlFor="payment_type">{t('payments.field.type')}</Label>
                             <select
                                 id="payment_type"
                                 name="payment_type"
@@ -161,7 +162,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="method">Metodă</Label>
+                            <Label htmlFor="method">{t('payments.field.method')}</Label>
                             <select
                                 id="method"
                                 name="method"
@@ -190,7 +191,7 @@ export default function PaymentForm({
                         }
                     >
                         <Field>
-                            <Label htmlFor="amount">Sumă</Label>
+                            <Label htmlFor="amount">{t('payments.field.amount')}</Label>
                             <Input
                                 id="amount"
                                 name="amount"
@@ -206,7 +207,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -320,12 +321,12 @@ export default function PaymentForm({
                         )}
                     </FormSection>
 
-                    <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-sm font-medium sm:text-base">
+                    <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-sm font-semibold tracking-tight sm:text-base">
                             Note
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"

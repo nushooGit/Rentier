@@ -14,6 +14,8 @@ import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -60,14 +62,6 @@ function formatBytes(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(value: string): string {
-    return new Intl.DateTimeFormat('ro-RO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    }).format(new Date(`${value}T12:00:00`));
-}
-
 function normalizeSearchText(value: string): string {
     return value
         .normalize('NFD')
@@ -82,12 +76,14 @@ export default function DocumentsIndex({
     leases,
 }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
     const [selectedPropertyId, setSelectedPropertyId] = useState('');
     const [query, setQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [propertyFilter, setPropertyFilter] = useState('all');
     const [expiryFilter, setExpiryFilter] = useState('all');
+    const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
     const propertyLeases = useMemo(
         () =>
@@ -163,7 +159,7 @@ export default function DocumentsIndex({
     const deleteDocument = (document: RentierDocument) => {
         if (
             !window.confirm(
-                `Sigur vrei să ștergi „${document.original_name}”? Fișierul va fi șters definitiv.`,
+                t('documents.deleteConfirm', { name: document.original_name }),
             )
         ) {
             return;
@@ -176,26 +172,26 @@ export default function DocumentsIndex({
 
     return (
         <>
-            <Head title="Documente" />
+            <Head title={t('nav.documents')} />
 
-            <h1 className="sr-only">Documente</h1>
+            <h1 className="sr-only">{t('nav.documents')}</h1>
 
             <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-3 sm:p-4">
                 <Heading
                     variant="small"
-                    title="Documente"
-                    description="Păstrează documentele proprietăților și contractelor într-un singur loc"
+                    title={t('nav.documents')}
+                    description={t('documents.index.description')}
                 />
 
-                <section className="rounded-xl border bg-card p-4 shadow-sm">
+                <section className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
                     <div className="mb-4 flex items-start gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <Upload className="size-5" />
                         </div>
                         <div>
-                            <h2 className="font-semibold">Încarcă document</h2>
+                            <h2 className="font-semibold">{t('documents.upload.title')}</h2>
                             <p className="mt-0.5 text-sm text-muted-foreground">
-                                PDF, JPG, PNG, WebP sau Word · maximum 20 MB.
+                                {t('documents.upload.formats')}
                             </p>
                         </div>
                     </div>
@@ -203,13 +199,12 @@ export default function DocumentsIndex({
                     {properties.length === 0 ? (
                         <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
                             <p>
-                                Ai nevoie de cel puțin o proprietate înainte să
-                                poți încărca documente.
+                                {t('documents.noPropertyTitle')}
                             </p>
                             <Button className="mt-3" size="sm" asChild>
                                 <Link href={createProperty(currentTeamSlug)}>
                                     <Plus />
-                                    Adaugă proprietate
+                                    {t('documents.addProperty')}
                                 </Link>
                             </Button>
                         </div>
@@ -224,7 +219,7 @@ export default function DocumentsIndex({
                             {({ errors, processing }) => (
                                 <>
                                     <div className="grid gap-1.5 md:col-span-2 xl:col-span-3">
-                                        <Label htmlFor="file">Fișier</Label>
+                                        <Label htmlFor="file">{t('documents.file')}</Label>
                                         <input
                                             id="file"
                                             name="file"
@@ -232,13 +227,37 @@ export default function DocumentsIndex({
                                             required
                                             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                                             data-test="document-file-input"
-                                            className="file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 block w-full rounded-md border border-input bg-background text-sm text-muted-foreground file:mr-3 file:border-0 file:px-3 file:py-2 file:text-sm file:font-medium"
+                                            className="sr-only"
+                                            onChange={(event) =>
+                                                setSelectedFileName(
+                                                    event.target.files?.[0]?.name ??
+                                                        null,
+                                                )
+                                            }
                                         />
+                                        <label
+                                            htmlFor="file"
+                                            className="group flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/25 px-5 py-6 text-center transition hover:border-primary/45 hover:bg-primary/[0.04] focus-within:ring-2 focus-within:ring-ring"
+                                        >
+                                            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:scale-105">
+                                                <Upload className="size-5" aria-hidden="true" />
+                                            </span>
+                                            <span className="mt-3 text-sm font-semibold">
+                                                {selectedFileName ??
+                                                    t('documents.upload.choose')}
+                                            </span>
+                                            <span className="mt-1 text-xs leading-5 text-muted-foreground">
+                                                {t('documents.upload.formats')}
+                                            </span>
+                                            <span className="mt-2 text-xs font-medium text-primary">
+                                                {t('documents.upload.action')}
+                                            </span>
+                                        </label>
                                         <InputError message={errors.file} />
                                     </div>
 
                                     <div className="grid gap-1.5">
-                                        <Label htmlFor="category">Categorie</Label>
+                                        <Label htmlFor="category">{t('documents.category')}</Label>
                                         <select
                                             id="category"
                                             name="category"
@@ -260,7 +279,7 @@ export default function DocumentsIndex({
 
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="property_id">
-                                            Proprietate
+                                            {t('documents.property')}
                                         </Label>
                                         <select
                                             id="property_id"
@@ -275,7 +294,7 @@ export default function DocumentsIndex({
                                             className={selectClassName}
                                         >
                                             <option value="" disabled>
-                                                Alege proprietatea
+                                                {t('documents.chooseProperty')}
                                             </option>
                                             {properties.map((property) => (
                                                 <option
@@ -292,9 +311,9 @@ export default function DocumentsIndex({
 
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="lease_id">
-                                            Contract
+                                            {t('documents.lease')}
                                             <span className="ml-1 font-normal text-muted-foreground">
-                                                (opțional)
+                                                {t('documents.optional')}
                                             </span>
                                         </Label>
                                         <select
@@ -306,7 +325,7 @@ export default function DocumentsIndex({
                                             key={selectedPropertyId}
                                         >
                                             <option value="">
-                                                Fără contract asociat
+                                                {t('documents.noLease')}
                                             </option>
                                             {propertyLeases.map((lease) => (
                                                 <option
@@ -322,7 +341,7 @@ export default function DocumentsIndex({
 
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="document_date">
-                                            Data documentului
+                                            {t('documents.documentDate')}
                                         </Label>
                                         <DateInput
                                             id="document_date"
@@ -337,7 +356,7 @@ export default function DocumentsIndex({
 
                                     <div className="grid gap-1.5">
                                         <Label htmlFor="expires_on">
-                                            Expiră la
+                                            {t('documents.expiresAt')}
                                             <span className="ml-1 font-normal text-muted-foreground">
                                                 (opțional)
                                             </span>
@@ -358,8 +377,8 @@ export default function DocumentsIndex({
                                         >
                                             <Upload />
                                             {processing
-                                                ? 'Se încarcă…'
-                                                : 'Încarcă documentul'}
+                                                ? t('documents.upload.loading')
+                                                : t('documents.upload.submit')}
                                         </Button>
                                     </div>
                                 </>
@@ -373,12 +392,14 @@ export default function DocumentsIndex({
                         <div className="flex items-center justify-between gap-3">
                             <div>
                                 <h2 className="font-semibold">
-                                    Documente salvate
+                                    {t('documents.saved')}
                                 </h2>
                                 <p className="text-sm text-muted-foreground">
                                     {filtersAreActive
-                                        ? `${filteredDocuments.length} din ${documents.length} documente`
-                                        : `${documents.length} ${documents.length === 1 ? 'document' : 'documente'}`}
+                                        ? t('documents.filteredCount', { filtered: filteredDocuments.length, total: documents.length })
+                                        : documents.length === 1
+                                          ? t('documents.countOne')
+                                          : t('documents.countMany', { count: documents.length })}
                                 </p>
                             </div>
                             {filtersAreActive ? (
@@ -390,14 +411,14 @@ export default function DocumentsIndex({
                                     data-test="document-clear-filters"
                                 >
                                     <X />
-                                    Resetează
+                                    {t('documents.reset')}
                                 </Button>
                             ) : null}
                         </div>
 
                         {documents.length > 0 ? (
                             <div
-                                className="grid gap-2 rounded-xl border bg-card p-3 md:grid-cols-2 xl:grid-cols-4"
+                                className="grid gap-2.5 rounded-2xl border border-border/70 bg-card/80 p-3.5 shadow-sm md:grid-cols-2 xl:grid-cols-4"
                                 data-test="document-filters"
                             >
                                 <div className="relative md:col-span-2 xl:col-span-1">
@@ -407,9 +428,9 @@ export default function DocumentsIndex({
                                         onChange={(event) =>
                                             setQuery(event.target.value)
                                         }
-                                        placeholder="Caută fișier, proprietate, chiriaș…"
+                                        placeholder={t('documents.search.placeholder')}
                                         className="pl-9"
-                                        aria-label="Caută documente"
+                                        aria-label={t('documents.search.label')}
                                         data-test="document-search-input"
                                     />
                                 </div>
@@ -420,10 +441,10 @@ export default function DocumentsIndex({
                                         setCategoryFilter(event.target.value)
                                     }
                                     className={selectClassName}
-                                    aria-label="Filtrează după categorie"
+                                    aria-label={t('documents.filter.category')}
                                     data-test="document-category-filter"
                                 >
-                                    <option value="all">Toate categoriile</option>
+                                    <option value="all">{t('documents.allCategories')}</option>
                                     {categories.map((category) => (
                                         <option
                                             key={category.value}
@@ -440,11 +461,11 @@ export default function DocumentsIndex({
                                         setPropertyFilter(event.target.value)
                                     }
                                     className={selectClassName}
-                                    aria-label="Filtrează după proprietate"
+                                    aria-label={t('documents.filter.property')}
                                     data-test="document-property-filter"
                                 >
                                     <option value="all">
-                                        Toate proprietățile
+                                        {t('documents.allProperties')}
                                     </option>
                                     {properties.map((property) => (
                                         <option
@@ -462,22 +483,22 @@ export default function DocumentsIndex({
                                         setExpiryFilter(event.target.value)
                                     }
                                     className={selectClassName}
-                                    aria-label="Filtrează după expirare"
+                                    aria-label={t('documents.filter.expiry')}
                                     data-test="document-expiry-filter"
                                 >
                                     <option value="all">
-                                        Orice expirare
+                                        {t('documents.anyExpiry')}
                                     </option>
                                     <option value="with_expiry">
-                                        Cu dată de expirare
+                                        {t('documents.withExpiry')}
                                     </option>
                                     <option value="without_expiry">
-                                        Fără dată de expirare
+                                        {t('documents.withoutExpiry')}
                                     </option>
                                     <option value="valid">
-                                        Valide / viitoare
+                                        {t('documents.validFuture')}
                                     </option>
-                                    <option value="expired">Expirate</option>
+                                    <option value="expired">{t('documents.expired')}</option>
                                 </select>
                             </div>
                         ) : null}
@@ -487,21 +508,20 @@ export default function DocumentsIndex({
                         <div className="rounded-xl border border-dashed p-8 text-center">
                             <FolderOpen className="mx-auto size-9 text-muted-foreground" />
                             <h3 className="mt-3 font-medium">
-                                Niciun document încă
+                                {t('documents.emptyTitle')}
                             </h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Încarcă primul contract, act sau document al
-                                proprietății.
+                                {t('documents.emptyDescription')}
                             </p>
                         </div>
                     ) : filteredDocuments.length === 0 ? (
                         <div className="rounded-xl border border-dashed p-8 text-center">
                             <Search className="mx-auto size-9 text-muted-foreground" />
                             <h3 className="mt-3 font-medium">
-                                Niciun document găsit
+                                {t('documents.noResultsTitle')}
                             </h3>
                             <p className="mt-1 text-sm text-muted-foreground">
-                                Schimbă căutarea sau filtrele aplicate.
+                                {t('documents.noResultsDescription')}
                             </p>
                             <Button
                                 type="button"
@@ -510,7 +530,7 @@ export default function DocumentsIndex({
                                 className="mt-4"
                                 onClick={clearFilters}
                             >
-                                Resetează filtrele
+                                {t('documents.resetFilters')}
                             </Button>
                         </div>
                     ) : (
@@ -518,7 +538,7 @@ export default function DocumentsIndex({
                             {filteredDocuments.map((document) => (
                                 <article
                                     key={document.id}
-                                    className="flex flex-col rounded-xl border bg-card p-4 shadow-sm"
+                                    className="flex flex-col rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                     data-test="document-card"
                                 >
                                     <div className="flex items-start gap-3">
@@ -541,18 +561,18 @@ export default function DocumentsIndex({
                                     <dl className="mt-4 grid gap-2 text-sm">
                                         <div className="flex justify-between gap-3">
                                             <dt className="text-muted-foreground">
-                                                Proprietate
+                                                {t('documents.property')}
                                             </dt>
                                             <dd className="text-right font-medium">
                                                 {document.property
                                                     ? `${document.property.name} · ${document.property.city}`
-                                                    : 'Proprietate ștearsă'}
+                                                    : t('documents.deletedProperty')}
                                             </dd>
                                         </div>
                                         {document.lease ? (
                                             <div className="flex justify-between gap-3">
                                                 <dt className="text-muted-foreground">
-                                                    Contract
+                                                    {t('documents.lease')}
                                                 </dt>
                                                 <dd className="text-right font-medium">
                                                     {document.lease.renter_name}
@@ -561,29 +581,25 @@ export default function DocumentsIndex({
                                         ) : null}
                                         <div className="flex justify-between gap-3">
                                             <dt className="text-muted-foreground">
-                                                Data
+                                                {t('documents.date')}
                                             </dt>
                                             <dd className="text-right">
-                                                {formatDate(
-                                                    document.document_date,
-                                                )}
+                                                {formatDateLong(document.document_date)}
                                             </dd>
                                         </div>
                                         {document.expires_on ? (
                                             <div className="flex justify-between gap-3">
                                                 <dt className="text-muted-foreground">
-                                                    Expiră
+                                                    {t('documents.expires')}
                                                 </dt>
                                                 <dd className="text-right">
-                                                    {formatDate(
-                                                        document.expires_on,
-                                                    )}
+                                                    {formatDateLong(document.expires_on)}
                                                 </dd>
                                             </div>
                                         ) : null}
                                         <div className="flex justify-between gap-3">
                                             <dt className="text-muted-foreground">
-                                                Dimensiune
+                                                {t('documents.size')}
                                             </dt>
                                             <dd>{formatBytes(document.size_bytes)}</dd>
                                         </div>
@@ -606,14 +622,14 @@ export default function DocumentsIndex({
                                                 data-test="document-download-link"
                                             >
                                                 <Download />
-                                                Descarcă
+                                                {t('documents.download')}
                                             </a>
                                         </Button>
                                         <Button
                                             variant="ghost"
                                             size="sm"
                                             type="button"
-                                            aria-label="Șterge documentul"
+                                            aria-label={t('documents.delete')}
                                             data-test="document-delete-button"
                                             onClick={() =>
                                                 deleteDocument(document)
@@ -637,7 +653,7 @@ DocumentsIndex.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Documente',
+            title: translateKey('nav.documents'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],

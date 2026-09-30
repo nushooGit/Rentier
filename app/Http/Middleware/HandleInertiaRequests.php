@@ -48,6 +48,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'canRegister' => Features::enabled(Features::registration()) && ! PlatformAdmin::isAdminHost($request),
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'locale' => app()->getLocale(),
+            'supportedLocales' => ['ro', 'en'],
             'currentTeam' => fn () => $user?->currentTeam ? $user->toUserTeam($user->currentTeam) : null,
             'teams' => fn () => $user?->toUserTeams(includeCurrent: true) ?? [],
         ];

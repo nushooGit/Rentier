@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,20 +62,20 @@ function FormSection({
     gridClassName?: string;
 }) {
     return (
-        <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold tracking-tight sm:text-base">{title}</h2>
             <div className={`grid gap-3 ${gridClassName}`}>{children}</div>
         </section>
     );
 }
 
-const inputClassName = 'md:h-8';
+const inputClassName = 'h-10';
 
 const selectClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 const textareaClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
 export default function PropertyForm({
     action,
@@ -83,13 +84,15 @@ export default function PropertyForm({
     propertyTypes,
     propertyStatuses,
 }: Props) {
+    const { t } = useI18n();
+
     return (
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <Section title="Detalii principale">
+                    <Section title={t('properties.section.main')}>
                         <Field>
-                            <Label htmlFor="name">Nume proprietate</Label>
+                            <Label htmlFor="name">{t('properties.field.name')}</Label>
                             <Input
                                 id="name"
                                 name="name"
@@ -101,7 +104,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="type">Tip</Label>
+                            <Label htmlFor="type">{t('properties.field.type')}</Label>
                             <select
                                 id="type"
                                 name="type"
@@ -120,7 +123,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="status">Status</Label>
+                            <Label htmlFor="status">{t('common.status')}</Label>
                             <select
                                 id="status"
                                 name="status"
@@ -143,11 +146,11 @@ export default function PropertyForm({
                     </Section>
 
                     <FormSection
-                        title="Adresă"
+                        title={t('properties.section.address')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-4"
                     >
                         <Field>
-                            <Label htmlFor="country">Țară</Label>
+                            <Label htmlFor="country">{t('properties.field.country')}</Label>
                             <Input
                                 id="country"
                                 name="country"
@@ -160,7 +163,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="city">Oraș</Label>
+                            <Label htmlFor="city">{t('properties.field.city')}</Label>
                             <Input
                                 id="city"
                                 name="city"
@@ -174,7 +177,7 @@ export default function PropertyForm({
 
                         <Field>
                             <Label htmlFor="county_or_sector">
-                                Județ / Sector
+                                {t('properties.field.county')}
                             </Label>
                             <Input
                                 id="county_or_sector"
@@ -188,7 +191,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="postal_code">Cod poștal</Label>
+                            <Label htmlFor="postal_code">{t('properties.field.postalCode')}</Label>
                             <Input
                                 id="postal_code"
                                 name="postal_code"
@@ -199,7 +202,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field className="md:col-span-2 xl:col-span-4">
-                            <Label htmlFor="address_line">Adresă</Label>
+                            <Label htmlFor="address_line">{t('properties.field.address')}</Label>
                             <Input
                                 id="address_line"
                                 name="address_line"
@@ -214,11 +217,11 @@ export default function PropertyForm({
                     </FormSection>
 
                     <FormSection
-                        title="Caracteristici"
+                        title={t('properties.section.features')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-5"
                     >
                         <Field>
-                            <Label htmlFor="rooms">Camere</Label>
+                            <Label htmlFor="rooms">{t('properties.field.rooms')}</Label>
                             <Input
                                 id="rooms"
                                 name="rooms"
@@ -233,7 +236,7 @@ export default function PropertyForm({
 
                         <Field>
                             <Label htmlFor="total_area_sqm">
-                                Suprafață totală (m²)
+                                {t('properties.field.totalArea')}
                             </Label>
                             <Input
                                 id="total_area_sqm"
@@ -252,7 +255,7 @@ export default function PropertyForm({
 
                         <Field>
                             <Label htmlFor="usable_area_sqm">
-                                Suprafață utilă, mp
+                                {t('properties.field.usableArea')}
                             </Label>
                             <Input
                                 id="usable_area_sqm"
@@ -269,7 +272,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="floor">Etaj</Label>
+                            <Label htmlFor="floor">{t('properties.field.floor')}</Label>
                             <Input
                                 id="floor"
                                 name="floor"
@@ -282,7 +285,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="total_floors">Total etaje</Label>
+                            <Label htmlFor="total_floors">{t('properties.field.totalFloors')}</Label>
                             <Input
                                 id="total_floors"
                                 name="total_floors"
@@ -299,12 +302,12 @@ export default function PropertyForm({
                     </FormSection>
 
                     <FormSection
-                        title="Setări chirie"
+                        title={t('properties.section.rent')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-4"
                     >
                         <Field>
                             <Label htmlFor="monthly_rent_amount">
-                                Chirie lunară
+                                {t('properties.field.monthlyRent')}
                             </Label>
                             <Input
                                 id="monthly_rent_amount"
@@ -321,7 +324,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -335,7 +338,7 @@ export default function PropertyForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="deposit_amount">Garanție</Label>
+                            <Label htmlFor="deposit_amount">{t('properties.field.deposit')}</Label>
                             <Input
                                 id="deposit_amount"
                                 name="deposit_amount"
@@ -351,12 +354,12 @@ export default function PropertyForm({
                         </Field>
                     </FormSection>
 
-                    <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-sm font-medium sm:text-base">
-                            Note interne
+                    <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-sm font-semibold tracking-tight sm:text-base">
+                            {t('properties.section.notes')}
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"

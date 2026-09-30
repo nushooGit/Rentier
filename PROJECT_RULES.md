@@ -25,6 +25,10 @@ These rules guide Rentier development and AI-assisted work. They should be treat
 
 ## Naming Rules
 
+- Keep source code, class names, function/variable names, routes, database schema, translation keys, test names, comments, and technical documentation in English so the codebase remains accessible to international developers.
+- User-facing copy must come from the localization layer rather than being embedded as Romanian identifiers or domain names in code.
+- Romanian is the default product locale; English is an optional user-facing locale. The underlying domain model remains English in both cases.
+
 - Use `renter`, not `tenant`, in code, UI copy, database names, and documentation.
 - Use `organization` or `workspace` for the business/account context.
 - Laravel Teams represent Rentier Organizations or Workspaces.

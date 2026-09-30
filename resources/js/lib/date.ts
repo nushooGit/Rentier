@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE } from '@/lib/locale';
+import { currentIntlLocale, DEFAULT_LOCALE } from '@/lib/locale';
 
 const ROMANIAN_DATE_PATTERN = /^(\d{2})\.(\d{2})\.(\d{4})$/;
 const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
@@ -6,11 +6,11 @@ const ISO_DATE_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 export const DATE_INPUT_FORMAT_MESSAGE =
     'Data trebuie să fie în formatul ZZ.LL.AAAA.';
 
-export function dateInputPlaceholder(locale = DEFAULT_LOCALE) {
+export function dateInputPlaceholder(locale = currentIntlLocale()) {
     return locale === 'ro-RO' ? 'ZZ.LL.AAAA' : 'YYYY-MM-DD';
 }
 
-export function dateInputFormatMessage(locale = DEFAULT_LOCALE) {
+export function dateInputFormatMessage(locale = currentIntlLocale()) {
     return locale === 'ro-RO'
         ? DATE_INPUT_FORMAT_MESSAGE
         : 'Use the YYYY-MM-DD date format.';
@@ -64,9 +64,9 @@ function createUtcDate(date?: string | null) {
     );
 }
 
-export function formatDateShort(date?: string | null, locale = DEFAULT_LOCALE) {
+export function formatDateShort(date?: string | null, locale = currentIntlLocale()) {
     if (!date) {
-        return 'Nesetat';
+        return locale === DEFAULT_LOCALE ? 'Nesetat' : 'Not set';
     }
 
     const parsedDate = createUtcDate(date);
@@ -89,9 +89,9 @@ export function formatDateShort(date?: string | null, locale = DEFAULT_LOCALE) {
     }).format(parsedDate);
 }
 
-export function formatDateLong(date?: string | null, locale = DEFAULT_LOCALE) {
+export function formatDateLong(date?: string | null, locale = currentIntlLocale()) {
     if (!date) {
-        return 'Nesetat';
+        return locale === DEFAULT_LOCALE ? 'Nesetat' : 'Not set';
     }
 
     const parsedDate = createUtcDate(date);
@@ -111,16 +111,16 @@ export function formatDateLong(date?: string | null, locale = DEFAULT_LOCALE) {
 export function formatDateRangeLong(
     startDate?: string | null,
     endDate?: string | null,
-    locale = DEFAULT_LOCALE,
+    locale = currentIntlLocale(),
 ) {
     if (!startDate) {
-        return 'Nesetat';
+        return locale === DEFAULT_LOCALE ? 'Nesetat' : 'Not set';
     }
 
     const startLabel = formatDateLong(startDate, locale);
 
     if (!endDate) {
-        return `Din ${startLabel}`;
+        return locale === DEFAULT_LOCALE ? `Din ${startLabel}` : `From ${startLabel}`;
     }
 
     return `${startLabel} - ${formatDateLong(endDate, locale)}`;
@@ -128,7 +128,7 @@ export function formatDateRangeLong(
 
 export function formatDateForInput(
     date?: string | null,
-    locale = DEFAULT_LOCALE,
+    locale = currentIntlLocale(),
 ) {
     if (!date) {
         return '';
@@ -140,10 +140,10 @@ export function formatDateForInput(
 
     const formattedDate = formatDateShort(date, locale);
 
-    return formattedDate === 'Nesetat' ? '' : formattedDate;
+    return formattedDate === 'Nesetat' || formattedDate === 'Not set' ? '' : formattedDate;
 }
 
-export function parseDateInputToIso(value: string, locale = DEFAULT_LOCALE) {
+export function parseDateInputToIso(value: string, locale = currentIntlLocale()) {
     const trimmedValue = value.trim();
 
     if (!trimmedValue) {

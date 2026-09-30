@@ -92,6 +92,25 @@ test.describe('public and auth smoke', () => {
         });
     });
 
+    test('language switcher changes the authentication UI to English', async ({
+        page,
+    }) => {
+        await page.goto('/login');
+        await expect(
+            page.getByRole('heading', { name: 'Bine ai revenit' }),
+        ).toBeVisible();
+
+        await page.getByTestId('locale-switcher').click();
+        await page.getByRole('menuitem', { name: /English/ }).click();
+
+        await expect(
+            page.getByRole('heading', { name: 'Welcome back' }),
+        ).toBeVisible();
+        await expect(page.getByLabel('Email address')).toBeVisible();
+        await expect(page.getByLabel('Password')).toBeVisible();
+        await expect(page.getByTestId('login-button')).toHaveText('Log in');
+    });
+
     test('registration page is either available or intentionally disabled', async ({
         page,
         request,

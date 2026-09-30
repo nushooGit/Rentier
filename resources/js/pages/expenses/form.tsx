@@ -1,6 +1,6 @@
 import { Form } from '@inertiajs/react';
-import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -62,20 +62,20 @@ function FormSection({
     gridClassName?: string;
 }) {
     return (
-        <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold tracking-tight sm:text-base">{title}</h2>
             <div className={`grid gap-3 ${gridClassName}`}>{children}</div>
         </section>
     );
 }
 
-const inputClassName = 'md:h-8';
+const inputClassName = 'h-10';
 
 const selectClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 const textareaClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
 function allowedSettlementTypes(
     paidBy: ExpensePaidBy,
@@ -110,6 +110,7 @@ export default function ExpenseForm({
     expenseResponsiblePartyOptions,
     expenseSettlementTypeOptions,
 }: Props) {
+    const { t } = useI18n();
     const now = new Date();
     const initialExpenseDate =
         expense?.expense_date ?? now.toISOString().slice(0, 10);
@@ -181,19 +182,19 @@ export default function ExpenseForm({
     );
     const settlementHelpText =
         effectivePaidBy === 'owner' && effectiveResponsibleParty === 'tenant'
-            ? 'Dacă proprietarul plătește o cheltuială suportată de chiriaș, aceasta se recuperează de la chiriaș.'
+            ? 'Dacă proprietarul plătește o cost suportat de chiriaș, aceasta se recuperează de la chiriaș.'
             : effectivePaidBy === 'tenant' &&
                 effectiveResponsibleParty === 'owner'
-              ? 'Dacă chiriașul plătește o cheltuială suportată de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
+              ? 'Dacă chiriașul plătește o cost suportat de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
               : null;
 
     return (
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii cheltuială">
+                    <FormSection title={t('expenses.section.details')}>
                         <Field className="md:col-span-2">
-                            <Label htmlFor="title">Titlu</Label>
+                            <Label htmlFor="title">{t('expenses.field.title')}</Label>
                             <Input
                                 id="title"
                                 name="title"
@@ -206,7 +207,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="category">Categorie</Label>
+                            <Label htmlFor="category">{t('expenses.field.category')}</Label>
                             <select
                                 id="category"
                                 name="category"
@@ -230,7 +231,7 @@ export default function ExpenseForm({
 
                     <FormSection title="Proprietate și contract">
                         <Field className="md:col-span-2">
-                            <Label htmlFor="property_id">Proprietate</Label>
+                            <Label htmlFor="property_id">{t('common.property')}</Label>
                             <select
                                 id="property_id"
                                 name="property_id"
@@ -259,7 +260,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field className="md:col-span-2">
-                            <Label htmlFor="lease_id">Contract</Label>
+                            <Label htmlFor="lease_id">{t('common.lease')}</Label>
                             <select
                                 id="lease_id"
                                 name="lease_id"
@@ -279,7 +280,7 @@ export default function ExpenseForm({
                             <InputError message={errors.lease_id} />
                             {tenantInvolved && applicableLeases.length === 1 ? (
                                 <p className="text-xs text-muted-foreground">
-                                    Cheltuiala va fi asociată contractului activ
+                                    Costul va fi asociat contractului activ
                                     la data selectată.
                                 </p>
                             ) : null}
@@ -288,7 +289,7 @@ export default function ExpenseForm({
 
                     <FormSection title="Sumă și plată">
                         <Field>
-                            <Label htmlFor="amount">Sumă</Label>
+                            <Label htmlFor="amount">{t('expenses.field.amount')}</Label>
                             <Input
                                 id="amount"
                                 name="amount"
@@ -304,7 +305,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -320,7 +321,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="expense_date">
-                                Data cheltuielii
+                                Data costului
                             </Label>
                             <DateInput
                                 id="expense_date"
@@ -340,7 +341,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="paid_by">Plătitor</Label>
+                            <Label htmlFor="paid_by">{t('expenses.field.paidBy')}</Label>
                             <select
                                 id="paid_by"
                                 name="paid_by"
@@ -367,7 +368,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="responsible_party">
-                                Cine suporta cheltuiala?
+                                Cine suportă costul?
                             </Label>
                             <select
                                 id="responsible_party"
@@ -435,13 +436,13 @@ export default function ExpenseForm({
                             {!hasActiveTenantContext ? (
                                 <p>
                                     Nu există contract activ pentru această
-                                    proprietate la data cheltuielii. Poți
-                                    înregistra doar cheltuieli plătite și
+                                    proprietate la data selectată. Poți
+                                    înregistra doar costuri plătite și
                                     suportate de proprietar.
                                 </p>
                             ) : null}
                             <p>
-                                Cheltuielile suportate de chirias nu afecteaza
+                                Costurile suportate de chiriaș nu afectează
                                 profitul proprietarului.
                             </p>
                             {settlementHelpText ? (
@@ -450,12 +451,12 @@ export default function ExpenseForm({
                         </div>
                     </FormSection>
 
-                    <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-sm font-medium sm:text-base">
+                    <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-sm font-semibold tracking-tight sm:text-base">
                             Note
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"

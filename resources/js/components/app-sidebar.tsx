@@ -20,6 +20,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useI18n } from '@/lib/i18n';
 import { dashboard } from '@/routes';
 import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
@@ -30,60 +31,46 @@ import type { NavItem } from '@/types';
 
 export function AppSidebar() {
     const page = usePage();
+    const { t } = useI18n();
     const dashboardUrl = page.props.currentTeam
         ? dashboard(page.props.currentTeam.slug)
         : '/';
 
     const mainNavItems: NavItem[] = [
+        { title: t('nav.dashboard'), href: dashboardUrl, icon: LayoutDashboard },
         {
-            title: 'Dashboard',
-            href: dashboardUrl,
-            icon: LayoutDashboard,
-        },
-        {
-            title: 'Proprietăți',
-            href: page.props.currentTeam
-                ? propertiesIndex(page.props.currentTeam.slug)
-                : '/',
+            title: t('nav.properties'),
+            href: page.props.currentTeam ? propertiesIndex(page.props.currentTeam.slug) : '/',
             icon: Building2,
         },
         {
-            title: 'Contracte',
-            href: page.props.currentTeam
-                ? leasesIndex(page.props.currentTeam.slug)
-                : '/',
+            title: t('nav.leases'),
+            href: page.props.currentTeam ? leasesIndex(page.props.currentTeam.slug) : '/',
             icon: FileText,
         },
         {
-            title: 'Plăți',
-            href: page.props.currentTeam
-                ? paymentsIndex(page.props.currentTeam.slug)
-                : '/',
+            title: t('nav.payments'),
+            href: page.props.currentTeam ? paymentsIndex(page.props.currentTeam.slug) : '/',
             icon: WalletCards,
         },
         {
-            title: 'Cheltuieli',
-            href: page.props.currentTeam
-                ? expensesIndex(page.props.currentTeam.slug)
-                : '/',
+            title: t('nav.expenses'),
+            href: page.props.currentTeam ? expensesIndex(page.props.currentTeam.slug) : '/',
             icon: ReceiptText,
         },
         {
-            title: 'Documente',
-            href: page.props.currentTeam
-                ? documentsIndex(page.props.currentTeam.slug)
-                : '/',
+            title: t('nav.documents'),
+            href: page.props.currentTeam ? documentsIndex(page.props.currentTeam.slug) : '/',
             icon: FolderOpen,
         },
     ];
 
-
     return (
-        <Sidebar collapsible="icon" variant="inset" className="border-r border-white/5">
-            <SidebarHeader className="gap-3 p-3">
+        <Sidebar collapsible="icon" variant="inset" className="border-r border-white/5 shadow-2xl shadow-slate-950/10">
+            <SidebarHeader className="gap-3 px-3 pt-4 pb-3">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
+                        <SidebarMenuButton size="lg" asChild className="rounded-2xl hover:bg-white/[0.06]">
                             <Link href={dashboardUrl} prefetch>
                                 <AppLogo />
                             </Link>
@@ -96,11 +83,9 @@ export function AppSidebar() {
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
-
-            <SidebarContent className="px-1">
+            <SidebarContent className="px-1.5 pt-2">
                 <NavMain items={mainNavItems} />
             </SidebarContent>
-
             <SidebarFooter className="border-t border-white/8 p-3">
                 <NavUser />
             </SidebarFooter>

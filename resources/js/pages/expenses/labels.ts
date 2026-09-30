@@ -1,3 +1,4 @@
+import { currentAppLocale } from '@/lib/locale';
 import type {
     ExpenseCategory,
     ExpensePaidBy,
@@ -15,12 +16,29 @@ export const expenseCategoryLabels: Record<ExpenseCategory, string> = {
     other: 'Altele',
 };
 
+const expenseCategoryLabelsEn: Record<ExpenseCategory, string> = {
+    repairs: 'Repairs',
+    maintenance: 'Maintenance',
+    utilities: 'Utilities',
+    renovation: 'Painting / renovation',
+    taxes: 'Taxes',
+    other: 'Other',
+};
+
 export const expensePaidByLabels: Record<string, string> = {
     owner: 'Proprietar',
     tenant: 'Chiriaș',
     landlord: 'Proprietar',
     renter: 'Chiriaș',
     other: 'Altul',
+};
+
+const expensePaidByLabelsEn: Record<string, string> = {
+    owner: 'Owner',
+    tenant: 'Renter',
+    landlord: 'Owner',
+    renter: 'Renter',
+    other: 'Other',
 };
 
 export const expenseStatusLabels: Record<ExpenseStatus, string> = {
@@ -30,12 +48,24 @@ export const expenseStatusLabels: Record<ExpenseStatus, string> = {
     cancelled: 'Anulată',
 };
 
+const expenseStatusLabelsEn: Record<ExpenseStatus, string> = {
+    paid: 'Paid',
+    pending: 'Pending',
+    reimbursable: 'Recoverable',
+    cancelled: 'Cancelled',
+};
+
 export const expenseResponsiblePartyLabels: Record<
     ExpenseResponsibleParty,
     string
 > = {
     owner: 'Proprietar',
     tenant: 'Chiriaș',
+};
+
+const expenseResponsiblePartyLabelsEn: Record<ExpenseResponsibleParty, string> = {
+    owner: 'Owner',
+    tenant: 'Renter',
 };
 
 export const expenseSettlementTypeLabels: Record<
@@ -48,16 +78,29 @@ export const expenseSettlementTypeLabels: Record<
     reimburse: 'Se rambursează separat',
 };
 
+const expenseSettlementTypeLabelsEn: Record<ExpenseSettlementType, string> = {
+    none: 'No settlement',
+    deduct_from_rent: 'Deduct from rent',
+    deduct_from_utilities: 'Deduct from utilities',
+    reimburse: 'Reimburse separately',
+};
+
 export function expenseCategoryLabel(value: ExpenseCategory) {
-    return expenseCategoryLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? expenseCategoryLabelsEn : expenseCategoryLabels;
+    return labels[value] ?? value;
 }
 
 export function expensePaidByLabel(value: ExpensePaidBy) {
-    return expensePaidByLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? expensePaidByLabelsEn : expensePaidByLabels;
+    return labels[value] ?? value;
 }
 
 export function expenseResponsiblePartyLabel(value: ExpenseResponsibleParty) {
-    return expenseResponsiblePartyLabels[value] ?? value;
+    const labels =
+        currentAppLocale() === 'en'
+            ? expenseResponsiblePartyLabelsEn
+            : expenseResponsiblePartyLabels;
+    return labels[value] ?? value;
 }
 
 export function expenseSettlementTypeLabel(
@@ -65,19 +108,23 @@ export function expenseSettlementTypeLabel(
     paidBy?: ExpensePaidBy,
     responsibleParty?: ExpenseResponsibleParty,
 ) {
+    const isEnglish = currentAppLocale() === 'en';
+
     if (value === 'reimburse') {
         if (paidBy === 'owner' && responsibleParty === 'tenant') {
-            return 'Se recuperează de la chiriaș';
+            return isEnglish ? 'Recover from renter' : 'Se recuperează de la chiriaș';
         }
 
         if (paidBy === 'tenant' && responsibleParty === 'owner') {
-            return 'Se rambursează către chiriaș';
+            return isEnglish ? 'Reimburse renter' : 'Se rambursează către chiriaș';
         }
     }
 
-    return expenseSettlementTypeLabels[value] ?? value;
+    const labels = isEnglish ? expenseSettlementTypeLabelsEn : expenseSettlementTypeLabels;
+    return labels[value] ?? value;
 }
 
 export function expenseStatusLabel(value: ExpenseStatus) {
-    return expenseStatusLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? expenseStatusLabelsEn : expenseStatusLabels;
+    return labels[value] ?? value;
 }

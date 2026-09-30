@@ -8,16 +8,16 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
+import { useI18n } from '@/lib/i18n';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
-type Props = {
-    user: User;
-};
+type Props = { user: User };
 
 export function UserMenuContent({ user }: Props) {
     const cleanup = useMobileNavigation();
+    const { t } = useI18n();
 
     const handleLogout = () => {
         cleanup();
@@ -41,7 +41,7 @@ export function UserMenuContent({ user }: Props) {
                         onClick={cleanup}
                     >
                         <Settings className="mr-2" />
-                        Settings
+                        {t('user.settings')}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
@@ -55,7 +55,7 @@ export function UserMenuContent({ user }: Props) {
                     data-test="logout-button"
                 >
                     <LogOut className="mr-2" />
-                    Log out
+                    {t('user.logout')}
                 </Link>
             </DropdownMenuItem>
         </>
