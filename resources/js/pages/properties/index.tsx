@@ -2,6 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { translateKey, useI18n } from '@/lib/i18n';
+import { formatDateLong } from '@/lib/date';
+import { formatMoney as formatCurrency } from '@/lib/money';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -56,6 +58,82 @@ const rentStatusClassNames: Record<RentPaymentStatusKey, string> = {
 
 function rentStatusBadgeClassName(badge: RentPaymentStatusBadge) {
     return rentStatusClassNames[badge.tone as RentPaymentStatusKey] ?? '';
+}
+
+function rentStatusBadgeLabel(
+    badge: RentPaymentStatusBadge,
+    property: Property,
+    t: ReturnType<typeof useI18n>['t'],
+) {
+    const status = property.rent_payment_status;
+
+    if (!status) {
+        return '';
+    }
+
+    switch (badge.key) {
+        case 'partial':
+            return Number(status.rent_deduction_amount ?? 0) > 0
+                ? t('properties.rentStatus.partialCovered')
+                : t('properties.rentStatus.partialPaid');
+        case 'arrears':
+            return t('properties.rentStatus.arrears', {
+                amount: formatCurrency(
+                    status.arrears_amount,
+                    property.currency,
+                ),
+            });
+        case 'overdue_months':
+            return status.overdue_month_count === 1
+                ? t('properties.rentStatus.oneMonthOverdue')
+                : t('properties.rentStatus.monthsOverdue', {
+                      count: status.overdue_month_count,
+                  });
+        case 'paid':
+            return Number(status.rent_deduction_amount ?? 0) > 0
+                ? t('properties.rentStatus.coveredThisMonth')
+                : t('properties.rentStatus.paidThisMonth');
+        case 'due_today':
+            return t('properties.rentStatus.dueToday');
+        case 'upcoming':
+            return status.days === 1
+                ? t('properties.rentStatus.oneDayUntil')
+                : t('properties.rentStatus.daysUntil', {
+                      count: status.days ?? 0,
+                  });
+        case 'overdue':
+            return status.days === 1
+                ? t('properties.rentStatus.oneDayOverdue')
+                : t('properties.rentStatus.daysOverdue', {
+                      count: status.days ?? 0,
+                  });
+        default:
+            return status.label;
+    }
+}
+
+function advanceNoticeLabel(
+    notice: NonNullable<Property['rent_payment_status']>['advance_notices'][number],
+    property: Property,
+    t: ReturnType<typeof useI18n>['t'],
+) {
+    const periodDate = notice.period_key
+        ? `${notice.period_key}-01`
+        : null;
+    const period = periodDate ? formatDateLong(periodDate) : notice.period_key;
+
+    if (notice.key === 'paid_through') {
+        return t('properties.rentStatus.paidThrough', { period });
+    }
+
+    return t('properties.rentStatus.advanceFor', {
+        period,
+        amount: formatCurrency(notice.amount, property.currency),
+        expected: formatCurrency(
+            notice.expected_amount,
+            property.currency,
+        ),
+    });
 }
 
 export default function PropertiesIndex({ properties }: Props) {
@@ -148,7 +226,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                                 variant="outline"
                                                                 className={`w-fit ${rentStatusBadgeClassName(badge)}`}
                                                             >
-                                                                {badge.label}
+                                                                {rentStatusBadgeLabel(badge, property, t)}
                                                             </Badge>
                                                         ),
                                                     )}
@@ -158,13 +236,14 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .rent_deduction_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Scăzut din chirie:{' '}
-                                                        {formatMoney(
-                                                            property
-                                                                .rent_payment_status
-                                                                .rent_deduction_amount,
-                                                            property.currency,
-                                                        )}
+                                                        {t('properties.rentStatus.deducted', {
+                                                            amount: formatMoney(
+                                                                property
+                                                                    .rent_payment_status
+                                                                    .rent_deduction_amount,
+                                                                property.currency,
+                                                            ),
+                                                        })}
                                                     </span>
                                                 ) : null}
                                                 {hasPositiveAmount(
@@ -172,13 +251,14 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .collected_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Încasat:{' '}
-                                                        {formatMoney(
-                                                            property
-                                                                .rent_payment_status
-                                                                .collected_amount,
-                                                            property.currency,
-                                                        )}
+                                                        {t('properties.rentStatus.collected', {
+                                                            amount: formatMoney(
+                                                                property
+                                                                    .rent_payment_status
+                                                                    .collected_amount,
+                                                                property.currency,
+                                                            ),
+                                                        })}
                                                     </span>
                                                 ) : null}
                                                 {((
@@ -202,7 +282,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         key={`${notice.key}-${notice.period_key}`}
                                                         className="text-xs font-medium text-emerald-700"
                                                     >
-                                                        {notice.label}
+                                                        {advanceNoticeLabel(notice, property, t)}
                                                     </span>
                                                 ))}
                                             </div>
@@ -231,7 +311,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Vezi proprietatea</p>
+                                                <p>{t('properties.index.viewAction')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -254,7 +334,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Editează proprietatea</p>
+                                                <p>{t('properties.index.editAction')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -274,7 +354,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Șterge proprietatea</p>
+                                                <p>{t('properties.index.delete')}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
@@ -285,11 +365,10 @@ export default function PropertiesIndex({ properties }: Props) {
                 ) : (
                     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <h2 className="text-base font-medium">
-                            Nu există proprietăți încă
+                            {t('properties.index.emptyTitle')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă prima proprietate pentru a începe urmărirea
-                            contractelor, încasărilor, costurilor și mentenanței.
+                            {t('properties.index.emptyDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -308,7 +387,7 @@ PropertiesIndex.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Proprietăți',
+            title: translateKey('nav.properties'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
