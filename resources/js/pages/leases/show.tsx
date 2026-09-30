@@ -58,8 +58,8 @@ export default function LeaseShow({ lease }: Props) {
         <>
             <Head title={`Contract ${lease.renter.name}`} />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
                     <div className="space-y-2">
                         <Heading
                             variant="small"
@@ -92,7 +92,7 @@ export default function LeaseShow({ lease }: Props) {
                     </div>
                 </div>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
+                <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">Detalii contract</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
@@ -114,7 +114,7 @@ export default function LeaseShow({ lease }: Props) {
                     </dl>
                 </section>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
+                <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">Chiriaș</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <Detail
@@ -137,7 +137,7 @@ export default function LeaseShow({ lease }: Props) {
                     ) : null}
                 </section>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
+                <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">Setări chirie</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
@@ -163,7 +163,7 @@ export default function LeaseShow({ lease }: Props) {
                 </section>
 
                 {lease.notes ? (
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">Note interne</h2>
                         <p className="mt-2.5 text-sm whitespace-pre-wrap">
                             {lease.notes}
