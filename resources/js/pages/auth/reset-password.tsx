@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
+import { useI18n } from '@/lib/i18n';
 
 type Props = {
     token: string;
@@ -14,9 +15,11 @@ type Props = {
 };
 
 export default function ResetPassword({ token, email, passwordRules }: Props) {
+    const { t } = useI18n();
+
     return (
         <>
-            <Head title="Resetează parola" />
+            <Head title={t('auth.reset.head')} />
 
             <Form
                 {...update.form()}
@@ -43,14 +46,14 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="password">Parolă nouă</Label>
+                            <Label htmlFor="password">{t('auth.reset.newPassword')}</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
                                 autoFocus
-                                placeholder="Parolă nouă"
+                                placeholder={t('auth.reset.newPassword')}
                                 passwordrules={passwordRules}
                             />
                             <InputError message={errors.password} />
@@ -58,14 +61,14 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 
                         <div className="grid gap-2">
                             <Label htmlFor="password_confirmation">
-                                Confirmă parola
+                                {t('auth.reset.confirmPassword')}
                             </Label>
                             <PasswordInput
                                 id="password_confirmation"
                                 name="password_confirmation"
                                 autoComplete="new-password"
                                 className="mt-1 block w-full"
-                                placeholder="Confirmă parola"
+                                placeholder={t('auth.reset.confirmPassword')}
                                 passwordrules={passwordRules}
                             />
                             <InputError
@@ -81,7 +84,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                             data-test="reset-password-button"
                         >
                             {processing && <Spinner />}
-                            Resetează parola
+                            {t('auth.reset.submit')}
                         </Button>
                     </div>
                 )}
@@ -91,6 +94,6 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
 }
 
 ResetPassword.layout = {
-    title: 'Resetează parola',
-    description: 'Introdu și confirmă noua parolă.',
+    title: 'auth.reset.title',
+    description: 'auth.reset.description',
 };
