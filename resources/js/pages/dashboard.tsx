@@ -417,7 +417,7 @@ export default function Dashboard({
                                 )}
                             </p>
                             <p className="mt-2 text-xs leading-5 text-slate-500">
-                                Cheltuieli de recuperat de la chiriași.
+                                Costuri de recuperat de la chiriași.
                             </p>
                         </div>
 
@@ -552,7 +552,7 @@ export default function Dashboard({
                             )}
                         />
                         <SummaryCard
-                            label="Cheltuieli luna asta"
+                            label="Costuri luna asta"
                             value={formatMoney(
                                 summary.current_month_expenses,
                                 summary.currency,
@@ -589,16 +589,16 @@ export default function Dashboard({
 
                 {Number(summary.unsettled_tenant_paid_owner_expenses) > 0 ? (
                     <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:p-3.5">
-                        Exista cheltuieli platite de chirias, suportate de
-                        proprietar, fara decontare:{' '}
+                        Există costuri plătite de chiriaș, suportate de
+                        proprietar, fără decontare:{' '}
                         <strong>
                             {formatMoney(
                                 summary.unsettled_tenant_paid_owner_expenses,
                                 summary.currency,
                             )}
                         </strong>
-                        . Editeaza cheltuielile si alege scadere din chirie,
-                        scadere din utilitati sau rambursare.
+                        . Editează costurile și alege scădere din chirie,
+                        scădere din utilități sau rambursare.
                     </section>
                 ) : null}
 
@@ -630,7 +630,7 @@ export default function Dashboard({
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Plăți care urmează
+                            Scadențe următoare
                         </h2>
                         <div className="mt-2.5 space-y-2">
                             {upcomingPayments.length > 0 ? (
@@ -769,7 +769,7 @@ export default function Dashboard({
                     </section>
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
-                        <h2 className="text-base font-medium">Plăți recente</h2>
+                        <h2 className="text-base font-medium">Încasări recente</h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentPayments.length > 0 ? (
                                 recentPayments.map((payment) => (
@@ -807,14 +807,14 @@ export default function Dashboard({
                                     </Link>
                                 ))
                             ) : (
-                                <EmptyLine>Nu există plăți recente.</EmptyLine>
+                                <EmptyLine>Nu există încasări recente.</EmptyLine>
                             )}
                         </div>
                     </section>
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Cheltuieli recente
+                            Costuri recente
                         </h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentExpenses.length > 0 ? (
@@ -854,7 +854,7 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu există cheltuieli recente.
+                                    Nu există costuri recente.
                                 </EmptyLine>
                             )}
                         </div>
