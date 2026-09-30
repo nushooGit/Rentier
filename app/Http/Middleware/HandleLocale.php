@@ -16,10 +16,15 @@ class HandleLocale
 
     public function handle(Request $request, Closure $next): Response
     {
-        $locale = (string) $request->cookie('rentier_locale', config('app.locale'));
+        $cookieLocale = $request->cookie('rentier_locale');
+        $configuredLocale = config('app.locale');
+
+        $locale = is_string($cookieLocale)
+            ? $cookieLocale
+            : (is_string($configuredLocale) ? $configuredLocale : 'ro');
 
         if (! in_array($locale, self::SUPPORTED_LOCALES, true)) {
-            $locale = (string) config('app.locale', 'ro');
+            $locale = is_string($configuredLocale) ? $configuredLocale : 'ro';
         }
 
         App::setLocale($locale);
