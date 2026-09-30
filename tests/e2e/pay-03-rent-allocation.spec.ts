@@ -6,7 +6,8 @@ import {
     login,
     monthParts,
     requireLocalBaseURL,
-    todayParts,
+    serverMonthParts,
+    serverTodayParts,
     selectOptionContaining,
 } from './helpers';
 
@@ -24,9 +25,9 @@ test.describe('PAY-03 rent payment allocation', () => {
         page,
     }) => {
         const suffix = uniqueSuffix();
-        const current = monthParts(0);
-        const next = monthParts(1);
-        const following = monthParts(2);
+        const current = await serverMonthParts(page, 0);
+        const next = await serverMonthParts(page, 1);
+        const following = await serverMonthParts(page, 2);
         const propertyName = `PAY03 Roll Property ${suffix}`;
         const renterName = `PAY03 Roll Renter ${suffix}`;
 
@@ -144,9 +145,9 @@ test.describe('PAY-03 rent payment allocation', () => {
 
     test('partial third month advance is visible', async ({ page }) => {
         const suffix = uniqueSuffix();
-        const current = monthParts(0);
-        const next = monthParts(1);
-        const following = monthParts(2);
+        const current = await serverMonthParts(page, 0);
+        const next = await serverMonthParts(page, 1);
+        const following = await serverMonthParts(page, 2);
         const propertyName = `PAY03 Partial Property ${suffix}`;
         const renterName = `PAY03 Partial Renter ${suffix}`;
 
@@ -202,7 +203,7 @@ test.describe('PAY-03 rent payment allocation', () => {
 
     test('lease-end excess remains unallocated', async ({ page }) => {
         const suffix = uniqueSuffix();
-        const current = monthParts(0);
+        const current = await serverMonthParts(page, 0);
         const propertyName = `PAY03 Credit Property ${suffix}`;
         const renterName = `PAY03 Credit Renter ${suffix}`;
 
@@ -243,10 +244,10 @@ test.describe('PAY-03 rent payment allocation', () => {
         page,
     }) => {
         const suffix = uniqueSuffix();
-        const firstOverdueMonth = monthParts(-2);
-        const secondOverdueMonth = monthParts(-1);
-        const currentMonth = monthParts();
-        const dueDay = todayParts().day;
+        const firstOverdueMonth = await serverMonthParts(page, -2);
+        const secondOverdueMonth = await serverMonthParts(page, -1);
+        const currentMonth = await serverMonthParts(page);
+        const dueDay = (await serverTodayParts(page)).day;
         const currentMonthEndDate = new Date(
             Date.UTC(
                 Number(currentMonth.year),
@@ -308,7 +309,7 @@ test.describe('PAY-03 rent payment allocation', () => {
         page,
     }) => {
         const suffix = uniqueSuffix();
-        const current = monthParts(0);
+        const current = await serverMonthParts(page, 0);
         const propertyName = `PAY03 Guarantee Property ${suffix}`;
         const renterName = `PAY03 Guarantee Renter ${suffix}`;
 
@@ -325,7 +326,7 @@ test.describe('PAY-03 rent payment allocation', () => {
             propertyName,
             renterName,
             current.date,
-            monthParts(1).date,
+            (await serverMonthParts(page, 1)).date,
             '5',
             '2500',
         );
