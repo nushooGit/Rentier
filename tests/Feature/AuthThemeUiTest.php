@@ -9,21 +9,25 @@ test('authentication UI uses Rentier branding and the localization layer', funct
     expect($layout)
         ->toContain('Rentier')
         ->toContain("t('app.tagline')")
+        ->toContain("t('auth.shell.heroTitle')")
         ->toContain('<LocaleSwitcher')
-        ->toContain('Proprietățile tale, organizate într-un singur loc.')
         ->not->toContain('AppLogoIcon');
 
     expect($translations)
         ->toContain("'app.tagline': 'Administrare chirii'")
-        ->toContain("'app.tagline': 'Rental management'");
+        ->toContain("'app.tagline': 'Rental management'")
+        ->toContain("'auth.login.title': 'Bine ai revenit'")
+        ->toContain("'auth.login.title': 'Welcome back'")
+        ->toContain("'auth.login.email': 'Adresă de email'")
+        ->toContain("'auth.login.email': 'Email address'");
 
     expect($login)
-        ->toContain('Bine ai revenit')
-        ->toContain('Adresă de email')
-        ->toContain('Parolă')
-        ->toContain('Ține-mă minte')
-        ->toContain('Autentificare')
-        ->toContain('Intră cu passkey')
+        ->toContain("t('auth.login.title')")
+        ->toContain("t('auth.login.email')")
+        ->toContain("t('auth.login.password')")
+        ->toContain("t('auth.login.remember')")
+        ->toContain("t('auth.login.submit')")
+        ->toContain("t('auth.login.passkey')")
         ->not->toContain('Log in to your account');
 
     expect($baseView)
@@ -48,7 +52,9 @@ test('theme and locale controls are available on auth and authenticated app shel
 
     expect($translations)
         ->toContain("'theme.enableDark': 'Activează modul întunecat'")
-        ->toContain("'theme.enableLight': 'Activează modul luminos'");
+        ->toContain("'theme.enableLight': 'Activează modul luminos'")
+        ->toContain("'settings.appearance.light': 'Luminos'")
+        ->toContain("'settings.appearance.light': 'Light'");
 
     expect($localeSwitcher)
         ->toContain('persistAppLocale')
@@ -64,7 +70,36 @@ test('theme and locale controls are available on auth and authenticated app shel
         ->toContain('<LocaleSwitcher');
 
     expect($appearance)
-        ->toContain('Luminos')
-        ->toContain('Întunecat')
-        ->toContain('Sistem');
+        ->toContain("t('settings.appearance.light')")
+        ->toContain("t('settings.appearance.dark')")
+        ->toContain("t('settings.appearance.system')");
+});
+
+test('settings UI uses the shared localization layer', function () {
+    $layout = file_get_contents(resource_path('js/layouts/settings/layout.tsx'));
+    $profile = file_get_contents(resource_path('js/pages/settings/profile.tsx'));
+    $security = file_get_contents(resource_path('js/pages/settings/security.tsx'));
+    $deleteUser = file_get_contents(resource_path('js/components/delete-user.tsx'));
+    $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
+
+    expect($layout)
+        ->toContain("t('settings.title')")
+        ->toContain("t('settings.nav.profile')")
+        ->toContain("t('settings.nav.security')");
+
+    expect($profile)
+        ->toContain("t('settings.profile.title')")
+        ->toContain("t('settings.save')");
+
+    expect($security)
+        ->toContain("t('settings.security.passwordTitle')")
+        ->toContain("t('settings.security.currentPassword')");
+
+    expect($deleteUser)
+        ->toContain("t('settings.delete.title')")
+        ->toContain("t('settings.delete.confirmTitle')");
+
+    expect($translations)
+        ->toContain("'settings.title': 'Setări'")
+        ->toContain("'settings.title': 'Settings'");
 });
