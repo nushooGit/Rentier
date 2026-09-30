@@ -5,7 +5,7 @@ import {
     login,
     requireLocalBaseURL,
     selectOptionContaining,
-    todayParts,
+    serverTodayParts,
 } from './helpers';
 
 test.describe('authenticated landlord smoke', () => {
@@ -159,7 +159,7 @@ test.describe('authenticated landlord smoke', () => {
         const propertyName = `E2E Smoke Property ${suffix}`;
         const renterName = `E2E Smoke Renter ${suffix}`;
         const expenseTitle = `E2E Smoke Expense ${suffix}`;
-        const { date, month, year } = todayParts();
+        const { date, month, year } = await serverTodayParts(page);
 
         await login(page);
         const teamSlug = currentTeamSlug(page);
