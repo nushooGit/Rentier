@@ -36,8 +36,7 @@ export default function PaymentCreate({ leases, paymentMethods }: Props) {
 
                 {leases.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-5 text-sm text-muted-foreground">
-                        Ai nevoie de cel puțin un contract înainte să adaugi o
-                        plată.
+                        {t('payments.create.requiresLease')}
                     </div>
                 ) : null}
 
