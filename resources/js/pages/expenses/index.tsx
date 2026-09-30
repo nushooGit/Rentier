@@ -258,8 +258,8 @@ export default function ExpensesIndex({
                                             }
                                         >
                                             {expense.affects_owner_profit
-                                                ? '{t('expenses.profit.affects')}'
-                                                : '{t('expenses.profit.notAffects')}'}
+                                                ? t('expenses.profit.affects')
+                                                : t('expenses.profit.notAffects')}
                                         </Badge>
                                     </div>
                                     {expense.settlement_state.settled_label ? (
