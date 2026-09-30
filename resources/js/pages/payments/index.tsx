@@ -3,11 +3,15 @@ import { Eye, Pencil, Plus, Trash2, WalletCards } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatDateLong } from '@/lib/date';
+import { formatDateLong, formatMonthYear } from '@/lib/date';
 import { translateKey, useI18n } from '@/lib/i18n';
 import { currentAppLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
-import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
+import {
+    paymentMethodLabel,
+    paymentSummaryLabel,
+    paymentTypeLabel,
+} from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
 
@@ -56,7 +60,7 @@ function formatRentPeriod(month: number | null, year: number | null) {
 }
 
 function paymentBadgeLabel(payment: RentPayment) {
-    return payment.status_summary.status_label;
+    return paymentSummaryLabel(payment.payment_type, payment.status_summary);
 }
 
 function paymentContext(payment: RentPayment) {
@@ -107,7 +111,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
             <span className="font-medium text-foreground">{t('payments.section.allocation')}:</span>
             {payment.allocation_summary.breakdown.map((allocation) => (
                 <span key={allocation.period_key}>
-                    {allocation.period_label} -{' '}
+                    {formatMonthYear(allocation.period_date)} -{' '}
                     {formatMoney(allocation.amount, payment.currency)}
                 </span>
             ))}
@@ -247,10 +251,10 @@ export default function PaymentsIndex({ payments }: Props) {
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <WalletCards className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există încasări încă
+                            {t('payments.index.emptyTitle')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Înregistrează prima încasare pentru un contract existent.
+                            {t('payments.index.emptyDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -267,7 +271,7 @@ export default function PaymentsIndex({ payments }: Props) {
 PaymentsIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Încasări',
+            title: translateKey('nav.payments'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
