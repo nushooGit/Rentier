@@ -135,6 +135,7 @@ const ro = {
     'settings.passkeys.emptyTitle': 'Nu ai încă passkeys',
     'settings.passkeys.emptyDescription': 'Adaugă un passkey pentru a te autentifica fără parolă.',
 
+    'common.all': 'Toate',
     'common.back': 'Înapoi',
     'common.edit': 'Editează',
     'common.delete': 'Șterge',
@@ -493,6 +494,7 @@ const en: Record<TranslationKey, string> = {
     'settings.passkeys.emptyTitle': 'No passkeys yet',
     'settings.passkeys.emptyDescription': 'Add a passkey to sign in without a password.',
 
+    'common.all': 'All',
     'common.back': 'Back',
     'common.edit': 'Edit',
     'common.delete': 'Delete',
