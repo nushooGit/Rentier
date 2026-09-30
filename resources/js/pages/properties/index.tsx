@@ -79,12 +79,12 @@ export default function PropertiesIndex({ properties }: Props) {
 
             <h1 className="sr-only">Proprietăți</h1>
 
-            <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
                         title="Proprietăți"
-                        description="Gestionează proprietățile din acest workspace"
+                        description="Portofoliul tău, ocuparea și situația curentă a chiriei"
                     />
 
                     <Button asChild data-test="property-create-link">
@@ -95,16 +95,16 @@ export default function PropertiesIndex({ properties }: Props) {
                 </div>
 
                 {properties.length > 0 ? (
-                    <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
                         {properties.map((property) => (
                             <article
                                 key={property.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="property-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, property.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5"
                                     data-test="property-card-link"
                                     aria-label={`Vezi proprietatea ${property.name}`}
                                 >
@@ -213,7 +213,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                 </Link>
 
                                 <TooltipProvider>
-                                    <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
+                                    <div className="mt-auto flex justify-end gap-1.5 border-t border-border/60 bg-muted/20 px-3 py-2.5">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
@@ -285,13 +285,13 @@ export default function PropertiesIndex({ properties }: Props) {
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
+                    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <h2 className="text-base font-medium">
                             Nu există proprietăți încă
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
                             Adaugă prima proprietate pentru a începe urmărirea
-                            contractelor, chiriei, cheltuielilor și mentenanței.
+                            contractelor, încasărilor, costurilor și mentenanței.
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>

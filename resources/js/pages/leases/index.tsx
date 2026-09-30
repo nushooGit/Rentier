@@ -56,12 +56,12 @@ export default function LeasesIndex({ leases }: Props) {
 
             <h1 className="sr-only">Contracte</h1>
 
-            <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
                         title="Contracte"
-                        description="Gestionează contractele și chiriașii din acest workspace"
+                        description="Contractele active, chiriașii și perioadele de închiriere într-un singur loc"
                     />
 
                     <Button asChild data-test="lease-create-link">
@@ -72,16 +72,16 @@ export default function LeasesIndex({ leases }: Props) {
                 </div>
 
                 {leases.length > 0 ? (
-                    <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-3">
+                    <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-3">
                         {leases.map((lease) => (
                             <article
                                 key={lease.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col overflow-hidden rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="lease-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, lease.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5"
                                     data-test="lease-card-link"
                                     aria-label={`Vezi contractul pentru ${lease.renter.name}`}
                                 >
@@ -114,7 +114,7 @@ export default function LeasesIndex({ leases }: Props) {
                                 </Link>
 
                                 <TooltipProvider>
-                                    <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
+                                    <div className="mt-auto flex justify-end gap-1.5 border-t border-border/60 bg-muted/20 px-3 py-2.5">
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <Button
@@ -186,7 +186,7 @@ export default function LeasesIndex({ leases }: Props) {
                         ))}
                     </div>
                 ) : (
-                    <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
+                    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
                             Nu există contracte încă
