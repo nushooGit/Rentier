@@ -106,3 +106,16 @@ test('documents index exposes upload download and delete controls', function () 
         ->toContain('data-test="document-download-link"')
         ->toContain('data-test="document-delete-button"');
 });
+
+
+test('documents index includes practical client-side search and filters', function () {
+    $source = pageSource('documents/index.tsx');
+
+    expect($source)
+        ->toContain('data-test="document-search-input"')
+        ->toContain('data-test="document-category-filter"')
+        ->toContain('data-test="document-property-filter"')
+        ->toContain('data-test="document-expiry-filter"')
+        ->toContain('filteredDocuments.map')
+        ->toContain('normalizeSearchText');
+});

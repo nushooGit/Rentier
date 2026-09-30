@@ -4,14 +4,17 @@ import {
     FileText,
     FolderOpen,
     Plus,
+    Search,
     Trash2,
     Upload,
+    X,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
     destroy,
@@ -65,6 +68,13 @@ function formatDate(value: string): string {
     }).format(new Date(`${value}T12:00:00`));
 }
 
+function normalizeSearchText(value: string): string {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLocaleLowerCase('ro-RO');
+}
+
 export default function DocumentsIndex({
     documents,
     categories,
@@ -74,6 +84,10 @@ export default function DocumentsIndex({
     const { currentTeam } = usePage().props;
     const currentTeamSlug = currentTeam?.slug ?? '';
     const [selectedPropertyId, setSelectedPropertyId] = useState('');
+    const [query, setQuery] = useState('');
+    const [categoryFilter, setCategoryFilter] = useState('all');
+    const [propertyFilter, setPropertyFilter] = useState('all');
+    const [expiryFilter, setExpiryFilter] = useState('all');
 
     const propertyLeases = useMemo(
         () =>
@@ -82,6 +96,69 @@ export default function DocumentsIndex({
             ),
         [leases, selectedPropertyId],
     );
+
+    const filteredDocuments = useMemo(() => {
+        const normalizedQuery = normalizeSearchText(query.trim());
+        const today = localToday();
+
+        return documents.filter((document) => {
+            const matchesQuery =
+                normalizedQuery === '' ||
+                [
+                    document.original_name,
+                    document.category_label,
+                    document.property?.name ?? '',
+                    document.property?.city ?? '',
+                    document.lease?.renter_name ?? '',
+                ].some((value) =>
+                    normalizeSearchText(value).includes(normalizedQuery),
+                );
+            const matchesCategory =
+                categoryFilter === 'all' ||
+                document.category === categoryFilter;
+            const matchesProperty =
+                propertyFilter === 'all' ||
+                document.property?.id.toString() === propertyFilter;
+            const matchesExpiry =
+                expiryFilter === 'all' ||
+                (expiryFilter === 'with_expiry' &&
+                    document.expires_on !== null) ||
+                (expiryFilter === 'without_expiry' &&
+                    document.expires_on === null) ||
+                (expiryFilter === 'expired' &&
+                    document.expires_on !== null &&
+                    document.expires_on < today) ||
+                (expiryFilter === 'valid' &&
+                    document.expires_on !== null &&
+                    document.expires_on >= today);
+
+            return (
+                matchesQuery &&
+                matchesCategory &&
+                matchesProperty &&
+                matchesExpiry
+            );
+        });
+    }, [
+        categoryFilter,
+        documents,
+        expiryFilter,
+        propertyFilter,
+        query,
+    ]);
+
+    const filtersAreActive =
+        query.trim() !== '' ||
+        categoryFilter !== 'all' ||
+        propertyFilter !== 'all' ||
+        expiryFilter !== 'all';
+
+    const clearFilters = () => {
+        setQuery('');
+        setCategoryFilter('all');
+        setPropertyFilter('all');
+        setExpiryFilter('all');
+    };
 
     const deleteDocument = (document: RentierDocument) => {
         if (
@@ -292,18 +369,118 @@ export default function DocumentsIndex({
                 </section>
 
                 <section>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <div>
-                            <h2 className="font-semibold">
-                                Documente salvate
-                            </h2>
-                            <p className="text-sm text-muted-foreground">
-                                {documents.length}{' '}
-                                {documents.length === 1
-                                    ? 'document'
-                                    : 'documente'}
-                            </p>
+                    <div className="mb-3 flex flex-col gap-3">
+                        <div className="flex items-center justify-between gap-3">
+                            <div>
+                                <h2 className="font-semibold">
+                                    Documente salvate
+                                </h2>
+                                <p className="text-sm text-muted-foreground">
+                                    {filtersAreActive
+                                        ? `${filteredDocuments.length} din ${documents.length} documente`
+                                        : `${documents.length} ${documents.length === 1 ? 'document' : 'documente'}`}
+                                </p>
+                            </div>
+                            {filtersAreActive ? (
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={clearFilters}
+                                    data-test="document-clear-filters"
+                                >
+                                    <X />
+                                    Resetează
+                                </Button>
+                            ) : null}
                         </div>
+
+                        {documents.length > 0 ? (
+                            <div
+                                className="grid gap-2 rounded-xl border bg-card p-3 md:grid-cols-2 xl:grid-cols-4"
+                                data-test="document-filters"
+                            >
+                                <div className="relative md:col-span-2 xl:col-span-1">
+                                    <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                                    <Input
+                                        value={query}
+                                        onChange={(event) =>
+                                            setQuery(event.target.value)
+                                        }
+                                        placeholder="Caută fișier, proprietate, chiriaș…"
+                                        className="pl-9"
+                                        aria-label="Caută documente"
+                                        data-test="document-search-input"
+                                    />
+                                </div>
+
+                                <select
+                                    value={categoryFilter}
+                                    onChange={(event) =>
+                                        setCategoryFilter(event.target.value)
+                                    }
+                                    className={selectClassName}
+                                    aria-label="Filtrează după categorie"
+                                    data-test="document-category-filter"
+                                >
+                                    <option value="all">Toate categoriile</option>
+                                    {categories.map((category) => (
+                                        <option
+                                            key={category.value}
+                                            value={category.value}
+                                        >
+                                            {category.label}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    value={propertyFilter}
+                                    onChange={(event) =>
+                                        setPropertyFilter(event.target.value)
+                                    }
+                                    className={selectClassName}
+                                    aria-label="Filtrează după proprietate"
+                                    data-test="document-property-filter"
+                                >
+                                    <option value="all">
+                                        Toate proprietățile
+                                    </option>
+                                    {properties.map((property) => (
+                                        <option
+                                            key={property.id}
+                                            value={property.id}
+                                        >
+                                            {property.name} · {property.city}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <select
+                                    value={expiryFilter}
+                                    onChange={(event) =>
+                                        setExpiryFilter(event.target.value)
+                                    }
+                                    className={selectClassName}
+                                    aria-label="Filtrează după expirare"
+                                    data-test="document-expiry-filter"
+                                >
+                                    <option value="all">
+                                        Orice expirare
+                                    </option>
+                                    <option value="with_expiry">
+                                        Cu dată de expirare
+                                    </option>
+                                    <option value="without_expiry">
+                                        Fără dată de expirare
+                                    </option>
+                                    <option value="valid">
+                                        Valide / viitoare
+                                    </option>
+                                    <option value="expired">Expirate</option>
+                                </select>
+                            </div>
+                        ) : null}
                     </div>
 
                     {documents.length === 0 ? (
@@ -317,9 +494,28 @@ export default function DocumentsIndex({
                                 proprietății.
                             </p>
                         </div>
+                    ) : filteredDocuments.length === 0 ? (
+                        <div className="rounded-xl border border-dashed p-8 text-center">
+                            <Search className="mx-auto size-9 text-muted-foreground" />
+                            <h3 className="mt-3 font-medium">
+                                Niciun document găsit
+                            </h3>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                                Schimbă căutarea sau filtrele aplicate.
+                            </p>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                className="mt-4"
+                                onClick={clearFilters}
+                            >
+                                Resetează filtrele
+                            </Button>
+                        </div>
                     ) : (
                         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                            {documents.map((document) => (
+                            {filteredDocuments.map((document) => (
                                 <article
                                     key={document.id}
                                     className="flex flex-col rounded-xl border bg-card p-4 shadow-sm"
