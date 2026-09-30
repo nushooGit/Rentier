@@ -38,17 +38,17 @@ export default function AuthSimpleLayout({
                     </div>
 
                     <h2 className="mt-10 text-4xl font-semibold tracking-[-0.04em] text-balance">
-                        Proprietățile tale, organizate într-un singur loc.
+                        {t('auth.shell.heroTitle')}
                     </h2>
                     <p className="mt-4 max-w-lg text-base leading-7 text-slate-400">
-                        Contracte, chirii, garanții și costuri într-o interfață construită pentru proprietarii din România.
+                        {t('auth.shell.heroDescription')}
                     </p>
 
                     <div className="mt-8 grid gap-3 text-sm text-slate-300">
                         {[
-                            'Încasări și restanțe urmărite clar',
-                            'Contracte și proprietăți legate într-un singur flux',
-                            'Costuri și sume de recuperat la vedere',
+                            t('auth.shell.bulletIncome'),
+                            t('auth.shell.bulletFlow'),
+                            t('auth.shell.bulletCosts'),
                         ].map((item) => (
                             <div key={item} className="flex items-center gap-3">
                                 <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-300/10 text-emerald-300">
