@@ -80,7 +80,7 @@ class StoreDocumentRequest extends FormRequest
             if ($lease && $lease->property_id !== $this->integer('property_id')) {
                 $validator->errors()->add(
                     'lease_id',
-                    'Contractul selectat nu aparține proprietății selectate.',
+                    __('The selected lease does not belong to the selected property.'),
                 );
             }
         });
@@ -94,11 +94,11 @@ class StoreDocumentRequest extends FormRequest
         return [
             'property_id.required' => 'Alege proprietatea.',
             'category.required' => 'Alege categoria documentului.',
-            'document_date.required' => 'Data documentului este obligatorie.',
-            'expires_on.after_or_equal' => 'Data expirării trebuie să fie egală sau ulterioară datei documentului.',
-            'file.required' => 'Alege un fișier.',
-            'file.mimes' => 'Fișierul trebuie să fie PDF, imagine JPG/PNG/WebP sau document Word.',
-            'file.max' => 'Fișierul poate avea maximum 20 MB.',
+            'document_date.required' => __('The document date is required.'),
+            'expires_on.after_or_equal' => __('The expiry date must be equal to or later than the document date.'),
+            'file.required' => __('Choose a file.'),
+            'file.mimes' => __('The file must be a PDF, JPG/PNG/WebP image, or Word document.'),
+            'file.max' => __('The file may be at most 20 MB.'),
         ];
     }
 }
