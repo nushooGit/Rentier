@@ -268,5 +268,18 @@ test.describe('authenticated landlord smoke', () => {
         ).toBeVisible();
         await expect(page.getByText('Detalii financiare')).toBeVisible();
         await expect(page.getByText(propertyName).first()).toBeVisible();
+
+        await page.getByTestId('locale-switcher').click();
+        await page.getByRole('menuitem', { name: /English/ }).click();
+        await page.goto(`/${teamSlug}/properties`);
+
+        const propertyCard = page
+            .getByTestId('property-card')
+            .filter({ hasText: propertyName });
+
+        await expect(propertyCard).toContainText('Paid this month');
+        await expect(propertyCard).not.toContainText('Plătită');
+        await expect(propertyCard).not.toContainText('Restanță');
+        await expect(propertyCard).not.toContainText('luni restante');
     });
 });

@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { translateKey, useI18n } from '@/lib/i18n';
+import { currentIntlLocale } from '@/lib/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,6 +12,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
+    propertyAdvanceNoticeLabel,
+    propertyRentStatusBadgeLabel,
     propertyStatusLabel,
     propertyTypeLabel,
 } from '@/pages/properties/labels';
@@ -35,7 +38,7 @@ function formatMoney(amount?: string | null, currency = 'RON') {
         return translateKey('properties.index.rentUnset');
     }
 
-    return `${Number(amount).toLocaleString(undefined, {
+    return `${Number(amount).toLocaleString(currentIntlLocale(), {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0,
     })} ${currency}`;
@@ -148,7 +151,12 @@ export default function PropertiesIndex({ properties }: Props) {
                                                                 variant="outline"
                                                                 className={`w-fit ${rentStatusBadgeClassName(badge)}`}
                                                             >
-                                                                {badge.label}
+                                                                {propertyRentStatusBadgeLabel(
+                                                                    property.rent_payment_status,
+                                                                    badge,
+                                                                    formatMoney,
+                                                                    property.currency,
+                                                                )}
                                                             </Badge>
                                                         ),
                                                     )}
@@ -158,7 +166,9 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .rent_deduction_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Scăzut din chirie:{' '}
+                                                        {t('dashboard.rentDeducted', {
+                                                            amount: '',
+                                                        }).replace(': ', ':')}{' '}
                                                         {formatMoney(
                                                             property
                                                                 .rent_payment_status
@@ -172,7 +182,9 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .collected_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Încasat:{' '}
+                                                        {t('dashboard.collected', {
+                                                            amount: '',
+                                                        }).replace(': ', ':')}{' '}
                                                         {formatMoney(
                                                             property
                                                                 .rent_payment_status
@@ -202,7 +214,11 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         key={`${notice.key}-${notice.period_key}`}
                                                         className="text-xs font-medium text-emerald-700"
                                                     >
-                                                        {notice.label}
+                                                        {propertyAdvanceNoticeLabel(
+                                                            notice,
+                                                            formatMoney,
+                                                            property.currency,
+                                                        )}
                                                     </span>
                                                 ))}
                                             </div>
@@ -231,7 +247,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Vezi proprietatea</p>
+                                                <p>{t('properties.index.viewTooltip')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -254,7 +270,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Editează proprietatea</p>
+                                                <p>{t('properties.index.editTooltip')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -274,7 +290,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Șterge proprietatea</p>
+                                                <p>{t('properties.index.delete')}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
@@ -285,11 +301,10 @@ export default function PropertiesIndex({ properties }: Props) {
                 ) : (
                     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <h2 className="text-base font-medium">
-                            Nu există proprietăți încă
+                            {t('properties.index.emptyTitle')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă prima proprietate pentru a începe urmărirea
-                            contractelor, încasărilor, costurilor și mentenanței.
+                            {t('properties.index.emptyDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -308,7 +323,7 @@ PropertiesIndex.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Proprietăți',
+            title: translateKey('nav.properties'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
