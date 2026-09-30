@@ -91,29 +91,58 @@ export async function selectOptionContaining(
     await page.locator(selector).selectOption(value);
 }
 
-export function todayParts() {
-    const now = new Date();
+const appTimezone = process.env.APP_TIMEZONE ?? 'Europe/Bucharest';
+
+function appCalendarParts(date = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: appTimezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(date);
+
+    const values = Object.fromEntries(
+        parts
+            .filter((part) => part.type !== 'literal')
+            .map((part) => [part.type, part.value]),
+    );
 
     return {
-        date: now.toISOString().slice(0, 10),
-        month: String(now.getMonth() + 1),
-        year: String(now.getFullYear()),
+        year: Number(values.year),
+        month: Number(values.month),
+        day: Number(values.day),
+    };
+}
+
+export function todayParts() {
+    const current = appCalendarParts();
+    const year = String(current.year);
+    const month = String(current.month);
+    const day = String(current.day);
+
+    return {
+        date: `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`,
+        day,
+        month,
+        year,
     };
 }
 
 export function monthParts(offset = 0) {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(date.getMonth() + offset);
+    const current = appCalendarParts();
+    const date = new Date(Date.UTC(current.year, current.month - 1 + offset, 1));
+    const month = date.getUTCMonth() + 1;
+    const year = date.getUTCFullYear();
     const inlineLabel = new Intl.DateTimeFormat('ro-RO', {
         month: 'long',
         year: 'numeric',
+        timeZone: 'UTC',
     }).format(date);
 
     return {
-        date: date.toISOString().slice(0, 10),
-        month: String(date.getMonth() + 1),
-        year: String(date.getFullYear()),
+        date: `${year}-${String(month).padStart(2, '0')}-01`,
+        month: String(month),
+        year: String(year),
         inlineLabel,
         label: inlineLabel.charAt(0).toUpperCase() + inlineLabel.slice(1),
     };
