@@ -1,5 +1,6 @@
 import { Form } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import { useMemo, useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
@@ -193,7 +194,7 @@ export default function ExpenseForm({
                 <>
                     <FormSection title="Detalii cost">
                         <Field className="md:col-span-2">
-                            <Label htmlFor="title">Titlu</Label>
+                            <Label htmlFor="title">{t('expenses.field.title')}</Label>
                             <Input
                                 id="title"
                                 name="title"
@@ -206,7 +207,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="category">Categorie</Label>
+                            <Label htmlFor="category">{t('expenses.field.category')}</Label>
                             <select
                                 id="category"
                                 name="category"
@@ -230,7 +231,7 @@ export default function ExpenseForm({
 
                     <FormSection title="Proprietate și contract">
                         <Field className="md:col-span-2">
-                            <Label htmlFor="property_id">Proprietate</Label>
+                            <Label htmlFor="property_id">{t('common.property')}</Label>
                             <select
                                 id="property_id"
                                 name="property_id"
@@ -259,7 +260,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field className="md:col-span-2">
-                            <Label htmlFor="lease_id">Contract</Label>
+                            <Label htmlFor="lease_id">{t('common.lease')}</Label>
                             <select
                                 id="lease_id"
                                 name="lease_id"
@@ -288,7 +289,7 @@ export default function ExpenseForm({
 
                     <FormSection title="Sumă și plată">
                         <Field>
-                            <Label htmlFor="amount">Sumă</Label>
+                            <Label htmlFor="amount">{t('expenses.field.amount')}</Label>
                             <Input
                                 id="amount"
                                 name="amount"
@@ -304,7 +305,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -340,7 +341,7 @@ export default function ExpenseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="paid_by">Plătitor</Label>
+                            <Label htmlFor="paid_by">{t('expenses.field.paidBy')}</Label>
                             <select
                                 id="paid_by"
                                 name="paid_by"
@@ -455,7 +456,7 @@ export default function ExpenseForm({
                             Note
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"
