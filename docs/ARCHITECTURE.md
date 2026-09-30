@@ -99,3 +99,15 @@ Rentier must be mobile-first and responsive from the beginning because it may la
 - Desktop: dashboards, tables, and reporting can use denser layouts, but must not be the only usable experience.
 - Navigation should support portal switching and organization/workspace context without assuming a wide sidebar.
 - Use responsive components that can survive future app-shell embedding.
+
+
+## Product Sequencing Rule
+
+The long-term multi-portal architecture does not mean the portal expansion starts immediately.
+
+The approved sequence is:
+1. complete the landlord product gate defined in `docs/landlord-v1-scope.md`;
+2. build a focused public growth/SEO layer on `rentier.ro`;
+3. only then begin the larger Home/Market/building-administration expansion.
+
+Shared domain design should still avoid choices that block future Home reuse, especially for documents, utilities, invoices, maintenance and property history.

@@ -158,18 +158,19 @@ Never expose individual contract or user data. Any Rentier-derived market statis
 - Do not add cross-subdomain shared cookies without a separate security review.
 - Build new domain foundations before adding a large number of disconnected UI features.
 
-## Near-term sequencing
+## Product sequencing gate
 
 This document is direction, not permission to implement everything at once.
 
-Current near-term sequence:
+The owner-approved sequence is intentionally staged:
 
-1. Finish the current `admin.rentier.ro` safe foundation.
-2. Design the shared property lifecycle and utility/invoice data model.
-3. Define the smallest useful Home MVP.
-4. Implement Home incrementally without regressing the existing landlord product.
-5. Add invoice ingestion/automation in stages.
-6. Treat the public rental market/map as a later growth/data product once Rentier has enough trustworthy data and sourcing.
-7. Treat building/association administration as a later portal built on the shared property/utility foundations.
+1. Finish the current internal-admin safety work needed to operate the product.
+2. Complete **Rentier Landlord v1** on `app.rentier.ro` before beginning the large multi-portal expansion.
+3. After Landlord v1 is complete, build a focused **public growth / SEO layer** on `rentier.ro`: useful Romanian landlord resources, tax/rent calculators, evergreen guides and a lightweight blog/content system.
+4. Only after the Landlord v1 and public-growth stages are healthy, begin the larger platform expansion such as `home.rentier.ro`, broader property lifecycle, market/rental map and building/association administration.
+
+The Landlord v1 completion gate is defined in [Landlord v1 Scope](landlord-v1-scope.md).
+
+The future Home/Market/Condo architecture remains valid, but it is deliberately **not the next implementation phase**.
 
 Every implementation increment must still follow `PROJECT_RULES.md`, the issue register, tests, CI and deployment safeguards.
