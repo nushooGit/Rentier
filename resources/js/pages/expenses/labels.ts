@@ -1,3 +1,4 @@
+import { formatDateLong } from '@/lib/date';
 import { currentAppLocale } from '@/lib/locale';
 import type {
     ExpenseCategory,
@@ -6,6 +7,13 @@ import type {
     ExpenseSettlementType,
     ExpenseStatus,
 } from '@/types';
+
+export type ExpenseSettlementKind =
+    | 'none'
+    | 'reimbursement_due'
+    | 'reimbursed'
+    | 'recovery_due'
+    | 'recovered';
 
 export const expenseCategoryLabels: Record<ExpenseCategory, string> = {
     repairs: 'Reparații',
@@ -85,13 +93,53 @@ const expenseSettlementTypeLabelsEn: Record<ExpenseSettlementType, string> = {
     reimburse: 'Reimburse separately',
 };
 
+const settlementStateLabels: Record<ExpenseSettlementKind, string | null> = {
+    none: null,
+    reimbursement_due: 'De rambursat',
+    reimbursed: 'Rambursat',
+    recovery_due: 'De recuperat',
+    recovered: 'Recuperat',
+};
+
+const settlementStateLabelsEn: Record<ExpenseSettlementKind, string | null> = {
+    none: null,
+    reimbursement_due: 'Reimbursement due',
+    reimbursed: 'Reimbursed',
+    recovery_due: 'Recovery due',
+    recovered: 'Recovered',
+};
+
+const settlementActionLabels: Record<ExpenseSettlementKind, string | null> = {
+    none: null,
+    reimbursement_due: 'Marchează ca rambursat',
+    reimbursed: 'Anulează rambursarea',
+    recovery_due: 'Marchează ca recuperat',
+    recovered: 'Anulează recuperarea',
+};
+
+const settlementActionLabelsEn: Record<ExpenseSettlementKind, string | null> = {
+    none: null,
+    reimbursement_due: 'Mark as reimbursed',
+    reimbursed: 'Undo reimbursement',
+    recovery_due: 'Mark as recovered',
+    recovered: 'Undo recovery',
+};
+
 export function expenseCategoryLabel(value: ExpenseCategory) {
-    const labels = currentAppLocale() === 'en' ? expenseCategoryLabelsEn : expenseCategoryLabels;
+    const labels =
+        currentAppLocale() === 'en'
+            ? expenseCategoryLabelsEn
+            : expenseCategoryLabels;
+
     return labels[value] ?? value;
 }
 
 export function expensePaidByLabel(value: ExpensePaidBy) {
-    const labels = currentAppLocale() === 'en' ? expensePaidByLabelsEn : expensePaidByLabels;
+    const labels =
+        currentAppLocale() === 'en'
+            ? expensePaidByLabelsEn
+            : expensePaidByLabels;
+
     return labels[value] ?? value;
 }
 
@@ -100,6 +148,7 @@ export function expenseResponsiblePartyLabel(value: ExpenseResponsibleParty) {
         currentAppLocale() === 'en'
             ? expenseResponsiblePartyLabelsEn
             : expenseResponsiblePartyLabels;
+
     return labels[value] ?? value;
 }
 
@@ -112,19 +161,66 @@ export function expenseSettlementTypeLabel(
 
     if (value === 'reimburse') {
         if (paidBy === 'owner' && responsibleParty === 'tenant') {
-            return isEnglish ? 'Recover from renter' : 'Se recuperează de la chiriaș';
+            return isEnglish
+                ? 'Recover from renter'
+                : 'Se recuperează de la chiriaș';
         }
 
         if (paidBy === 'tenant' && responsibleParty === 'owner') {
-            return isEnglish ? 'Reimburse renter' : 'Se rambursează către chiriaș';
+            return isEnglish
+                ? 'Reimburse renter'
+                : 'Se rambursează către chiriaș';
         }
     }
 
-    const labels = isEnglish ? expenseSettlementTypeLabelsEn : expenseSettlementTypeLabels;
+    const labels = isEnglish
+        ? expenseSettlementTypeLabelsEn
+        : expenseSettlementTypeLabels;
+
     return labels[value] ?? value;
 }
 
 export function expenseStatusLabel(value: ExpenseStatus) {
-    const labels = currentAppLocale() === 'en' ? expenseStatusLabelsEn : expenseStatusLabels;
+    const labels =
+        currentAppLocale() === 'en'
+            ? expenseStatusLabelsEn
+            : expenseStatusLabels;
+
     return labels[value] ?? value;
+}
+
+export function expenseSettlementStateLabel(kind: ExpenseSettlementKind) {
+    const labels =
+        currentAppLocale() === 'en'
+            ? settlementStateLabelsEn
+            : settlementStateLabels;
+
+    return labels[kind];
+}
+
+export function expenseSettlementActionLabel(kind: ExpenseSettlementKind) {
+    const labels =
+        currentAppLocale() === 'en'
+            ? settlementActionLabelsEn
+            : settlementActionLabels;
+
+    return labels[kind];
+}
+
+export function expenseSettlementSettledLabel(
+    kind: ExpenseSettlementKind,
+    settledAt?: string | null,
+) {
+    if (!settledAt || (kind !== 'reimbursed' && kind !== 'recovered')) {
+        return null;
+    }
+
+    const isEnglish = currentAppLocale() === 'en';
+    const date = formatDateLong(settledAt);
+
+    if (kind === 'reimbursed') {
+        return isEnglish ? `Reimbursed on ${date}` : `Rambursat la ${date}`;
+    }
+
+    return isEnglish ? `Recovered on ${date}` : `Recuperat la ${date}`;
 }
