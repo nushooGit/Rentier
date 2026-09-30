@@ -63,6 +63,79 @@ export default function PropertiesIndex({ properties }: Props) {
     const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
+    const rentBadgeLabel = (
+        property: Property,
+        badge: RentPaymentStatusBadge,
+    ) => {
+        const status = property.rent_payment_status;
+
+        if (!status) return '';
+        if (badge.key === 'partial') return t('properties.rent.partial');
+        if (badge.key === 'overdue_months') {
+            return t('properties.rent.overdueMonths', {
+                count: status.overdue_month_count,
+            });
+        }
+        if (badge.key === 'arrears') {
+            return t('properties.rent.arrears', {
+                amount: formatMoney(status.arrears_amount, property.currency),
+            });
+        }
+        if (badge.key === 'overdue') {
+            return status.days === 1
+                ? t('properties.rent.overdueOne')
+                : t('properties.rent.overdueMany', {
+                      days: status.days ?? 0,
+                  });
+        }
+
+        switch (status.key) {
+            case 'paid':
+                return Number(status.rent_deduction_amount) > 0
+                    ? t('properties.rent.covered')
+                    : t('properties.rent.paid');
+            case 'partial':
+            case 'partial_overdue':
+                return Number(status.rent_deduction_amount) > 0
+                    ? t('properties.rent.partialCovered')
+                    : t('properties.rent.partial');
+            case 'due_today':
+                return t('properties.rent.dueToday');
+            case 'upcoming':
+                return status.days === 1
+                    ? t('properties.rent.upcomingOne')
+                    : t('properties.rent.upcomingMany', {
+                          days: status.days ?? 0,
+                      });
+            case 'overdue':
+                return status.days === 1
+                    ? t('properties.rent.overdueOne')
+                    : t('properties.rent.overdueMany', {
+                          days: status.days ?? 0,
+                      });
+        }
+    };
+
+    const advanceNoticeLabel = (
+        property: Property,
+        notice: NonNullable<
+            Property['rent_payment_status']
+        >['advance_notices'][number],
+    ) => {
+        const period = formatMonthYear(`${notice.period_key}-01`);
+
+        return notice.key === 'paid_through'
+            ? t('properties.rent.paidThrough', { period })
+            : t('properties.rent.partialAdvance', {
+                  period,
+                  amount: formatMoney(notice.amount, property.currency),
+                  expected: formatMoney(
+                      notice.expected_amount,
+                      property.currency,
+                  ),
+              });
+    };
+
     const deleteProperty = (property: Property) => {
         if (!window.confirm(t('properties.index.deleteConfirm'))) {
             return;
@@ -148,7 +221,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                                 variant="outline"
                                                                 className={`w-fit ${rentStatusBadgeClassName(badge)}`}
                                                             >
-                                                                {badge.label}
+                                                                {rentBadgeLabel(property, badge)}
                                                             </Badge>
                                                         ),
                                                     )}
@@ -158,13 +231,13 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .rent_deduction_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Scăzut din chirie:{' '}
-                                                        {formatMoney(
-                                                            property
-                                                                .rent_payment_status
-                                                                .rent_deduction_amount,
-                                                            property.currency,
-                                                        )}
+                                                        {t('properties.rent.deducted', {
+                                                            amount: formatMoney(
+                                                                property.rent_payment_status.rent_deduction_amount,
+                                                                property.currency,
+                                                            ),
+                                                        })}
+
                                                     </span>
                                                 ) : null}
                                                 {hasPositiveAmount(
@@ -172,13 +245,13 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         .collected_amount,
                                                 ) ? (
                                                     <span className="text-xs text-muted-foreground">
-                                                        Încasat:{' '}
-                                                        {formatMoney(
-                                                            property
-                                                                .rent_payment_status
-                                                                .collected_amount,
-                                                            property.currency,
-                                                        )}
+                                                        {t('properties.rent.collected', {
+                                                            amount: formatMoney(
+                                                                property.rent_payment_status.collected_amount,
+                                                                property.currency,
+                                                            ),
+                                                        })}
+
                                                     </span>
                                                 ) : null}
                                                 {((
@@ -202,7 +275,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                         key={`${notice.key}-${notice.period_key}`}
                                                         className="text-xs font-medium text-emerald-700"
                                                     >
-                                                        {notice.label}
+                                                        {advanceNoticeLabel(property, notice)}
                                                     </span>
                                                 ))}
                                             </div>
@@ -231,7 +304,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Vezi proprietatea</p>
+                                                <p>{t('properties.index.view', { name: property.name })}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -254,7 +327,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Editează proprietatea</p>
+                                                <p>{t('properties.index.edit')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -274,7 +347,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Șterge proprietatea</p>
+                                                <p>{t('properties.index.delete')}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
@@ -285,11 +358,10 @@ export default function PropertiesIndex({ properties }: Props) {
                 ) : (
                     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <h2 className="text-base font-medium">
-                            Nu există proprietăți încă
+                            {t('properties.index.emptyCurrent')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă prima proprietate pentru a începe urmărirea
-                            contractelor, încasărilor, costurilor și mentenanței.
+                            {t('properties.index.emptyCurrentDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -308,7 +380,7 @@ PropertiesIndex.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Proprietăți',
+            title: translateKey('nav.properties'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
