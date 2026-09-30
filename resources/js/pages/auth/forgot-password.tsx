@@ -8,11 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
+import { useI18n } from '@/lib/i18n';
 
 export default function ForgotPassword({ status }: { status?: string }) {
+    const { t } = useI18n();
+
     return (
         <>
-            <Head title="Ai uitat parola?" />
+            <Head title={t('auth.forgot.head')} />
 
             {status && (
                 <div className="mb-4 text-center text-sm font-medium text-green-600">
@@ -25,7 +28,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                     {({ processing, errors }) => (
                         <>
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Adresă de email</Label>
+                                <Label htmlFor="email">{t('auth.login.email')}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -47,7 +50,7 @@ export default function ForgotPassword({ status }: { status?: string }) {
                                     {processing && (
                                         <LoaderCircle className="h-4 w-4 animate-spin" />
                                     )}
-                                    Trimite linkul de resetare
+                                    {t('auth.forgot.submit')}
                                 </Button>
                             </div>
                         </>
@@ -55,8 +58,8 @@ export default function ForgotPassword({ status }: { status?: string }) {
                 </Form>
 
                 <div className="space-x-1 text-center text-sm text-muted-foreground">
-                    <span>Sau revino la</span>
-                    <TextLink href={login()}>autentificare</TextLink>
+                    <span>{t('auth.forgot.backPrefix')}</span>
+                    <TextLink href={login()}>{t('auth.forgot.back')}</TextLink>
                 </div>
             </div>
         </>
@@ -64,7 +67,6 @@ export default function ForgotPassword({ status }: { status?: string }) {
 }
 
 ForgotPassword.layout = {
-    title: 'Ai uitat parola?',
-    description:
-        'Introdu adresa de email pentru a primi un link de resetare a parolei.',
+    title: 'auth.forgot.title',
+    description: 'auth.forgot.description',
 };
