@@ -45,17 +45,24 @@ test('authenticated app shell uses Rentier branding and localized product naviga
 
 test('dashboard prioritizes primary landlord signals without changing financial source fields', function () {
     $dashboard = file_get_contents(resource_path('js/pages/dashboard.tsx'));
+    $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
 
     expect($dashboard)
-        ->toContain('Panou de control')
-        ->toContain('Încasat luna asta')
-        ->toContain('Rest de încasat')
-        ->toContain('Costuri luna asta')
-        ->toContain('De recuperat')
-        ->toContain('Necesită atenția ta')
-        ->toContain('Detalii financiare')
+        ->toContain("t('dashboard.title')")
+        ->toContain("t('dashboard.collectedThisMonth')")
+        ->toContain("t('dashboard.remaining')")
+        ->toContain("t('dashboard.costsThisMonth')")
+        ->toContain("t('dashboard.recoverable')")
+        ->toContain("t('dashboard.attention')")
+        ->toContain("t('dashboard.financialDetails')")
         ->toContain('summary.current_month_payments')
         ->toContain('summary.remaining_rent')
         ->toContain('summary.current_month_expenses')
         ->toContain('summary.recoverable_expenses');
+
+    expect($translations)
+        ->toContain("'dashboard.title': 'Panou de control'")
+        ->toContain("'dashboard.title': 'Dashboard'")
+        ->toContain("'dashboard.collectedThisMonth': 'Încasat luna asta'")
+        ->toContain("'dashboard.collectedThisMonth': 'Collected this month'");
 });
