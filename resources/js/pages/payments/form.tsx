@@ -82,8 +82,8 @@ export default function PaymentForm({
         String(fieldValue(payment?.lease_id)),
     );
     const paymentTypeOptions: PaymentOption<PaymentType>[] = [
-        { value: 'rent', label: 'Chirie' },
-        { value: 'guarantee', label: 'Garanție' },
+        { value: 'rent', label: 'rent' },
+        { value: 'guarantee', label: 'guarantee' },
     ];
     const selectedLease = leases.find(
         (lease) => String(lease.id) === selectedLeaseId,
