@@ -13,6 +13,8 @@ class UserShowController extends Controller
 {
     public function __invoke(User $user): Response
     {
+        $user->load(['suspendedBy', 'reactivatedBy']);
+
         $currentWorkspace = $user->currentTeam()->first();
 
         $memberships = $user->teamMemberships()
@@ -25,6 +27,7 @@ class UserShowController extends Controller
                     'name' => $membership->team->name,
                     'slug' => $membership->team->slug,
                     'is_personal' => $membership->team->is_personal,
+                    'is_suspended' => $membership->team->isSuspended(),
                 ],
                 'role' => $membership->role->value,
                 'created_at' => $membership->created_at,
@@ -44,6 +47,18 @@ class UserShowController extends Controller
                     'name' => $currentWorkspace->name,
                     'slug' => $currentWorkspace->slug,
                 ] : null,
+                'suspended_at' => $user->suspended_at,
+                'suspension_reason' => $user->suspension_reason,
+                'suspended_by' => $user->suspendedBy ? [
+                    'id' => $user->suspendedBy->id,
+                    'name' => $user->suspendedBy->name,
+                ] : null,
+                'reactivated_at' => $user->reactivated_at,
+                'reactivated_by' => $user->reactivatedBy ? [
+                    'id' => $user->reactivatedBy->id,
+                    'name' => $user->reactivatedBy->name,
+                ] : null,
+                'can_suspend' => ! PlatformAdmin::allows($user),
             ],
             'stats' => [
                 'workspaces' => $user->teams()->count(),

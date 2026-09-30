@@ -21,20 +21,26 @@ trait RedirectsToCurrentTeam
 
         $team = $this->currentTeam($request);
 
+        if (! $team) {
+            return '/settings/teams';
+        }
+
         URL::defaults(['current_team' => $team->slug]);
 
         return "/{$team->slug}{$redirect}";
     }
 
-    protected function currentTeam(Request $request): Team
+    protected function currentTeam(Request $request): ?Team
     {
         $user = $request->user();
 
         abort_if(! $user, 403);
 
-        $team = $user->currentTeam ?? $user->personalTeam();
+        $team = $user->currentTeam;
 
-        abort_if(! $team, 403);
+        if (! $team || $team->isSuspended()) {
+            $team = $user->fallbackTeam();
+        }
 
         return $team;
     }

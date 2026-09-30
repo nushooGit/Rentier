@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
@@ -28,10 +29,17 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $two_factor_confirmed_at
  * @property string|null $remember_token
  * @property int|null $current_team_id
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
+ * @property int|null $suspended_by_user_id
+ * @property Carbon|null $reactivated_at
+ * @property int|null $reactivated_by_user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Team|null $currentTeam
  * @property-read Collection<int, Team> $ownedTeams
+ * @property-read User|null $reactivatedBy
+ * @property-read User|null $suspendedBy
  * @property-read Collection<int, Membership> $teamMemberships
  * @property-read Collection<int, Team> $teams
  */
@@ -47,9 +55,28 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
         $this->notify(new ResetPasswordNotification($token));
     }
 
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
     /**
-     * Get the attributes that should be cast.
-     *
+     * @return BelongsTo<User, $this>
+     */
+    public function suspendedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by_user_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reactivatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reactivated_by_user_id');
+    }
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
@@ -58,6 +85,8 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_confirmed_at' => 'datetime',
+            'suspended_at' => 'datetime',
+            'reactivated_at' => 'datetime',
         ];
     }
 }

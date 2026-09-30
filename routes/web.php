@@ -3,8 +3,10 @@
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\Admin\UserShowController as AdminUserShowController;
+use App\Http\Controllers\Admin\UserSuspensionController as AdminUserSuspensionController;
 use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
 use App\Http\Controllers\Admin\WorkspaceShowController as AdminWorkspaceShowController;
+use App\Http\Controllers\Admin\WorkspaceSuspensionController as AdminWorkspaceSuspensionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
@@ -28,8 +30,12 @@ if (is_string($adminHost) && $adminHost !== '') {
             Route::get('/', AdminDashboardController::class)->name('dashboard');
             Route::get('users', AdminUserController::class)->name('users.index');
             Route::get('users/{user}', AdminUserShowController::class)->name('users.show');
+            Route::patch('users/{user}/suspend', [AdminUserSuspensionController::class, 'suspend'])->name('users.suspend');
+            Route::patch('users/{user}/reactivate', [AdminUserSuspensionController::class, 'reactivate'])->name('users.reactivate');
             Route::get('workspaces', AdminWorkspaceController::class)->name('workspaces.index');
             Route::get('workspaces/{workspace}', AdminWorkspaceShowController::class)->name('workspaces.show');
+            Route::patch('workspaces/{workspace}/suspend', [AdminWorkspaceSuspensionController::class, 'suspend'])->name('workspaces.suspend');
+            Route::patch('workspaces/{workspace}/reactivate', [AdminWorkspaceSuspensionController::class, 'reactivate'])->name('workspaces.reactivate');
         });
 }
 
@@ -49,7 +55,11 @@ Route::get('/', function (Request $request) {
         return redirect()->route('login');
     }
 
-    $team = $user->currentTeam ?? $user->personalTeam();
+    $team = $user->currentTeam;
+
+    if (! $team || $team->isSuspended()) {
+        $team = $user->fallbackTeam();
+    }
 
     return $team
         ? redirect()->route('dashboard', ['current_team' => $team->slug])

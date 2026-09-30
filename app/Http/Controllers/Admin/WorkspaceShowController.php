@@ -13,6 +13,7 @@ class WorkspaceShowController extends Controller
 {
     public function __invoke(Team $workspace): Response
     {
+        $workspace->load(['suspendedBy', 'reactivatedBy']);
         $workspace->loadCount([
             'members',
             'properties',
@@ -33,6 +34,7 @@ class WorkspaceShowController extends Controller
                 'email' => $membership->user->email,
                 'role' => $membership->role->value,
                 'joined_at' => $membership->created_at,
+                'is_suspended' => $membership->user->isSuspended(),
             ]);
 
         $properties = $workspace->properties()
@@ -66,6 +68,17 @@ class WorkspaceShowController extends Controller
                 'slug' => $workspace->slug,
                 'is_personal' => $workspace->is_personal,
                 'created_at' => $workspace->created_at,
+                'suspended_at' => $workspace->suspended_at,
+                'suspension_reason' => $workspace->suspension_reason,
+                'suspended_by' => $workspace->suspendedBy ? [
+                    'id' => $workspace->suspendedBy->id,
+                    'name' => $workspace->suspendedBy->name,
+                ] : null,
+                'reactivated_at' => $workspace->reactivated_at,
+                'reactivated_by' => $workspace->reactivatedBy ? [
+                    'id' => $workspace->reactivatedBy->id,
+                    'name' => $workspace->reactivatedBy->name,
+                ] : null,
             ],
             'stats' => [
                 'members' => (int) $workspace->getAttribute('members_count'),

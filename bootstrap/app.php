@@ -1,6 +1,7 @@
 <?php
 
 use App\Console\Commands\E2eBootstrapCommand;
+use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectApexApplicationRequests;
@@ -30,6 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 RedirectApexApplicationRequests::class,
             ],
             append: [
+                EnsureAccountActive::class,
                 HandleAppearance::class,
                 HandleInertiaRequests::class,
                 AddLinkHeadersForPreloadedAssets::class,
