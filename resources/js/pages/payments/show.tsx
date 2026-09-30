@@ -3,38 +3,20 @@ import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
-import { paymentMethodLabel } from '@/pages/payments/labels';
+import {
+    paymentMethodLabel,
+    paymentPeriodLabel,
+    paymentPeriodLabelFromDate,
+    paymentSummaryStatusLabel,
+} from '@/pages/payments/labels';
 import { destroy, edit, index, show } from '@/routes/payments';
 import type { RentPayment } from '@/types';
 
 type Props = {
     payment: RentPayment;
 };
-
-const monthNames = [
-    'Ianuarie',
-    'Februarie',
-    'Martie',
-    'Aprilie',
-    'Mai',
-    'Iunie',
-    'Iulie',
-    'August',
-    'Septembrie',
-    'Octombrie',
-    'Noiembrie',
-    'Decembrie',
-];
-
-function formatRentPeriod(month: number | null, year: number | null) {
-    if (month === null || year === null) {
-        return 'Fără perioadă de chirie';
-    }
-
-    return `${monthNames[month - 1] ?? month} ${year}`;
-}
 
 function contractLabel(payment: RentPayment) {
     return `${payment.property.name} - ${payment.renter.name}`;
@@ -50,7 +32,7 @@ function Detail({
     return (
         <div>
             <dt className="text-sm text-muted-foreground">{label}</dt>
-            <dd className="mt-1 text-sm font-medium">{value ?? 'Nesetat'}</dd>
+            <dd className="mt-1 text-sm font-medium">{value ?? translateKey('common.notSet')}</dd>
         </div>
     );
 }
@@ -76,7 +58,7 @@ function AllocationDetails({ payment }: { payment: RentPayment }) {
                         className="flex items-center justify-between gap-3"
                     >
                         <span className="text-muted-foreground">
-                            {allocation.period_label}
+                            {paymentPeriodLabelFromDate(allocation.period_date)}
                         </span>
                         <span className="font-medium">
                             {formatMoney(allocation.amount, payment.currency)}
@@ -114,7 +96,7 @@ export default function PaymentShow({ payment }: Props) {
 
     return (
         <>
-            <Head title={`Încasare ${payment.renter.name}`} />
+            <Head title={`${t('nav.payments')}: ${payment.renter.name}`} />
             <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
                     <div className="space-y-2">
@@ -126,7 +108,7 @@ export default function PaymentShow({ payment }: Props) {
                                 {formatMoney(payment.amount, payment.currency)}
                             </h1>
                             <Badge variant="secondary">
-                                {payment.status_summary.status_label}
+                                {paymentSummaryStatusLabel(payment.payment_type, payment.status_summary.status_key)}
                             </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">
@@ -172,14 +154,11 @@ export default function PaymentShow({ payment }: Props) {
                         />
                         <Detail
                             label={t('payments.field.period')}
-                            value={formatRentPeriod(
-                                payment.period_month,
-                                payment.period_year,
-                            )}
+                            value={paymentPeriodLabel(payment.period_month, payment.period_year)}
                         />
                         <Detail
                             label={t('common.status')}
-                            value={payment.status_summary.status_label}
+                            value={paymentSummaryStatusLabel(payment.payment_type, payment.status_summary.status_key)}
                         />
                     </dl>
                 </section>
@@ -205,7 +184,7 @@ PaymentShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Încasări',
+            title: translateKey('nav.payments'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
