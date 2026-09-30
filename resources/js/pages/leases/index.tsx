@@ -155,7 +155,7 @@ export default function LeasesIndex({ leases }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Editează contractul</p>
+                                                <p>{t('leases.index.edit')}</p>
                                             </TooltipContent>
                                         </Tooltip>
 
@@ -175,7 +175,7 @@ export default function LeasesIndex({ leases }: Props) {
                                                 </Button>
                                             </TooltipTrigger>
                                             <TooltipContent>
-                                                <p>Șterge contractul</p>
+                                                <p>{t('leases.index.delete')}</p>
                                             </TooltipContent>
                                         </Tooltip>
                                     </div>
@@ -187,11 +187,10 @@ export default function LeasesIndex({ leases }: Props) {
                     <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                         <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există contracte încă
+                            {t('leases.index.emptyCurrent')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Creează primul contract și adaugă datele de contact
-                            ale chiriașului.
+                            {t('leases.index.emptyCurrentDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -208,7 +207,7 @@ export default function LeasesIndex({ leases }: Props) {
 LeasesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Contracte',
+            title: translateKey('nav.leases'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
