@@ -81,19 +81,19 @@ class SaveExpenseRequest extends FormRequest
             $expenseDate = $this->input('expense_date');
 
             if ($paidBy === 'tenant' && $responsibleParty === 'owner' && $settlementType === 'none') {
-                $validator->errors()->add('settlement_type', 'Alege o decontare: scădere din chirie, scădere din utilități sau rambursare.');
+                $validator->errors()->add('settlement_type', __('Choose a settlement: deduct from rent, deduct from utilities, or reimburse.'));
             }
 
             if ($paidBy === 'tenant' && $responsibleParty === 'tenant' && $settlementType !== 'none') {
-                $validator->errors()->add('settlement_type', 'Cheltuielile plătite și suportate de chiriaș nu se decontează.');
+                $validator->errors()->add('settlement_type', __('Costs paid and supported by the renter are not settled.'));
             }
 
             if ($paidBy === 'owner' && $responsibleParty === 'owner' && $settlementType !== 'none') {
-                $validator->errors()->add('settlement_type', 'Cheltuielile plătite și suportate de proprietar nu se decontează.');
+                $validator->errors()->add('settlement_type', __('Costs paid and supported by the owner are not settled.'));
             }
 
             if ($paidBy === 'owner' && $responsibleParty === 'tenant' && $settlementType !== 'reimburse') {
-                $validator->errors()->add('settlement_type', 'Cheltuielile plătite de proprietar, dar suportate de chiriaș, trebuie marcate ca rambursare separată.');
+                $validator->errors()->add('settlement_type', __('Costs paid by the owner but supported by the renter must use separate reimbursement.'));
             }
 
             $team = $this->route('current_team');
@@ -107,7 +107,7 @@ class SaveExpenseRequest extends FormRequest
                     ->first();
 
                 if ($lease && (int) $lease->property_id !== (int) $propertyId) {
-                    $validator->errors()->add('lease_id', 'Contractul selectat nu aparține proprietății selectate.');
+                    $validator->errors()->add('lease_id', __('The selected lease does not belong to the selected property.'));
                 }
             }
 
@@ -136,7 +136,7 @@ class SaveExpenseRequest extends FormRequest
                 ->matches($teamId, (int) $propertyId, $expenseDate);
 
             if ($tenantInvolved && $applicableLeases->isEmpty()) {
-                $message = 'Nu există contract activ pentru această proprietate la data cheltuielii. Nu poți selecta chiriașul ca plătitor sau responsabil.';
+                $message = __('There is no active lease for this property on the cost date. You cannot select the renter as payer or responsible party.');
 
                 if ($paidBy === 'tenant') {
                     $validator->errors()->add('paid_by', $message);
@@ -152,7 +152,7 @@ class SaveExpenseRequest extends FormRequest
             }
 
             if ($applicableLeases->count() > 1) {
-                $validator->errors()->add('lease_id', 'Există mai multe contracte active pentru această proprietate la data cheltuielii. Verifică perioada contractelor înainte de a salva cheltuiala.');
+                $validator->errors()->add('lease_id', __('There are multiple active leases for this property on the cost date. Review the lease periods before saving the cost.'));
 
                 return;
             }
@@ -160,7 +160,7 @@ class SaveExpenseRequest extends FormRequest
             $applicableLease = $applicableLeases->first();
 
             if ($leaseId && (int) $leaseId !== $applicableLease->id) {
-                $validator->errors()->add('lease_id', 'Cheltuiala trebuie asociată contractului activ la data selectată.');
+                $validator->errors()->add('lease_id', __('The cost must be associated with the active lease on the selected date.'));
 
                 return;
             }
