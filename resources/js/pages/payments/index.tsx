@@ -4,6 +4,8 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
+import { currentAppLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
 import { paymentMethodLabel, paymentTypeLabel } from '@/pages/payments/labels';
 import { create, destroy, edit, index, show } from '@/routes/payments';
@@ -30,7 +32,7 @@ const monthNames = [
 
 function formatRentPeriod(month: number | null, year: number | null) {
     if (month === null || year === null) {
-        return 'Fără perioadă de chirie';
+        return currentAppLocale() === 'en' ? 'No rent period' : 'Fără perioadă de chirie';
     }
 
     return `${monthNames[month - 1] ?? month} ${year}`;
@@ -50,7 +52,7 @@ function paymentContext(payment: RentPayment) {
         );
         const prefix =
             expectedAmount > 0 && collectedAmount > expectedAmount
-                ? 'Garanție depășită'
+                ? '{t('payments.index.overDeposit')}'
                 : 'Garanție';
 
         return `${prefix}: ${formatMoney(
@@ -105,6 +107,7 @@ function AllocationSummary({ payment }: { payment: RentPayment }) {
 
 export default function PaymentsIndex({ payments }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deletePayment = (payment: RentPayment) => {
@@ -121,18 +124,18 @@ export default function PaymentsIndex({ payments }: Props) {
 
     return (
         <>
-            <Head title="Încasări" />
+            <Head title={t('nav.payments')} />
 
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Încasări"
-                        description="Urmărește încasările manuale pentru contracte"
+                        title={t('nav.payments')}
+                        description={t('payments.index.description')}
                     />
                     <Button asChild data-test="payment-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Încasare nouă
+                            <Plus /> {t('payments.index.new')}
                         </Link>
                     </Button>
                 </div>
@@ -149,7 +152,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                     href={show([currentTeamSlug, payment.id])}
                                     className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="payment-card-link"
-                                    aria-label={`Vezi plata pentru ${payment.renter.name}`}
+                                    aria-label={t('payments.index.view', { name: payment.renter.name })}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
@@ -216,7 +219,7 @@ export default function PaymentsIndex({ payments }: Props) {
                                         size="sm"
                                         type="button"
                                         onClick={() => deletePayment(payment)}
-                                        aria-label="Șterge plata"
+                                        aria-label={t('payments.index.delete')}
                                         data-test="payment-delete-button"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -236,7 +239,7 @@ export default function PaymentsIndex({ payments }: Props) {
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Încasare nouă
+                                <Plus /> {t('payments.index.new')}
                             </Link>
                         </Button>
                     </div>
