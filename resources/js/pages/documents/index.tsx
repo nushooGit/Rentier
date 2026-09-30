@@ -14,6 +14,7 @@ import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
+import { formatDateLong } from '@/lib/date';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -60,14 +61,6 @@ function formatBytes(bytes: number): string {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function formatDate(value: string): string {
-    return new Intl.DateTimeFormat('ro-RO', {
-        day: '2-digit',
-        month: 'long',
-        year: 'numeric',
-    }).format(new Date(`${value}T12:00:00`));
-}
-
 function normalizeSearchText(value: string): string {
     return value
         .normalize('NFD')
@@ -88,6 +81,7 @@ export default function DocumentsIndex({
     const [categoryFilter, setCategoryFilter] = useState('all');
     const [propertyFilter, setPropertyFilter] = useState('all');
     const [expiryFilter, setExpiryFilter] = useState('all');
+    const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
     const propertyLeases = useMemo(
         () =>
@@ -187,7 +181,7 @@ export default function DocumentsIndex({
                     description="Păstrează documentele proprietăților și contractelor într-un singur loc"
                 />
 
-                <section className="rounded-xl border bg-card p-4 shadow-sm">
+                <section className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
                     <div className="mb-4 flex items-start gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                             <Upload className="size-5" />
@@ -232,8 +226,32 @@ export default function DocumentsIndex({
                                             required
                                             accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
                                             data-test="document-file-input"
-                                            className="file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 block w-full rounded-md border border-input bg-background text-sm text-muted-foreground file:mr-3 file:border-0 file:px-3 file:py-2 file:text-sm file:font-medium"
+                                            className="sr-only"
+                                            onChange={(event) =>
+                                                setSelectedFileName(
+                                                    event.target.files?.[0]?.name ??
+                                                        null,
+                                                )
+                                            }
                                         />
+                                        <label
+                                            htmlFor="file"
+                                            className="group flex min-h-32 cursor-pointer flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted/25 px-5 py-6 text-center transition hover:border-primary/45 hover:bg-primary/[0.04] focus-within:ring-2 focus-within:ring-ring"
+                                        >
+                                            <span className="flex size-11 items-center justify-center rounded-2xl bg-primary/10 text-primary transition group-hover:scale-105">
+                                                <Upload className="size-5" aria-hidden="true" />
+                                            </span>
+                                            <span className="mt-3 text-sm font-semibold">
+                                                {selectedFileName ??
+                                                    'Selectează un document'}
+                                            </span>
+                                            <span className="mt-1 text-xs leading-5 text-muted-foreground">
+                                                PDF, JPG, PNG, WebP sau Word · maximum 20 MB
+                                            </span>
+                                            <span className="mt-2 text-xs font-medium text-primary">
+                                                Apasă pentru a alege fișierul
+                                            </span>
+                                        </label>
                                         <InputError message={errors.file} />
                                     </div>
 
@@ -397,7 +415,7 @@ export default function DocumentsIndex({
 
                         {documents.length > 0 ? (
                             <div
-                                className="grid gap-2 rounded-xl border bg-card p-3 md:grid-cols-2 xl:grid-cols-4"
+                                className="grid gap-2.5 rounded-2xl border border-border/70 bg-card/80 p-3.5 shadow-sm md:grid-cols-2 xl:grid-cols-4"
                                 data-test="document-filters"
                             >
                                 <div className="relative md:col-span-2 xl:col-span-1">
@@ -518,7 +536,7 @@ export default function DocumentsIndex({
                             {filteredDocuments.map((document) => (
                                 <article
                                     key={document.id}
-                                    className="flex flex-col rounded-xl border bg-card p-4 shadow-sm"
+                                    className="flex flex-col rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                     data-test="document-card"
                                 >
                                     <div className="flex items-start gap-3">
@@ -564,9 +582,7 @@ export default function DocumentsIndex({
                                                 Data
                                             </dt>
                                             <dd className="text-right">
-                                                {formatDate(
-                                                    document.document_date,
-                                                )}
+                                                {formatDateLong(document.document_date)}
                                             </dd>
                                         </div>
                                         {document.expires_on ? (
@@ -575,9 +591,7 @@ export default function DocumentsIndex({
                                                     Expiră
                                                 </dt>
                                                 <dd className="text-right">
-                                                    {formatDate(
-                                                        document.expires_on,
-                                                    )}
+                                                    {formatDateLong(document.expires_on)}
                                                 </dd>
                                             </div>
                                         ) : null}
