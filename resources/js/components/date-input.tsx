@@ -9,7 +9,7 @@ import {
     formatDateForInput,
     parseDateInputToIso,
 } from '@/lib/date';
-import { DEFAULT_LOCALE } from '@/lib/locale';
+import { currentIntlLocale } from '@/lib/locale';
 
 type Props = Omit<
     ComponentProps<typeof Input>,
@@ -25,7 +25,7 @@ type Props = Omit<
 export default function DateInput({
     name,
     defaultValue,
-    locale = DEFAULT_LOCALE,
+    locale = currentIntlLocale(),
     onValueChange,
     error,
     onBlur,
