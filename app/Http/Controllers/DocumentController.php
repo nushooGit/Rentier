@@ -51,8 +51,9 @@ class DocumentController extends Controller
                 ->map(fn (Lease $lease): array => [
                     'id' => $lease->id,
                     'property_id' => $lease->property_id,
-                    'label' => $lease->renter->name.' · '.$lease->start_date->format('d.m.Y')
-                        .($lease->end_date ? ' – '.$lease->end_date->format('d.m.Y') : ' – prezent'),
+                    'renter_name' => $lease->renter->name,
+                    'start_date' => $lease->start_date->toDateString(),
+                    'end_date' => $lease->end_date?->toDateString(),
                 ]),
         ]);
     }
