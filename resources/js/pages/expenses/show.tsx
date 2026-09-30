@@ -3,6 +3,7 @@ import { ArrowLeft, CheckCircle2, Pencil, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
@@ -45,6 +46,7 @@ function Detail({
 
 export default function ExpenseShow({ expense }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteExpense = () => {
@@ -72,7 +74,7 @@ export default function ExpenseShow({ expense }: Props) {
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
                     <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                            Cost total
+                            {t('expenses.summary.total')}
                         </p>
                         <div className="flex flex-wrap items-center gap-2">
                             <h1 className="text-2xl font-semibold tracking-normal">
@@ -90,7 +92,7 @@ export default function ExpenseShow({ expense }: Props) {
                     <div className="flex flex-col-reverse gap-2 sm:flex-row">
                         <Button variant="outline" asChild>
                             <Link href={index(currentTeamSlug)}>
-                                <ArrowLeft /> Înapoi
+                                <ArrowLeft /> {t('common.back')}
                             </Link>
                         </Button>
                         {expense.settlement_state.action_label ? (
@@ -101,26 +103,26 @@ export default function ExpenseShow({ expense }: Props) {
                         ) : null}
                         <Button asChild>
                             <Link href={edit([currentTeamSlug, expense.id])}>
-                                <Pencil /> Editează
+                                <Pencil /> {t('common.edit')}
                             </Link>
                         </Button>
                         <Button variant="destructive" onClick={deleteExpense}>
-                            <Trash2 /> Șterge
+                            <Trash2 /> {t('common.delete')}
                         </Button>
                     </div>
                 </div>
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">
-                        Detalii cost
+                        {t('expenses.section.details')}
                     </h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
-                            label="Proprietate"
+                            label={t('common.property')}
                             value={expense.property.name}
                         />
                         <Detail
-                            label="Contract"
+                            label={t('common.lease')}
                             value={
                                 expense.lease
                                     ? `${expense.property.name} · ${expense.lease.renter.name}`
@@ -128,25 +130,25 @@ export default function ExpenseShow({ expense }: Props) {
                             }
                         />
                         <Detail
-                            label="Categorie"
+                            label={t('expenses.field.category')}
                             value={expenseCategoryLabel(expense.category)}
                         />
                         <Detail
-                            label="Plătitor"
+                            label={t('expenses.field.paidBy')}
                             value={expensePaidByLabel(expense.paid_by)}
                         />
                         <Detail
-                            label="Data cheltuielii"
+                            label={t('expenses.field.date')}
                             value={formatDateLong(expense.expense_date)}
                         />
                         <Detail
-                            label="Suportat de"
+                            label={t('expenses.field.responsibleParty')}
                             value={expenseResponsiblePartyLabel(
                                 expense.responsible_party,
                             )}
                         />
                         <Detail
-                            label="Decontare"
+                            label={t('expenses.field.settlement')}
                             value={expenseSettlementTypeLabel(
                                 expense.settlement_type,
                                 expense.paid_by,
@@ -154,22 +156,22 @@ export default function ExpenseShow({ expense }: Props) {
                             )}
                         />
                         <Detail
-                            label="Impact profit"
+                            label={t('expenses.field.profitImpact')}
                             value={
                                 expense.affects_owner_profit
-                                    ? 'Afecteaza profitul'
-                                    : 'Nu afecteaza profitul'
+                                    ? t('expenses.profit.affects')
+                                    : t('expenses.profit.notAffects')
                             }
                         />
                         <Detail
-                            label="Status"
+                            label={t('common.status')}
                             value={
                                 expense.settlement_state.label ??
                                 expenseStatusLabel(expense.status)
                             }
                         />
                         <Detail
-                            label="Decontare închisă"
+                            label={t('expenses.field.settled')}
                             value={expense.settlement_state.settled_label}
                         />
                     </dl>
@@ -177,7 +179,7 @@ export default function ExpenseShow({ expense }: Props) {
 
                 {expense.notes ? (
                     <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
-                        <h2 className="text-base font-medium">Note</h2>
+                        <h2 className="text-base font-medium">{t('common.notes')}</h2>
                         <p className="mt-2.5 text-sm whitespace-pre-wrap">
                             {expense.notes}
                         </p>
