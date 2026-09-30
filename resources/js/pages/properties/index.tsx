@@ -2,8 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { translateKey, useI18n } from '@/lib/i18n';
-import { formatDateLong } from '@/lib/date';
 import { formatMoney as formatCurrency } from '@/lib/money';
+import { paymentPeriodLabelFromDate } from '@/pages/payments/labels';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -117,10 +117,9 @@ function advanceNoticeLabel(
     property: Property,
     t: ReturnType<typeof useI18n>['t'],
 ) {
-    const periodDate = notice.period_key
-        ? `${notice.period_key}-01`
-        : null;
-    const period = periodDate ? formatDateLong(periodDate) : notice.period_key;
+    const period = notice.period_key
+        ? paymentPeriodLabelFromDate(`${notice.period_key}-01`)
+        : notice.period_key;
 
     if (notice.key === 'paid_through') {
         return t('properties.rentStatus.paidThrough', { period });
