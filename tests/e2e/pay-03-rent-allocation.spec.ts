@@ -6,6 +6,7 @@ import {
     login,
     monthParts,
     requireLocalBaseURL,
+    todayParts,
     selectOptionContaining,
 } from './helpers';
 
@@ -245,12 +246,15 @@ test.describe('PAY-03 rent payment allocation', () => {
         const firstOverdueMonth = monthParts(-2);
         const secondOverdueMonth = monthParts(-1);
         const currentMonth = monthParts();
-        const dueDay = String(new Date().getDate());
-        const currentMonthEnd = new Date(
-            Number(currentMonth.year),
-            Number(currentMonth.month),
-            0,
-        )
+        const dueDay = todayParts().day;
+        const currentMonthEndDate = new Date(
+            Date.UTC(
+                Number(currentMonth.year),
+                Number(currentMonth.month),
+                0,
+            ),
+        );
+        const currentMonthEnd = currentMonthEndDate
             .toISOString()
             .slice(0, 10);
         const propertyName = `PAY04 Arrears Property ${suffix}`;
