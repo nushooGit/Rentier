@@ -1,6 +1,7 @@
 import { Form } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useI18n } from '@/lib/i18n';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -63,6 +64,7 @@ export default function LeaseForm({
     lease,
     properties,
 }: Props) {
+    const { t } = useI18n();
     const [selectedPropertyId, setSelectedPropertyId] = useState(
         fieldValue(lease?.property_id).toString(),
     );
@@ -82,11 +84,11 @@ export default function LeaseForm({
             {({ errors, processing }) => (
                 <>
                     <FormSection
-                        title="Detalii contract"
+                        title={t('leases.section.details')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-4"
                     >
                         <Field className="md:col-span-2">
-                            <Label htmlFor="property_id">Proprietate</Label>
+                            <Label htmlFor="property_id">{t('common.property')}</Label>
                             <select
                                 id="property_id"
                                 name="property_id"
@@ -139,11 +141,11 @@ export default function LeaseForm({
                     </FormSection>
 
                     <FormSection
-                        title="Chiriaș"
+                        title={t('leases.section.renter')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-3"
                     >
                         <Field>
-                            <Label htmlFor="renter_name">Nume chiriaș</Label>
+                            <Label htmlFor="renter_name">{t('leases.field.renterName')}</Label>
                             <Input
                                 id="renter_name"
                                 name="renter_name"
@@ -156,7 +158,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="renter_email">Email chiriaș</Label>
+                            <Label htmlFor="renter_email">{t('leases.field.renterEmail')}</Label>
                             <Input
                                 id="renter_email"
                                 name="renter_email"
@@ -181,7 +183,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field className="md:col-span-2 xl:col-span-3">
-                            <Label htmlFor="renter_notes">Note chiriaș</Label>
+                            <Label htmlFor="renter_notes">{t('leases.field.renterNotes')}</Label>
                             <textarea
                                 id="renter_notes"
                                 name="renter_notes"
@@ -194,7 +196,7 @@ export default function LeaseForm({
                     </FormSection>
 
                     <FormSection
-                        title="Setări chirie"
+                        title={t('leases.section.rent')}
                         gridClassName="md:grid-cols-2 xl:grid-cols-4"
                     >
                         <Field>
@@ -217,7 +219,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="currency">Monedă</Label>
+                            <Label htmlFor="currency">{t('common.currency')}</Label>
                             <Input
                                 id="currency"
                                 name="currency"
@@ -252,7 +254,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="deposit_amount">Garanție</Label>
+                            <Label htmlFor="deposit_amount">{t('leases.field.deposit')}</Label>
                             <Input
                                 id="deposit_amount"
                                 name="deposit_amount"
@@ -279,10 +281,10 @@ export default function LeaseForm({
 
                     <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
                         <h2 className="text-sm font-semibold tracking-tight sm:text-base">
-                            Note interne
+                            {t('leases.section.notes')}
                         </h2>
                         <Field>
-                            <Label htmlFor="notes">Note</Label>
+                            <Label htmlFor="notes">{t('common.notes')}</Label>
                             <textarea
                                 id="notes"
                                 name="notes"
