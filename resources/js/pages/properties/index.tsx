@@ -31,7 +31,7 @@ type Props = {
 
 function formatMoney(amount?: string | null, currency = 'RON') {
     if (!amount) {
-        return 'Chirie nesetată';
+        return t('properties.index.rentUnset');
     }
 
     return `${Number(amount).toLocaleString(undefined, {
@@ -59,6 +59,7 @@ function rentStatusBadgeClassName(badge: RentPaymentStatusBadge) {
 
 export default function PropertiesIndex({ properties }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteProperty = (property: Property) => {
@@ -75,7 +76,7 @@ export default function PropertiesIndex({ properties }: Props) {
 
     return (
         <>
-            <Head title="Proprietăți" />
+            <Head title={t('nav.properties')} />
 
             <h1 className="sr-only">Proprietăți</h1>
 
@@ -83,13 +84,13 @@ export default function PropertiesIndex({ properties }: Props) {
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
-                        title="Proprietăți"
-                        description="Portofoliul tău, ocuparea și situația curentă a chiriei"
+                        title={t('nav.properties')}
+                        description={t('properties.index.description')}
                     />
 
                     <Button asChild data-test="property-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Proprietate nouă
+                            <Plus /> {t('properties.index.new')}
                         </Link>
                     </Button>
                 </div>
@@ -106,7 +107,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                     href={show([currentTeamSlug, property.id])}
                                     className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:p-5"
                                     data-test="property-card-link"
-                                    aria-label={`Vezi proprietatea ${property.name}`}
+                                    aria-label={t('properties.index.view', { name: property.name })}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
@@ -269,7 +270,7 @@ export default function PropertiesIndex({ properties }: Props) {
                                                     onClick={() =>
                                                         deleteProperty(property)
                                                     }
-                                                    aria-label="Șterge proprietatea"
+                                                    aria-label={t('properties.index.delete')}
                                                     data-test="property-delete-button"
                                                 >
                                                     <Trash2 className="h-4 w-4" />
@@ -295,7 +296,7 @@ export default function PropertiesIndex({ properties }: Props) {
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Proprietate nouă
+                                <Plus /> {t('properties.index.new')}
                             </Link>
                         </Button>
                     </div>
