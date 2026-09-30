@@ -123,7 +123,7 @@ class SaveLeaseRequest extends FormRequest
             if ($overlappingLeaseExists) {
                 $validator->errors()->add(
                     'property_id',
-                    'Această proprietate are deja un contract în perioada selectată.'
+                    __('This property already has a lease in the selected period.')
                 );
             }
         });
@@ -154,7 +154,7 @@ class SaveLeaseRequest extends FormRequest
         if ($property->monthly_rent_amount === null) {
             $validator->errors()->add(
                 'monthly_rent_amount',
-                'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.'
+                __('The lease rent must match the selected property\'s rent.')
             );
 
             return;
@@ -166,7 +166,7 @@ class SaveLeaseRequest extends FormRequest
         if ($leaseRent !== $propertyRent) {
             $validator->errors()->add(
                 'monthly_rent_amount',
-                'Chiria contractului trebuie să fie aceeași cu chiria proprietății selectate.'
+                __('The lease rent must match the selected property\'s rent.')
             );
         }
     }
