@@ -2,7 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { formatMoney } from '@/lib/money';
 import { Button } from '@/components/ui/button';
 import {
     propertyStatusLabel,
@@ -16,18 +17,7 @@ type Props = {
 };
 
 function formatValue(value?: string | number | null) {
-    return value ?? 'Nesetat';
-}
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
-
-    return `${Number(amount).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
+    return value ?? translateKey('common.notSet');
 }
 
 function Detail({
@@ -51,7 +41,7 @@ export default function PropertyShow({ property }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteProperty = () => {
-        if (!window.confirm(`Ștergi ${property.name}?`)) {
+        if (!window.confirm(t('properties.show.deleteConfirm', { name: property.name }))) {
             return;
         }
 
@@ -134,7 +124,7 @@ export default function PropertyShow({ property }: Props) {
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
                         <Detail label={t('properties.field.rooms')} value={property.rooms} />
                         <Detail
-                            label="Suprafață utilă"
+                            label={t('properties.field.usableArea')}
                             value={
                                 property.usable_area_sqm
                                     ? `${property.usable_area_sqm} mp`
@@ -142,7 +132,7 @@ export default function PropertyShow({ property }: Props) {
                             }
                         />
                         <Detail
-                            label="Suprafață totală"
+                            label={t('properties.field.totalArea')}
                             value={
                                 property.total_area_sqm
                                     ? `${property.total_area_sqm} m²`
@@ -180,15 +170,26 @@ export default function PropertyShow({ property }: Props) {
                         <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-sm text-amber-900">
                             <p className="font-medium">
                                 {
-                                    property.active_contract_guarantee_notice
-                                        .message
+                                    property.active_contract_guarantee_notice.property_guarantee === null
+                                        ? t('properties.show.currentLeaseDeposit', {
+                                              amount: formatMoney(
+                                                  property.active_contract_guarantee_notice.contract_guarantee,
+                                                  property.currency,
+                                              ),
+                                          })
+                                        : t('properties.show.negotiatedLeaseDeposit', {
+                                              amount: formatMoney(
+                                                  property.active_contract_guarantee_notice.contract_guarantee,
+                                                  property.currency,
+                                              ),
+                                          })
                                 }
                             </p>
                             <div className="mt-1 grid gap-1 text-xs sm:grid-cols-2">
                                 {property.active_contract_guarantee_notice
                                     .property_guarantee ? (
                                     <span>
-                                        Garanție informativă proprietate:{' '}
+                                        {t('properties.show.propertyDeposit')}:{' '}
                                         {formatMoney(
                                             property
                                                 .active_contract_guarantee_notice
@@ -198,7 +199,7 @@ export default function PropertyShow({ property }: Props) {
                                     </span>
                                 ) : null}
                                 <span>
-                                    Garanție contract activ:{' '}
+                                    {t('properties.show.activeLeaseDeposit')}:{' '}
                                     {formatMoney(
                                         property
                                             .active_contract_guarantee_notice
@@ -230,7 +231,7 @@ PropertyShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Proprietăți',
+            title: translateKey('nav.properties'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
