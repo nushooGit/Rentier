@@ -11,6 +11,7 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import {
     expenseCategoryLabel,
@@ -53,6 +54,7 @@ export default function ExpensesIndex({
     summary,
 }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
     const selectedCategory = filters.category;
 
@@ -93,17 +95,17 @@ export default function ExpensesIndex({
 
     return (
         <>
-            <Head title="Costuri & decontări" />
+            <Head title={t('expenses.index.title')} />
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Costuri & decontări"
-                        description="Urmărește costurile, cine le suportă și decontările asociate"
+                        title={t('expenses.index.title')}
+                        description={t('expenses.index.description')}
                     />
                     <Button asChild data-test="expense-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Cost nou
+                            <Plus /> {t('expenses.index.new')}
                         </Link>
                     </Button>
                 </div>
@@ -180,7 +182,7 @@ export default function ExpensesIndex({
                                     href={show([currentTeamSlug, expense.id])}
                                     className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="expense-card-link"
-                                    aria-label={`Vezi cheltuiala ${expense.title}`}
+                                    aria-label={t('expenses.index.view', { name: expense.title })}
                                 >
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="min-w-0">
@@ -258,8 +260,8 @@ export default function ExpensesIndex({
                                             }
                                         >
                                             {expense.affects_owner_profit
-                                                ? 'Afectează profitul'
-                                                : 'Nu afectează profitul'}
+                                                ? '{t('expenses.profit.affects')}'
+                                                : '{t('expenses.profit.notAffects')}'}
                                         </Badge>
                                     </div>
                                     {expense.settlement_state.settled_label ? (
@@ -324,7 +326,7 @@ export default function ExpensesIndex({
                                         size="sm"
                                         type="button"
                                         onClick={() => deleteExpense(expense)}
-                                        aria-label="Șterge cheltuiala"
+                                        aria-label={t('expenses.index.delete')}
                                         data-test="expense-delete-button"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -344,7 +346,7 @@ export default function ExpensesIndex({
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Cost nou
+                                <Plus /> {t('expenses.index.new')}
                             </Link>
                         </Button>
                     </div>
