@@ -40,11 +40,11 @@ type Props = {
 };
 
 const summaryItems = [
-    ['Total costuri', 'total'],
-    ['Suportate de proprietar', 'owner_supported'],
-    ['Suportate de chiriaș', 'tenant_supported'],
-    ['Plătite de proprietar', 'owner_paid'],
-    ['Plătite de chiriaș', 'tenant_paid'],
+    ['expenses.index.total', 'total'],
+    ['expenses.index.ownerSupported', 'owner_supported'],
+    ['expenses.index.renterSupported', 'tenant_supported'],
+    ['expenses.index.ownerPaid', 'owner_paid'],
+    ['expenses.index.renterPaid', 'tenant_paid'],
 ] as const;
 
 export default function ExpensesIndex({
@@ -59,11 +59,7 @@ export default function ExpensesIndex({
     const selectedCategory = filters.category;
 
     const deleteExpense = (expense: Expense) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi această cheltuială? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('expenses.index.deleteConfirm'))) {
             return;
         }
 
@@ -77,7 +73,9 @@ export default function ExpensesIndex({
 
         if (
             !window.confirm(
-                `Sigur vrei să continui cu acțiunea „${expense.settlement_state.action_label}”?`,
+                t('expenses.index.actionConfirm', {
+                    action: expense.settlement_state.action_label,
+                }),
             )
         ) {
             return;
@@ -118,7 +116,7 @@ export default function ExpensesIndex({
                         size="sm"
                         asChild
                     >
-                        <Link href={categoryHref(null)}>Toate</Link>
+                        <Link href={categoryHref(null)}>{t('common.all')}</Link>
                     </Button>
                     {expenseCategories.map((category) => (
                         <Button
@@ -143,7 +141,7 @@ export default function ExpensesIndex({
                         {summaryItems.map(([label, key]) => (
                             <div key={key} className="rounded-xl border border-border/70 bg-background/65 p-3">
                                 <p className="text-xs text-muted-foreground">
-                                    {label}
+                                    {t(label)}
                                 </p>
                                 <p className="mt-1 text-sm font-medium">
                                     {formatMoney(summary[key])}
