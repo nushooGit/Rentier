@@ -9,6 +9,7 @@ if (-not (Test-Path '.env.e2e')) {
 
 $env:APP_ENV = 'e2e'
 $env:APP_URL = 'http://127.0.0.1:8010'
+$env:APP_TIMEZONE = 'Europe/Bucharest'
 $env:E2E_BASE_URL = 'http://127.0.0.1:8010'
 $env:E2E_EMAIL = if ($env:E2E_EMAIL) { $env:E2E_EMAIL } else { 'e2e@rentier.test' }
 $env:E2E_PASSWORD = if ($env:E2E_PASSWORD) { $env:E2E_PASSWORD } else { 'password' }
