@@ -33,7 +33,7 @@ test('payments index includes card links and keeps action controls', function ()
     expect($source)
         ->toContain('data-test="payment-card-link"')
         ->toContain('href={show([currentTeamSlug, payment.id])}')
-        ->toContain('Tip:')
+        ->toContain("t('common.type')")
         ->toContain('data-test="payment-view-link"')
         ->toContain('data-test="payment-edit-link"')
         ->toContain('deletePayment(payment)')
@@ -73,6 +73,7 @@ test('expense settlement labels use directional reimbursement wording', function
     $index = pageSource('expenses/index.tsx');
     $form = pageSource('expenses/form.tsx');
     $show = pageSource('expenses/show.tsx');
+    $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
 
     expect($labels)
         ->toContain('Se recuperează de la chiriaș')
@@ -88,8 +89,14 @@ test('expense settlement labels use directional reimbursement wording', function
     expect($form)
         ->toContain('paidBy')
         ->toContain('responsibleParty')
-        ->toContain('se recuperează de la chiriaș')
-        ->toContain('se rambursează către chiriaș');
+        ->toContain("t('expenses.form.ownerPaysRenterCost')")
+        ->toContain("t('expenses.form.renterPaysOwnerCost')");
+
+    expect($translations)
+        ->toContain("'expenses.form.ownerPaysRenterCost': 'Dacă proprietarul plătește un cost suportat de chiriaș, acesta se recuperează de la chiriaș.'")
+        ->toContain("'expenses.form.ownerPaysRenterCost': 'If the owner pays a renter-supported cost, it is recovered from the renter.'")
+        ->toContain("'expenses.form.renterPaysOwnerCost': 'Dacă chiriașul plătește un cost suportat de proprietar, acesta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'")
+        ->toContain("'expenses.form.renterPaysOwnerCost': 'If the renter pays an owner-supported cost, it can be deducted from rent or utilities, or reimbursed to the renter.'");
 
     expect($show)
         ->toContain('expense.paid_by')
