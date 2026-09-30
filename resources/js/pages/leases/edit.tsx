@@ -19,8 +19,8 @@ export default function LeaseEdit({ lease, properties }: Props) {
         <>
             <Head title={`Editează contract ${lease.renter.name}`} />
 
-            <div className="mx-auto flex w-full max-w-6xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
                         title="Editează contract"
