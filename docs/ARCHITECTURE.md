@@ -131,3 +131,16 @@ The approved sequence is:
 3. only then begin the larger Home/Market/building-administration expansion.
 
 Shared domain design should still avoid choices that block future Home reuse, especially for documents, utilities, invoices, maintenance and property history.
+
+
+## Localization Strategy
+
+Rentier's implementation language is English even when the default product experience is Romanian.
+
+- Keep code identifiers, database/schema names, routes, translation keys, tests and technical documentation in English.
+- Never introduce Romanian class, variable, function or database names to support localized UI copy.
+- User-facing copy belongs in translation resources and should be selected by locale at runtime.
+- Romanian (`ro`) is the default interface locale; English (`en`) is the first optional locale.
+- Backend validation, notifications and emails should use the same resolved locale as the user-facing request where practical.
+- Locale preference should persist across sessions without broadening authentication/session-cookie scope.
+- Dates, currency and number formatting should follow the active locale while domain values remain locale-neutral.
