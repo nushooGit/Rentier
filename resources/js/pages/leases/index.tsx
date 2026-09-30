@@ -10,6 +10,7 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { formatDateRangeLong } from '@/lib/date';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { leaseStatusLabel } from '@/pages/leases/labels';
 import { create, destroy, edit, index, show } from '@/routes/leases';
 import type { Lease, LeaseOption, LeaseStatus } from '@/types';
@@ -21,7 +22,7 @@ type Props = {
 
 function formatMoney(amount?: string | null, currency = 'RON') {
     if (!amount) {
-        return 'Nesetat';
+        return translateKey('common.notSet');
     }
 
     return `${Number(amount).toLocaleString(undefined, {
@@ -40,11 +41,7 @@ export default function LeasesIndex({ leases }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteLease = (lease: Lease) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi acest contract? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('leases.index.deleteConfirm'))) {
             return;
         }
 
@@ -55,7 +52,7 @@ export default function LeasesIndex({ leases }: Props) {
         <>
             <Head title={t('nav.leases')} />
 
-            <h1 className="sr-only">Contracte</h1>
+            <h1 className="sr-only">{t('nav.leases')}</h1>
 
             <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
