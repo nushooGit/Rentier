@@ -121,18 +121,18 @@ export default function PaymentsIndex({ payments }: Props) {
 
     return (
         <>
-            <Head title="Plăți" />
+            <Head title="Încasări" />
 
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Plăți"
+                        title="Încasări"
                         description="Urmărește încasările manuale pentru contracte"
                     />
                     <Button asChild data-test="payment-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Plată nouă
+                            <Plus /> Încasare nouă
                         </Link>
                     </Button>
                 </div>
@@ -142,12 +142,12 @@ export default function PaymentsIndex({ payments }: Props) {
                         {payments.map((payment) => (
                             <article
                                 key={payment.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="payment-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, payment.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="payment-card-link"
                                     aria-label={`Vezi plata pentru ${payment.renter.name}`}
                                 >
@@ -229,14 +229,14 @@ export default function PaymentsIndex({ payments }: Props) {
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <WalletCards className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există plăți încă
+                            Nu există încasări încă
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă o plată pentru un contract existent.
+                            Înregistrează prima încasare pentru un contract existent.
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Plată nouă
+                                <Plus /> Încasare nouă
                             </Link>
                         </Button>
                     </div>
@@ -249,7 +249,7 @@ export default function PaymentsIndex({ payments }: Props) {
 PaymentsIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Plăți',
+            title: 'Încasări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],

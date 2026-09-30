@@ -39,7 +39,7 @@ type Props = {
 };
 
 const summaryItems = [
-    ['Total cheltuieli', 'total'],
+    ['Total costuri', 'total'],
     ['Suportate de proprietar', 'owner_supported'],
     ['Suportate de chiriaș', 'tenant_supported'],
     ['Plătite de proprietar', 'owner_paid'],
@@ -93,17 +93,17 @@ export default function ExpensesIndex({
 
     return (
         <>
-            <Head title="Cheltuieli" />
+            <Head title="Costuri & decontări" />
             <div className="mx-auto flex w-full max-w-7xl flex-col space-y-3.5 p-3 sm:p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <Heading
                         variant="small"
-                        title="Cheltuieli"
-                        description="Urmărește costurile pe proprietăți și contracte"
+                        title="Costuri & decontări"
+                        description="Urmărește costurile, cine le suportă și decontările asociate"
                     />
                     <Button asChild data-test="expense-create-link">
                         <Link href={create(currentTeamSlug)}>
-                            <Plus /> Cheltuială nouă
+                            <Plus /> Cost nou
                         </Link>
                     </Button>
                 </div>
@@ -136,10 +136,10 @@ export default function ExpensesIndex({
                     ))}
                 </div>
 
-                <section className="grid gap-2.5 rounded-lg border p-3 sm:p-3.5 lg:grid-cols-[1fr_1.1fr]">
+                <section className="grid gap-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm lg:grid-cols-[1fr_1.1fr]">
                     <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-5">
                         {summaryItems.map(([label, key]) => (
-                            <div key={key} className="rounded-md border p-2.5">
+                            <div key={key} className="rounded-xl border border-border/70 bg-background/65 p-3">
                                 <p className="text-xs text-muted-foreground">
                                     {label}
                                 </p>
@@ -173,12 +173,12 @@ export default function ExpensesIndex({
                         {expenses.map((expense) => (
                             <article
                                 key={expense.id}
-                                className="flex flex-col rounded-lg border transition-colors focus-within:border-primary/30 hover:border-primary/30 hover:bg-muted/20"
+                                className="flex flex-col rounded-2xl border border-border/70 bg-card/90 shadow-sm transition-all focus-within:border-primary/35 hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-md"
                                 data-test="expense-card"
                             >
                                 <Link
                                     href={show([currentTeamSlug, expense.id])}
-                                    className="flex flex-1 cursor-pointer flex-col gap-2.5 rounded-lg p-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="flex flex-1 cursor-pointer flex-col gap-3 rounded-2xl p-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                     data-test="expense-card-link"
                                     aria-label={`Vezi cheltuiala ${expense.title}`}
                                 >
@@ -340,11 +340,11 @@ export default function ExpensesIndex({
                             Nu există cheltuieli
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă prima cheltuială pentru o proprietate.
+                            Adaugă primul cost pentru o proprietate.
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
-                                <Plus /> Cheltuială nouă
+                                <Plus /> Cost nou
                             </Link>
                         </Button>
                     </div>
@@ -357,7 +357,7 @@ export default function ExpensesIndex({
 ExpensesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Cheltuieli',
+            title: 'Costuri & decontări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
