@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -74,6 +73,7 @@ export default function PaymentForm({
     leases,
     paymentMethods,
 }: Props) {
+    const { t } = useI18n();
     const now = new Date();
     const [paymentType, setPaymentType] = useState<PaymentType>(
         payment?.payment_type ?? 'rent',
@@ -111,7 +111,7 @@ export default function PaymentForm({
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii încasare">
+                    <FormSection title={t('payments.section.details')}>
                         <Field className="md:col-span-2">
                             <Label htmlFor="lease_id">{t('common.lease')}</Label>
                             <select
