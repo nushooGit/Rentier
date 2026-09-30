@@ -17,12 +17,12 @@ export default function PaymentCreate({ leases, paymentMethods }: Props) {
 
     return (
         <>
-            <Head title="Plată nouă" />
-            <div className="mx-auto flex w-full max-w-6xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <Head title="Încasare nouă" />
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
-                        title="Plată nouă"
+                        title="Încasare nouă"
                         description="Înregistrează o încasare pentru un contract"
                     />
                     <Button variant="outline" asChild>
@@ -33,7 +33,7 @@ export default function PaymentCreate({ leases, paymentMethods }: Props) {
                 </div>
 
                 {leases.length === 0 ? (
-                    <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-5 text-sm text-muted-foreground">
                         Ai nevoie de cel puțin un contract înainte să adaugi o
                         plată.
                     </div>
@@ -56,11 +56,11 @@ export default function PaymentCreate({ leases, paymentMethods }: Props) {
 PaymentCreate.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Plăți',
+            title: 'Încasări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
-            title: 'Plată nouă',
+            title: 'Încasare nouă',
             href: props.currentTeam ? '#' : '/',
         },
     ],
