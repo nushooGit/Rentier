@@ -2,7 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { formatMoney } from '@/lib/money';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import { leaseStatusLabel } from '@/pages/leases/labels';
@@ -14,18 +15,7 @@ type Props = {
 };
 
 function formatValue(value?: string | number | null) {
-    return value ?? 'Nesetat';
-}
-
-function formatMoney(amount?: string | null, currency = 'RON') {
-    if (!amount) {
-        return 'Nesetat';
-    }
-
-    return `${Number(amount).toLocaleString(undefined, {
-        maximumFractionDigits: 2,
-        minimumFractionDigits: 0,
-    })} ${currency}`;
+    return value ?? translateKey('common.notSet');
 }
 
 function Detail({
@@ -49,7 +39,7 @@ export default function LeaseShow({ lease }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteLease = () => {
-        if (!window.confirm(`Ștergi contractul pentru ${lease.renter.name}?`)) {
+        if (!window.confirm(t('leases.show.deleteConfirm', { name: lease.renter.name }))) {
             return;
         }
 
@@ -183,7 +173,7 @@ LeaseShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Contracte',
+            title: translateKey('nav.leases'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
