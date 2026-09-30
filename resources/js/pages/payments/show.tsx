@@ -65,7 +65,7 @@ function AllocationDetails({ payment }: { payment: RentPayment }) {
     }
 
     return (
-        <section className="rounded-lg border p-3 sm:p-3.5">
+        <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
             <h2 className="text-base font-medium">Alocare chirie</h2>
             <div className="mt-2.5 grid gap-1.5 text-sm">
                 {payment.allocation_summary.breakdown.map((allocation) => (
@@ -111,9 +111,9 @@ export default function PaymentShow({ payment }: Props) {
 
     return (
         <>
-            <Head title={`Plată ${payment.renter.name}`} />
-            <div className="mx-auto flex w-full max-w-6xl flex-col space-y-3.5 p-3 sm:p-4">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <Head title={`Încasare ${payment.renter.name}`} />
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
                     <div className="space-y-2">
                         <p className="text-sm text-muted-foreground">
                             Sumă încasată
@@ -147,8 +147,8 @@ export default function PaymentShow({ payment }: Props) {
                     </div>
                 </div>
 
-                <section className="rounded-lg border p-3 sm:p-3.5">
-                    <h2 className="text-base font-medium">Detalii plată</h2>
+                <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
+                    <h2 className="text-base font-medium">Detalii încasare</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
                             label="Contract"
@@ -184,7 +184,7 @@ export default function PaymentShow({ payment }: Props) {
                 <AllocationDetails payment={payment} />
 
                 {payment.notes ? (
-                    <section className="rounded-lg border p-3 sm:p-3.5">
+                    <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">Note</h2>
                         <p className="mt-2.5 text-sm whitespace-pre-wrap">
                             {payment.notes}
@@ -202,7 +202,7 @@ PaymentShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Plăți',
+            title: 'Încasări',
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {
