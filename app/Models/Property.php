@@ -35,6 +35,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $notes
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read Collection<int, Document> $documents
  * @property-read Collection<int, Expense> $expenses
  * @property-read Collection<int, Lease> $leases
  * @property-read Collection<int, RentPayment> $rentPayments
@@ -93,6 +94,16 @@ class Property extends Model
     public function rentPayments(): HasMany
     {
         return $this->hasMany(RentPayment::class);
+    }
+
+    /**
+     * Get the documents for this property.
+     *
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
     }
 
     /**

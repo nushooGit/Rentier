@@ -29,6 +29,7 @@ use Illuminate\Support\Carbon;
  * @property-read Team $team
  * @property-read Property $property
  * @property-read Renter $renter
+ * @property-read Collection<int, Document> $documents
  * @property-read Collection<int, RentPayment> $rentPayments
  * @property-read Collection<int, Expense> $expenses
  */
@@ -84,6 +85,16 @@ class Lease extends Model
     public function renter(): BelongsTo
     {
         return $this->belongsTo(Renter::class);
+    }
+
+    /**
+     * Get the documents linked to this lease.
+     *
+     * @return HasMany<Document, $this>
+     */
+    public function documents(): HasMany
+    {
+        return $this->hasMany(Document::class);
     }
 
     /**
