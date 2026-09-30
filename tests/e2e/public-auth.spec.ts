@@ -108,7 +108,7 @@ test.describe('public and auth smoke', () => {
         ).toBeVisible();
         await expect(page.getByLabel('Email address')).toBeVisible();
         await expect(page.getByLabel('Password')).toBeVisible();
-        await expect(page.getByRole('button', { name: 'Log in' })).toBeVisible();
+        await expect(page.getByTestId('login-button')).toHaveText('Log in');
     });
 
     test('registration page is either available or intentionally disabled', async ({
