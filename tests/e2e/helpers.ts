@@ -91,7 +91,7 @@ export async function selectOptionContaining(
     await page.locator(selector).selectOption(value);
 }
 
-const appTimezone = process.env.APP_TIMEZONE ?? 'Europe/Bucharest';
+const appTimezone = 'Europe/Bucharest';
 
 function appCalendarParts(date = new Date()) {
     const parts = new Intl.DateTimeFormat('en-CA', {
