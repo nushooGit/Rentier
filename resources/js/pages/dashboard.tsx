@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from 'react';
 import PendingInvitationsModal from '@/components/pending-invitations-modal';
 import { Badge } from '@/components/ui/badge';
 import { formatDateLong } from '@/lib/date';
+import { useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import { expenseStatusLabel } from '@/pages/expenses/labels';
 import { leaseStatusLabel } from '@/pages/leases/labels';
@@ -113,6 +114,7 @@ function PaymentMethodBreakdownCard({
     methods: DashboardPaymentMethodBreakdown[];
     currency: string;
 }) {
+    const { t } = useI18n();
     const total = methods.reduce(
         (sum, method) => sum + Number(method.amount),
         0,
@@ -121,7 +123,7 @@ function PaymentMethodBreakdownCard({
     return (
         <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                Încasări pe metode
+                {t('dashboard.byMethod')}
             </p>
             <div className="mt-2 space-y-1.5 text-sm">
                 {methods.length > 0 ? (
@@ -140,12 +142,12 @@ function PaymentMethodBreakdownCard({
                     ))
                 ) : (
                     <span className="text-muted-foreground">
-                        Nu există chirii încasate luna asta.
+                        {t('dashboard.noRentThisMonth')}
                     </span>
                 )}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-                Total: {formatMoney(String(total), currency)}
+                {t('dashboard.total', { amount: formatMoney(String(total), currency) })}
             </p>
         </section>
     );
@@ -160,12 +162,14 @@ function FinancialLeaseLine({
     href: ReturnType<typeof showLease>;
     tone?: 'neutral' | 'danger';
 }) {
+    const { t } = useI18n();
+
     return (
         <Link
             href={href}
             className="block rounded-xl border border-transparent bg-muted/40 p-3 text-sm transition-colors hover:border-border hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             data-test="dashboard-lease-link"
-            aria-label={`Vezi contractul pentru ${lease.property_name}`}
+            aria-label={t('dashboard.viewLease', { name: lease.property_name })}
         >
             <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -175,7 +179,7 @@ function FinancialLeaseLine({
                     <p className="text-muted-foreground">
                         {lease.renter_name}
                         {tone === 'neutral' ? (
-                            <> · scadentă {formatDateLong(lease.due_date)}</>
+                            <> · {t('dashboard.due', { date: formatDateLong(lease.due_date) })}</>
                         ) : null}
                     </p>
                 </div>
@@ -185,7 +189,7 @@ function FinancialLeaseLine({
                             variant="outline"
                             className="border-amber-200 bg-amber-50 text-amber-700"
                         >
-                            Plătită parțial
+                            {t('dashboard.partiallyPaid')}
                         </Badge>
                     ) : null}
                     <Badge
@@ -203,7 +207,7 @@ function FinancialLeaseLine({
                             variant="outline"
                             className="border-red-200 bg-red-50 text-red-700"
                         >
-                            {lease.overdue_month_count} luni restante
+                            {t('dashboard.monthsOverdue', { count: lease.overdue_month_count })}
                         </Badge>
                     ) : null}
                 </div>
@@ -215,18 +219,16 @@ function FinancialLeaseLine({
                             className="font-medium text-red-700 sm:col-span-2"
                             data-test="dashboard-rent-arrears"
                         >
-                            Restanță totală:{' '}
-                            {formatMoney(lease.arrears_amount, lease.currency)}
+                            {t('dashboard.totalArrears', { amount: formatMoney(lease.arrears_amount, lease.currency) })}
                         </span>
                         <span className="sm:col-span-2">
                             {lease.overdue_month_count === 1
-                                ? '1 lună restantă'
-                                : `${lease.overdue_month_count} luni restante`}
+                                ? t('dashboard.monthOverdue')
+                                : t('dashboard.monthsOverdue', { count: lease.overdue_month_count })}
                         </span>
                         {lease.oldest_overdue_due_date ? (
                             <span className="sm:col-span-2">
-                                Cea mai veche scadență:{' '}
-                                {formatDateLong(lease.oldest_overdue_due_date)}
+                                {t('dashboard.oldestDue', { date: formatDateLong(lease.oldest_overdue_due_date) })}
                             </span>
                         ) : null}
                         {lease.overdue_months.map((month) => (
@@ -245,25 +247,16 @@ function FinancialLeaseLine({
                 ) : (
                     <>
                         <span>
-                            Chirie:{' '}
-                            {formatMoney(lease.expected_amount, lease.currency)}
+                            {t('dashboard.rent', { amount: formatMoney(lease.expected_amount, lease.currency) })}
                         </span>
                         <span>
-                            Încasat:{' '}
-                            {formatMoney(
-                                lease.collected_amount,
-                                lease.currency,
-                            )}
+                            {t('dashboard.collected', { amount: formatMoney(lease.collected_amount, lease.currency) })}
                         </span>
                         <span>
-                            Scăzut din chirie:{' '}
-                            {formatMoney(
-                                lease.rent_deduction_amount,
-                                lease.currency,
-                            )}
+                            {t('dashboard.rentDeducted', { amount: formatMoney(lease.rent_deduction_amount, lease.currency) })}
                         </span>
                         <span>
-                            Rest:{' '}
+                            {t('dashboard.rest', { amount: '' }).replace(': ', ':')} 
                             <strong className="font-medium text-foreground">
                                 {formatMoney(
                                     lease.remaining_amount,
@@ -305,6 +298,7 @@ export default function Dashboard({
 }: Props) {
     const hasRefreshed = useRef(false);
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
     const [showInvitations, setShowInvitations] = useState(
         pendingInvitations.length > 0,
@@ -338,20 +332,20 @@ export default function Dashboard({
                                 </span>
                                 <div>
                                     <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-300">
-                                        Privire de ansamblu
+                                        {t('dashboard.overview')}
                                     </p>
                                     <h1 className="mt-0.5 text-2xl font-semibold tracking-[-0.03em] sm:text-3xl">
-                                        Panou de control
+                                        {t('dashboard.title')}
                                     </h1>
                                 </div>
                             </div>
                             <p className="mt-2 text-sm text-slate-400">
-                                Situația curentă pentru {currentTeam?.name ?? 'workspace-ul Rentier'}.
+                                {t('dashboard.currentSituation', { workspace: currentTeam?.name ?? t('dashboard.workspaceFallback') })}
                             </p>
                         </div>
                         <div className="inline-flex w-fit items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-xs font-medium text-slate-300">
                             <Building2 className="size-4 text-emerald-300" aria-hidden="true" />
-                            {summary.property_count} proprietăți · {summary.active_lease_count} contracte active
+                            {t('dashboard.portfolioSummary', { properties: summary.property_count, leases: summary.active_lease_count })}
                         </div>
                     </div>
                 </section>
@@ -360,7 +354,7 @@ export default function Dashboard({
                     <div className="grid lg:grid-cols-[1.35fr_1fr_1fr_1fr]">
                         <div className="border-b border-white/8 p-5 sm:p-6 lg:border-r lg:border-b-0">
                             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">
-                                Încasat luna asta
+                                {t('dashboard.collectedThisMonth')}
                             </p>
                             <p
                                 className="mt-4 text-4xl font-semibold tracking-[-0.04em] text-emerald-300 sm:text-5xl"
@@ -373,18 +367,18 @@ export default function Dashboard({
                                 )}
                             </p>
                             <p className="mt-3 max-w-md text-sm leading-6 text-slate-400">
-                                Chirii încasate în luna curentă, fără garanții.
+                                {t('dashboard.collectedDescription')}
                             </p>
                             <div className="mt-5 flex flex-wrap gap-x-5 gap-y-2 text-xs text-slate-500">
-                                <span>{summary.active_lease_count} contracte active</span>
-                                <span>{summary.property_count} proprietăți în portofoliu</span>
+                                <span>{t('dashboard.activeLeases', { count: summary.active_lease_count })}</span>
+                                <span>{t('dashboard.portfolioProperties', { count: summary.property_count })}</span>
                             </div>
                         </div>
 
                         <div className="border-b border-white/8 p-5 lg:border-r lg:border-b-0">
                             <div className="flex items-start justify-between gap-3">
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                    Rest de încasat
+                                    {t('dashboard.remaining')}
                                 </p>
                                 <span className="flex size-8 items-center justify-center rounded-lg border border-rose-400/20 bg-rose-400/10 text-rose-300">
                                     <AlertTriangle className="size-4" aria-hidden="true" />
@@ -397,14 +391,14 @@ export default function Dashboard({
                                 )}
                             </p>
                             <p className="mt-2 text-xs leading-5 text-slate-500">
-                                Rest aferent lunii curente.
+                                {t('dashboard.remainingDescription')}
                             </p>
                         </div>
 
                         <div className="border-b border-white/8 p-5 lg:border-r lg:border-b-0">
                             <div className="flex items-start justify-between gap-3">
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                    De recuperat
+                                    {t('dashboard.recoverable')}
                                 </p>
                                 <span className="flex size-8 items-center justify-center rounded-lg border border-amber-300/20 bg-amber-300/10 text-amber-200">
                                     <CircleDollarSign className="size-4" aria-hidden="true" />
@@ -417,14 +411,14 @@ export default function Dashboard({
                                 )}
                             </p>
                             <p className="mt-2 text-xs leading-5 text-slate-500">
-                                Costuri de recuperat de la chiriași.
+                                {t('dashboard.recoverableDescription')}
                             </p>
                         </div>
 
                         <div className="p-5">
                             <div className="flex items-start justify-between gap-3">
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">
-                                    Grad de ocupare
+                                    {t('dashboard.occupancy')}
                                 </p>
                                 <span className="flex size-8 items-center justify-center rounded-lg border border-sky-400/20 bg-sky-400/10 text-sky-300">
                                     <Building2 className="size-4" aria-hidden="true" />
@@ -434,7 +428,7 @@ export default function Dashboard({
                                 {summary.occupancy_label}
                             </p>
                             <p className="mt-2 text-xs leading-5 text-slate-500">
-                                {summary.occupancy_rate}% din {summary.property_count} proprietăți
+                                {t('dashboard.occupancyDescription', { rate: summary.occupancy_rate, count: summary.property_count })}
                             </p>
                             <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-white/8">
                                 <div
@@ -455,16 +449,16 @@ export default function Dashboard({
                     <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                         <div>
                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                                Necesită atenția ta
+                                {t('dashboard.attention')}
                             </p>
                             <h2 className="mt-1 text-lg font-semibold tracking-tight">
-                                Ce merită verificat acum
+                                {t('dashboard.attentionNone')}
                             </h2>
                         </div>
                         <div className="grid grid-cols-3 gap-2 lg:min-w-[620px]">
                             <div className="rounded-xl bg-rose-50 px-3 py-2.5 dark:bg-rose-400/10">
                                 <p className="text-[11px] text-rose-700 dark:text-rose-300">
-                                    Restanțe
+                                    {t('dashboard.arrears')}
                                 </p>
                                 <p className="mt-1 text-lg font-semibold text-rose-950 dark:text-rose-100">
                                     {summary.overdue_count}
@@ -472,7 +466,7 @@ export default function Dashboard({
                             </div>
                             <div className="rounded-xl bg-amber-50 px-3 py-2.5 dark:bg-amber-400/10">
                                 <p className="text-[11px] text-amber-700 dark:text-amber-300">
-                                    Următoarele 7 zile
+                                    {t('dashboard.next7Days')}
                                 </p>
                                 <p className="mt-1 text-lg font-semibold text-amber-950 dark:text-amber-100">
                                     {upcomingPayments.length}
@@ -480,7 +474,7 @@ export default function Dashboard({
                             </div>
                             <div className="rounded-xl bg-slate-100 px-3 py-2.5 dark:bg-white/5">
                                 <p className="text-[11px] text-slate-600 dark:text-slate-300">
-                                    Fără contract
+                                    {t('dashboard.noLease')}
                                 </p>
                                 <p className="mt-1 text-lg font-semibold">
                                     {propertiesWithoutActiveLease.length}
@@ -494,87 +488,87 @@ export default function Dashboard({
                     <div className="mb-3 flex items-center gap-2">
                         <TrendingUp className="size-4 text-emerald-600 dark:text-emerald-300" aria-hidden="true" />
                         <h2 className="text-sm font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                            Detalii financiare
+                            {t('dashboard.financialDetails')}
                         </h2>
                     </div>
                     <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-3 xl:grid-cols-4">
                         <SummaryCard
-                            label="Chirie estimată"
+                            label={t('dashboard.estimatedRent')}
                             value={formatMoney(
                                 summary.estimated_monthly_rent,
                                 summary.currency,
                             )}
-                            description={`${summary.active_lease_count} contracte active`}
+                            description={t('dashboard.activeLeases', { count: summary.active_lease_count })}
                         />
                         <SummaryCard
-                            label="Profit estimat"
+                            label={t('dashboard.estimatedProfit')}
                             value={formatMoney(
                                 summary.current_month_profit,
                                 summary.currency,
                             )}
-                            description="Chirie estimată minus cheltuieli suportate"
+                            description={t('dashboard.estimatedProfitDescription')}
                         />
                         <SummaryCard
-                            label="Rezultat operațional"
+                            label={t('dashboard.operationalResult')}
                             value={formatMoney(
                                 summary.operational_cash_result,
                                 summary.currency,
                             )}
-                            description="Încasări minus plăți efective"
+                            description={t('dashboard.operationalResultDescription')}
                         />
                         <SummaryCard
-                            label="Total de încasat"
+                            label={t('dashboard.totalReceivable')}
                             value={formatMoney(
                                 summary.total_receivable,
                                 summary.currency,
                             )}
-                            description="Chirie + garanții + recuperări"
+                            description={t('dashboard.totalReceivableDescription')}
                         />
                         <SummaryCard
-                            label="Garanții de încasat"
+                            label={t('dashboard.expectedGuarantees')}
                             value={formatMoney(
                                 summary.expected_guarantees,
                                 summary.currency,
                             )}
                         />
                         <SummaryCard
-                            label="Garanții încasate"
+                            label={t('dashboard.collectedGuarantees')}
                             value={formatMoney(
                                 summary.collected_guarantees,
                                 summary.currency,
                             )}
                         />
                         <SummaryCard
-                            label="Garanții restante"
+                            label={t('dashboard.remainingGuarantees')}
                             value={formatMoney(
                                 summary.remaining_guarantees,
                                 summary.currency,
                             )}
                         />
                         <SummaryCard
-                            label="Costuri luna asta"
+                            label={t('dashboard.costsThisMonth')}
                             value={formatMoney(
                                 summary.current_month_expenses,
                                 summary.currency,
                             )}
-                            description="Suportate economic de proprietar"
+                            description={t('dashboard.costsThisMonthDescription')}
                         />
                         <SummaryCard
-                            label="Scăzut din chirie"
+                            label={t('dashboard.rentDeductions')}
                             value={formatMoney(
                                 summary.current_month_rent_deductions,
                                 summary.currency,
                             )}
                         />
                         <SummaryCard
-                            label="De rambursat chiriașului"
+                            label={t('dashboard.renterReimbursement')}
                             value={formatMoney(
                                 summary.tenant_reimbursement_expenses,
                                 summary.currency,
                             )}
                         />
                         <SummaryCard
-                            label="De scăzut din utilități"
+                            label={t('dashboard.utilityDeduction')}
                             value={formatMoney(
                                 summary.utility_deduction_expenses,
                                 summary.currency,
@@ -589,23 +583,14 @@ export default function Dashboard({
 
                 {Number(summary.unsettled_tenant_paid_owner_expenses) > 0 ? (
                     <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:p-3.5">
-                        Există costuri plătite de chiriaș, suportate de
-                        proprietar, fără decontare:{' '}
-                        <strong>
-                            {formatMoney(
-                                summary.unsettled_tenant_paid_owner_expenses,
-                                summary.currency,
-                            )}
-                        </strong>
-                        . Editează costurile și alege scădere din chirie,
-                        scădere din utilități sau rambursare.
+                        {t('dashboard.unsettledCosts', { amount: formatMoney(summary.unsettled_tenant_paid_owner_expenses, summary.currency) })}
                     </section>
                 ) : null}
 
                 <div className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Chirii întârziate
+                            {t('dashboard.overdueRents')}
                         </h2>
                         <div className="mt-2.5 space-y-2">
                             {overdueLeases.length > 0 ? (
@@ -622,7 +607,7 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu există chirii întârziate luna asta.
+                                    {t('dashboard.noOverdueRents')}
                                 </EmptyLine>
                             )}
                         </div>
@@ -630,7 +615,7 @@ export default function Dashboard({
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Scadențe următoare
+                            {t('dashboard.upcomingDue')}
                         </h2>
                         <div className="mt-2.5 space-y-2">
                             {upcomingPayments.length > 0 ? (
@@ -646,8 +631,7 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu sunt plăți scadente în următoarele 7
-                                    zile.
+                                    {t('dashboard.noUpcomingDue')}
                                 </EmptyLine>
                             )}
                         </div>
@@ -655,7 +639,7 @@ export default function Dashboard({
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Chirii plătite în avans
+                            {t('dashboard.advanceRents')}
                         </h2>
                         <div className="mt-2.5 space-y-2">
                             {advanceLeases.length > 0 ? (
@@ -671,7 +655,7 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu există chirii plătite în avans.
+                                    {t('dashboard.noAdvanceRents')}
                                 </EmptyLine>
                             )}
                         </div>
@@ -679,7 +663,7 @@ export default function Dashboard({
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Proprietăți fără contract activ
+                            {t('dashboard.propertiesWithoutLease')}
                         </h2>
                         <div className="mt-2.5 space-y-2">
                             {propertiesWithoutActiveLease.length > 0 ? (
@@ -692,7 +676,7 @@ export default function Dashboard({
                                         ])}
                                         className="block rounded-xl border border-transparent bg-muted/40 p-3 text-sm transition-colors hover:border-border hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-property-link"
-                                        aria-label={`Vezi proprietatea ${property.name}`}
+                                        aria-label={t('dashboard.viewProperty', { name: property.name })}
                                     >
                                         <p className="truncate font-medium">
                                             {property.name}
@@ -702,17 +686,13 @@ export default function Dashboard({
                                             {property.address_line}
                                         </p>
                                         <p className="mt-1 text-xs text-muted-foreground">
-                                            Chirie listată:{' '}
-                                            {formatMoney(
-                                                property.monthly_rent_amount,
-                                                property.currency,
-                                            )}
+                                            {t('dashboard.listedRent', { amount: formatMoney(property.monthly_rent_amount, property.currency) })}
                                         </p>
                                     </Link>
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Toate proprietățile au contract activ.
+                                    {t('dashboard.allPropertiesLeased')}
                                 </EmptyLine>
                             )}
                         </div>
@@ -722,7 +702,7 @@ export default function Dashboard({
                 <div className="grid gap-3 lg:grid-cols-3">
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Contracte recente
+                            {t('dashboard.recentLeases')}
                         </h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentLeases.length > 0 ? (
@@ -735,7 +715,7 @@ export default function Dashboard({
                                         ])}
                                         className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-lease-link"
-                                        aria-label={`Vezi contractul pentru ${lease.renter_name}`}
+                                        aria-label={t('dashboard.viewLease', { name: lease.renter_name })}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -749,10 +729,7 @@ export default function Dashboard({
                                                 )}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Început:{' '}
-                                                {formatDateLong(
-                                                    lease.start_date,
-                                                )}
+                                                {t('dashboard.start', { date: formatDateLong(lease.start_date) })}
                                             </p>
                                         </div>
                                         <Badge variant="secondary">
@@ -762,14 +739,14 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu există contracte recente.
+                                    {t('dashboard.noRecentLeases')}
                                 </EmptyLine>
                             )}
                         </div>
                     </section>
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
-                        <h2 className="text-base font-medium">Încasări recente</h2>
+                        <h2 className="text-base font-medium">{t('dashboard.recentIncome')}</h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentPayments.length > 0 ? (
                                 recentPayments.map((payment) => (
@@ -781,7 +758,7 @@ export default function Dashboard({
                                         ])}
                                         className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-payment-link"
-                                        aria-label={`Vezi plata pentru ${payment.renter_name}`}
+                                        aria-label={t('dashboard.viewIncome', { name: payment.renter_name })}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -795,10 +772,7 @@ export default function Dashboard({
                                                 )}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Încasată:{' '}
-                                                {formatDateLong(
-                                                    payment.payment_date,
-                                                )}
+                                                {t('dashboard.received', { date: formatDateLong(payment.payment_date) })}
                                             </p>
                                         </div>
                                         <Badge variant="secondary">
@@ -807,14 +781,14 @@ export default function Dashboard({
                                     </Link>
                                 ))
                             ) : (
-                                <EmptyLine>Nu există încasări recente.</EmptyLine>
+                                <EmptyLine>{t('dashboard.noRecentIncome')}</EmptyLine>
                             )}
                         </div>
                     </section>
 
                     <section className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm sm:p-5">
                         <h2 className="text-base font-medium">
-                            Costuri recente
+                            {t('dashboard.recentCosts')}
                         </h2>
                         <div className="mt-2.5 space-y-2.5">
                             {recentExpenses.length > 0 ? (
@@ -827,7 +801,7 @@ export default function Dashboard({
                                         ])}
                                         className="flex items-start justify-between gap-3 rounded-xl p-3 text-sm transition-colors hover:bg-muted/70 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                         data-test="dashboard-recent-expense-link"
-                                        aria-label={`Vezi cheltuiala ${expense.title}`}
+                                        aria-label={t('dashboard.viewCost', { name: expense.title })}
                                     >
                                         <div className="min-w-0">
                                             <p className="truncate font-medium">
@@ -841,10 +815,7 @@ export default function Dashboard({
                                                 )}
                                             </p>
                                             <p className="text-xs text-muted-foreground">
-                                                Data:{' '}
-                                                {formatDateLong(
-                                                    expense.expense_date,
-                                                )}
+                                                {t('dashboard.date', { date: formatDateLong(expense.expense_date) })}
                                             </p>
                                         </div>
                                         <Badge variant="secondary">
@@ -854,7 +825,7 @@ export default function Dashboard({
                                 ))
                             ) : (
                                 <EmptyLine>
-                                    Nu există costuri recente.
+                                    {t('dashboard.noRecentCosts')}
                                 </EmptyLine>
                             )}
                         </div>
