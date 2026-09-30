@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import { formatDateLong } from '@/lib/date';
 
@@ -41,9 +41,17 @@ export default function AdminWorkspaces({
                                     </div>
                                     <p className="mt-1 truncate text-sm text-muted-foreground">/{workspace.slug}</p>
                                 </div>
-                                <p className="text-sm text-muted-foreground sm:text-right">
-                                    Creat {formatDateLong(workspace.created_at)}
-                                </p>
+                                <div className="flex shrink-0 flex-col gap-2 text-sm text-muted-foreground sm:items-end">
+                                    <p className="sm:text-right">
+                                        Creat {formatDateLong(workspace.created_at)}
+                                    </p>
+                                    <Link
+                                        href={`/workspaces/${workspace.slug}`}
+                                        className="font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+                                    >
+                                        Vezi detalii
+                                    </Link>
+                                </div>
                             </div>
 
                             <div className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
