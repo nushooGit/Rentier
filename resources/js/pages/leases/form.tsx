@@ -101,7 +101,7 @@ export default function LeaseForm({
                                 data-test="lease-property-select"
                             >
                                 <option value="" disabled>
-                                    Alege proprietatea
+                                    {t('common.chooseProperty')}
                                 </option>
                                 {properties.map((property) => (
                                     <option
@@ -116,7 +116,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="start_date">Data început</Label>
+                            <Label htmlFor="start_date">{t('leases.field.startDate')}</Label>
                             <DateInput
                                 id="start_date"
                                 name="start_date"
@@ -129,7 +129,7 @@ export default function LeaseForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="end_date">Data sfârșit</Label>
+                            <Label htmlFor="end_date">{t('leases.field.endDate')}</Label>
                             <DateInput
                                 id="end_date"
                                 name="end_date"
@@ -171,7 +171,7 @@ export default function LeaseForm({
 
                         <Field>
                             <Label htmlFor="renter_phone">
-                                Telefon chiriaș
+                                {t('leases.field.renterPhone')}
                             </Label>
                             <Input
                                 id="renter_phone"
@@ -201,7 +201,7 @@ export default function LeaseForm({
                     >
                         <Field>
                             <Label htmlFor="monthly_rent_amount">
-                                Chirie lunară
+                                {t('properties.field.monthlyRent')}
                             </Label>
                             <Input
                                 id="monthly_rent_amount"
@@ -235,7 +235,7 @@ export default function LeaseForm({
 
                         <Field>
                             <Label htmlFor="rent_due_day">
-                                Ziua scadentă a chiriei
+                                {t('leases.field.dueDay')}
                             </Label>
                             <Input
                                 id="rent_due_day"
@@ -268,14 +268,8 @@ export default function LeaseForm({
                         </Field>
 
                         <div className="space-y-1 text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
-                            <p>
-                                Chiria este preluată automat din proprietatea
-                                selectată.
-                            </p>
-                            <p>
-                                Ex: 5 înseamnă că plata este scadentă în fiecare
-                                lună pe data de 5.
-                            </p>
+                            <p>{t('leases.form.autoRentHint')}</p>
+                            <p>{t('leases.form.dueDayHint')}</p>
                         </div>
                     </FormSection>
 
