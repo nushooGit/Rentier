@@ -1,5 +1,7 @@
 import { ShieldCheck } from 'lucide-react';
+import { LocaleSwitcher } from '@/components/locale-switcher';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { useI18n } from '@/lib/i18n';
 import type { AuthLayoutProps } from '@/types';
 
 export default function AuthSimpleLayout({
@@ -7,6 +9,8 @@ export default function AuthSimpleLayout({
     title,
     description,
 }: AuthLayoutProps) {
+    const { t } = useI18n();
+
     return (
         <div className="relative min-h-svh overflow-hidden bg-[#07111f] dark:bg-[#06101d]">
             <div
@@ -14,7 +18,8 @@ export default function AuthSimpleLayout({
                 aria-hidden="true"
             />
 
-            <div className="absolute top-4 right-4 z-20 sm:top-6 sm:right-6">
+            <div className="absolute top-4 right-4 z-20 flex items-center gap-2 sm:top-6 sm:right-6">
+                <LocaleSwitcher className="border-white/10 bg-white/90 dark:bg-white/5 dark:text-slate-300" />
                 <ThemeToggle className="border-white/10 bg-white/90 dark:bg-white/5" />
             </div>
 
@@ -25,11 +30,9 @@ export default function AuthSimpleLayout({
                             R
                         </span>
                         <div>
-                            <p className="text-xl font-semibold tracking-tight">
-                                Rentier
-                            </p>
+                            <p className="text-xl font-semibold tracking-tight">Rentier</p>
                             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">
-                                Administrare chirii
+                                {t('app.tagline')}
                             </p>
                         </div>
                     </div>
@@ -38,22 +41,18 @@ export default function AuthSimpleLayout({
                         Proprietățile tale, organizate într-un singur loc.
                     </h2>
                     <p className="mt-4 max-w-lg text-base leading-7 text-slate-400">
-                        Contracte, chirii, garanții și cheltuieli într-o
-                        interfață construită pentru proprietarii din România.
+                        Contracte, chirii, garanții și costuri într-o interfață construită pentru proprietarii din România.
                     </p>
 
                     <div className="mt-8 grid gap-3 text-sm text-slate-300">
                         {[
                             'Încasări și restanțe urmărite clar',
                             'Contracte și proprietăți legate într-un singur flux',
-                            'Cheltuieli și sume de recuperat la vedere',
+                            'Costuri și sume de recuperat la vedere',
                         ].map((item) => (
                             <div key={item} className="flex items-center gap-3">
                                 <span className="flex size-8 items-center justify-center rounded-xl bg-emerald-300/10 text-emerald-300">
-                                    <ShieldCheck
-                                        className="size-4"
-                                        aria-hidden="true"
-                                    />
+                                    <ShieldCheck className="size-4" aria-hidden="true" />
                                 </span>
                                 {item}
                             </div>
@@ -65,32 +64,22 @@ export default function AuthSimpleLayout({
                     <div className="rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-6 shadow-2xl shadow-slate-950/10 backdrop-blur sm:p-8 dark:border-white/10 dark:bg-[#0b1420]/95 dark:shadow-black/30">
                         <div className="mb-7">
                             <div className="mb-5 flex items-center gap-3 lg:hidden">
-                                <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-300 text-sm font-black text-[#07111f]">
-                                    R
-                                </span>
+                                <span className="flex size-10 items-center justify-center rounded-xl bg-emerald-300 text-sm font-black text-[#07111f]">R</span>
                                 <div>
-                                    <p className="font-semibold tracking-tight">
-                                        Rentier
-                                    </p>
-                                    <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                                        Administrare chirii
-                                    </p>
+                                    <p className="font-semibold tracking-tight">Rentier</p>
+                                    <p className="text-[10px] uppercase tracking-[0.16em] text-muted-foreground">{t('app.tagline')}</p>
                                 </div>
                             </div>
 
-                            <h1 className="text-2xl font-semibold tracking-[-0.03em]">
-                                {title}
-                            </h1>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                                {description}
-                            </p>
+                            <h1 className="text-2xl font-semibold tracking-[-0.03em]">{title}</h1>
+                            <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
                         </div>
 
                         {children}
                     </div>
 
                     <p className="mt-5 text-center text-xs text-slate-500 dark:text-slate-500">
-                        Rentier · beta privată
+                        Rentier · {t('header.privateBeta').toLowerCase()}
                     </p>
                 </main>
             </div>

@@ -11,16 +11,16 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useI18n } from '@/lib/i18n';
 import { switchMethod } from '@/routes/teams';
 import type { Team } from '@/types';
 
-type TeamSwitcherProps = {
-    inHeader?: boolean;
-};
+type TeamSwitcherProps = { inHeader?: boolean };
 
 export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
     const page = usePage();
     const isMobile = useIsMobile();
+    const { t } = useI18n();
     const currentTeam = page.props.currentTeam;
     const teams = page.props.teams ?? [];
 
@@ -31,7 +31,6 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
             onFinish: () => {
                 if (!previousTeamSlug || typeof window === 'undefined') {
                     router.reload();
-
                     return;
                 }
 
@@ -42,7 +41,6 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                     router.visit(currentUrl.replace(segment, `/${team.slug}`), {
                         replace: true,
                     });
-
                     return;
                 }
 
@@ -60,75 +58,37 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                     className={
                         inHeader
                             ? 'h-8 gap-1 px-2'
-                            : 'w-full justify-start px-2 has-[>svg]:px-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
+                            : 'w-full justify-start rounded-xl border border-white/[0.06] bg-white/[0.03] px-2 has-[>svg]:px-2 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'
                     }
                 >
-                    <Users
-                        className={
-                            inHeader
-                                ? 'hidden'
-                                : 'hidden size-4 shrink-0 group-data-[collapsible=icon]:block'
-                        }
-                    />
-                    <div
-                        className={
-                            inHeader
-                                ? 'grid flex-1 text-left text-sm leading-tight'
-                                : 'grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'
-                        }
-                    >
-                        <span
-                            className={
-                                inHeader
-                                    ? 'max-w-[120px] truncate font-medium'
-                                    : 'truncate font-semibold'
-                            }
-                        >
-                            {currentTeam?.name ?? 'Alege workspace'}
+                    <Users className={inHeader ? 'hidden' : 'hidden size-4 shrink-0 group-data-[collapsible=icon]:block'} />
+                    <div className={inHeader ? 'grid flex-1 text-left text-sm leading-tight' : 'grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'}>
+                        <span className={inHeader ? 'max-w-[120px] truncate font-medium' : 'truncate font-semibold'}>
+                            {currentTeam?.name ?? t('team.select')}
                         </span>
                     </div>
-                    <ChevronsUpDown
-                        className={
-                            inHeader
-                                ? 'size-4 opacity-50'
-                                : 'ml-auto group-data-[collapsible=icon]:hidden'
-                        }
-                    />
+                    <ChevronsUpDown className={inHeader ? 'size-4 opacity-50' : 'ml-auto group-data-[collapsible=icon]:hidden'} />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-                className={
-                    inHeader
-                        ? 'w-56'
-                        : 'w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-                }
+                className={inHeader ? 'w-56' : 'w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xl'}
                 side={inHeader ? undefined : isMobile ? 'bottom' : 'right'}
                 align={inHeader ? 'end' : 'start'}
                 sideOffset={inHeader ? undefined : 4}
             >
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
-                    Workspace-uri
+                    {t('team.workspaces')}
                 </DropdownMenuLabel>
                 {teams.map((team) => (
                     <DropdownMenuItem
                         key={team.id}
                         data-test="team-switcher-item"
-                        className={
-                            inHeader
-                                ? 'cursor-pointer gap-2'
-                                : 'cursor-pointer gap-2 p-2'
-                        }
+                        className={inHeader ? 'cursor-pointer gap-2' : 'cursor-pointer gap-2 p-2'}
                         onSelect={() => switchTeam(team)}
                     >
                         {team.name}
                         {currentTeam?.id === team.id && (
-                            <Check
-                                className={
-                                    inHeader
-                                        ? 'ml-auto size-4'
-                                        : 'ml-auto h-4 w-4'
-                                }
-                            />
+                            <Check className={inHeader ? 'ml-auto size-4' : 'ml-auto h-4 w-4'} />
                         )}
                     </DropdownMenuItem>
                 ))}
@@ -136,15 +96,11 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                 <CreateTeamModal>
                     <DropdownMenuItem
                         data-test="team-switcher-new-team"
-                        className={
-                            inHeader
-                                ? 'cursor-pointer gap-2'
-                                : 'cursor-pointer gap-2 p-2'
-                        }
+                        className={inHeader ? 'cursor-pointer gap-2' : 'cursor-pointer gap-2 p-2'}
                         onSelect={(event) => event.preventDefault()}
                     >
                         <Plus className={inHeader ? 'size-4' : 'h-4 w-4'} />
-                        <span className="text-muted-foreground">Workspace nou</span>
+                        <span className="text-muted-foreground">{t('team.new')}</span>
                     </DropdownMenuItem>
                 </CreateTeamModal>
             </DropdownMenuContent>

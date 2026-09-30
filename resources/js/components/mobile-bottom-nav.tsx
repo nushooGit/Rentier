@@ -8,6 +8,7 @@ import {
     WalletCards,
 } from 'lucide-react';
 import { useCurrentUrl } from '@/hooks/use-current-url';
+import { useI18n } from '@/lib/i18n';
 import { dashboard } from '@/routes';
 import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
@@ -18,48 +19,23 @@ import { index as propertiesIndex } from '@/routes/properties';
 export function MobileBottomNav() {
     const { currentTeam } = usePage().props;
     const { isCurrentUrl } = useCurrentUrl();
+    const { t } = useI18n();
 
-    if (!currentTeam) {
-        return null;
-    }
+    if (!currentTeam) return null;
 
     const items = [
-        {
-            label: 'Acasă',
-            href: dashboard(currentTeam.slug),
-            icon: LayoutDashboard,
-        },
-        {
-            label: 'Proprietăți',
-            href: propertiesIndex(currentTeam.slug),
-            icon: Building2,
-        },
-        {
-            label: 'Contracte',
-            href: leasesIndex(currentTeam.slug),
-            icon: FileText,
-        },
-        {
-            label: 'Plăți',
-            href: paymentsIndex(currentTeam.slug),
-            icon: WalletCards,
-        },
-        {
-            label: 'Cheltuieli',
-            href: expensesIndex(currentTeam.slug),
-            icon: ReceiptText,
-        },
-        {
-            label: 'Documente',
-            href: documentsIndex(currentTeam.slug),
-            icon: FolderOpen,
-        },
+        { label: t('nav.home'), href: dashboard(currentTeam.slug), icon: LayoutDashboard },
+        { label: t('nav.properties'), href: propertiesIndex(currentTeam.slug), icon: Building2 },
+        { label: t('nav.leases'), href: leasesIndex(currentTeam.slug), icon: FileText },
+        { label: t('nav.payments'), href: paymentsIndex(currentTeam.slug), icon: WalletCards },
+        { label: t('nav.expenses'), href: expensesIndex(currentTeam.slug), icon: ReceiptText },
+        { label: t('nav.documents'), href: documentsIndex(currentTeam.slug), icon: FolderOpen },
     ];
 
     return (
         <nav
-            className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200/80 bg-white/95 px-1.5 pb-[max(env(safe-area-inset-bottom),0.35rem)] pt-1.5 shadow-[0_-10px_30px_rgba(15,23,42,0.08)] backdrop-blur md:hidden dark:border-white/10 dark:bg-[#07111f]/95"
-            aria-label="Navigație principală"
+            className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/92 px-1.5 pb-[max(env(safe-area-inset-bottom),0.35rem)] pt-1.5 shadow-[0_-14px_36px_rgba(15,23,42,0.10)] backdrop-blur-xl md:hidden"
+            aria-label={t('mobile.primaryNavigation')}
         >
             <div className="mx-auto grid max-w-lg grid-cols-6">
                 {items.map(({ label, href, icon: Icon }) => {
@@ -71,14 +47,14 @@ export function MobileBottomNav() {
                             href={href}
                             className={
                                 active
-                                    ? 'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[9px] font-semibold sm:text-[10px] text-emerald-700 dark:text-emerald-300'
-                                    : 'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[9px] font-medium sm:text-[10px] text-slate-500 transition hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
+                                    ? 'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[9px] font-semibold text-primary sm:text-[10px]'
+                                    : 'flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[9px] font-medium text-muted-foreground transition hover:text-foreground sm:text-[10px]'
                             }
                         >
                             <span
                                 className={
                                     active
-                                        ? 'flex size-8 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-400/10'
+                                        ? 'flex size-8 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/15'
                                         : 'flex size-8 items-center justify-center'
                                 }
                             >
