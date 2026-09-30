@@ -79,7 +79,7 @@ class DocumentController extends Controller
                 'path' => $path,
                 'original_name' => basename($file->getClientOriginalName()),
                 'mime_type' => $file->getMimeType() ?? 'application/octet-stream',
-                'size_bytes' => $file->getSize(),
+                'size_bytes' => (int) $file->getSize(),
             ]);
         } catch (Throwable $exception) {
             Storage::disk('local')->delete($path);
