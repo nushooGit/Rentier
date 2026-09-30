@@ -204,6 +204,26 @@ const ro = {
     'expenses.summary.total': 'Cost total',
     'expenses.profit.affects': 'Afectează profitul',
     'expenses.profit.notAffects': 'Nu afectează profitul',
+
+    'properties.create.title': 'Proprietate nouă',
+    'properties.create.description': 'Adaugă detaliile principale ale proprietății',
+    'properties.edit.title': 'Editează proprietatea',
+    'properties.edit.description': 'Actualizează detaliile, adresa și setările chiriei',
+
+    'leases.create.title': 'Contract nou',
+    'leases.create.description': 'Adaugă proprietatea, chiriașul și setările chiriei',
+    'leases.edit.title': 'Editează contract',
+    'leases.emptyProperty': 'Ai nevoie de cel puțin o proprietate în acest workspace înainte să creezi un contract.',
+    'leases.create.submit': 'Creează contract',
+
+    'payments.create.title': 'Încasare nouă',
+    'payments.create.description': 'Înregistrează o încasare pentru un contract existent',
+    'payments.edit.title': 'Editează încasarea',
+
+    'expenses.create.title': 'Cost nou',
+    'expenses.create.description': 'Adaugă un cost pentru o proprietate',
+    'expenses.edit.title': 'Editează costul',
+    'expenses.emptyProperty': 'Ai nevoie de cel puțin o proprietate înainte să adaugi un cost.',
 } as const;
 
 type TranslationKey = keyof typeof ro;
@@ -411,6 +431,26 @@ const en: Record<TranslationKey, string> = {
     'expenses.summary.total': 'Total cost',
     'expenses.profit.affects': 'Affects profit',
     'expenses.profit.notAffects': 'Does not affect profit',
+
+    'properties.create.title': 'New property',
+    'properties.create.description': 'Add the main property details',
+    'properties.edit.title': 'Edit property',
+    'properties.edit.description': 'Update details, address and rent settings',
+
+    'leases.create.title': 'New lease',
+    'leases.create.description': 'Add the property, renter and rent settings',
+    'leases.edit.title': 'Edit lease',
+    'leases.emptyProperty': 'You need at least one property in this workspace before creating a lease.',
+    'leases.create.submit': 'Create lease',
+
+    'payments.create.title': 'New income',
+    'payments.create.description': 'Record income for an existing lease',
+    'payments.edit.title': 'Edit income',
+
+    'expenses.create.title': 'New cost',
+    'expenses.create.description': 'Add a cost for a property',
+    'expenses.edit.title': 'Edit cost',
+    'expenses.emptyProperty': 'You need at least one property before adding a cost.',
 };
 
 const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };
