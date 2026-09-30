@@ -1,3 +1,4 @@
+import { currentAppLocale } from '@/lib/locale';
 import type { LeaseStatus } from '@/types';
 
 export const leaseStatusLabels: Record<LeaseStatus, string> = {
@@ -7,6 +8,14 @@ export const leaseStatusLabels: Record<LeaseStatus, string> = {
     cancelled: 'Anulat',
 };
 
+const leaseStatusLabelsEn: Record<LeaseStatus, string> = {
+    upcoming: 'Upcoming',
+    active: 'Active',
+    ended: 'Ended',
+    cancelled: 'Cancelled',
+};
+
 export function leaseStatusLabel(value: LeaseStatus) {
-    return leaseStatusLabels[value] ?? value;
+    const labels = currentAppLocale() === 'en' ? leaseStatusLabelsEn : leaseStatusLabels;
+    return labels[value] ?? value;
 }
