@@ -14,7 +14,7 @@ import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
-import { formatDateLong } from '@/lib/date';
+import { formatDateLong, formatDateRangeLong } from '@/lib/date';
 import { translateKey, useI18n } from '@/lib/i18n';
 import { documentCategoryLabel } from '@/pages/documents/labels';
 import { Input } from '@/components/ui/input';
@@ -104,6 +104,7 @@ export default function DocumentsIndex({
                 [
                     document.original_name,
                     document.category_label,
+                    documentCategoryLabel(document.category),
                     document.property?.name ?? '',
                     document.property?.city ?? '',
                     document.lease?.renter_name ?? '',
@@ -333,7 +334,11 @@ export default function DocumentsIndex({
                                                     key={lease.id}
                                                     value={lease.id}
                                                 >
-                                                    {lease.label}
+                                                    {lease.renter_name} ·{' '}
+                                                    {formatDateRangeLong(
+                                                        lease.start_date,
+                                                        lease.end_date,
+                                                    )}
                                                 </option>
                                             ))}
                                         </select>
