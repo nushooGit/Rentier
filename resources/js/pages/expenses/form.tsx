@@ -62,20 +62,20 @@ function FormSection({
     gridClassName?: string;
 }) {
     return (
-        <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold tracking-tight sm:text-base">{title}</h2>
             <div className={`grid gap-3 ${gridClassName}`}>{children}</div>
         </section>
     );
 }
 
-const inputClassName = 'md:h-8';
+const inputClassName = 'h-10';
 
 const selectClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 const textareaClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
 function allowedSettlementTypes(
     paidBy: ExpensePaidBy,
@@ -181,17 +181,17 @@ export default function ExpenseForm({
     );
     const settlementHelpText =
         effectivePaidBy === 'owner' && effectiveResponsibleParty === 'tenant'
-            ? 'Dacă proprietarul plătește o cheltuială suportată de chiriaș, aceasta se recuperează de la chiriaș.'
+            ? 'Dacă proprietarul plătește o cost suportat de chiriaș, aceasta se recuperează de la chiriaș.'
             : effectivePaidBy === 'tenant' &&
                 effectiveResponsibleParty === 'owner'
-              ? 'Dacă chiriașul plătește o cheltuială suportată de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
+              ? 'Dacă chiriașul plătește o cost suportat de proprietar, aceasta se scade din chirie, se scade din utilități sau se rambursează către chiriaș.'
               : null;
 
     return (
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii cheltuială">
+                    <FormSection title="Detalii cost">
                         <Field className="md:col-span-2">
                             <Label htmlFor="title">Titlu</Label>
                             <Input
@@ -279,7 +279,7 @@ export default function ExpenseForm({
                             <InputError message={errors.lease_id} />
                             {tenantInvolved && applicableLeases.length === 1 ? (
                                 <p className="text-xs text-muted-foreground">
-                                    Cheltuiala va fi asociată contractului activ
+                                    Costul va fi asociat contractului activ
                                     la data selectată.
                                 </p>
                             ) : null}
@@ -320,7 +320,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="expense_date">
-                                Data cheltuielii
+                                Data costului
                             </Label>
                             <DateInput
                                 id="expense_date"
@@ -367,7 +367,7 @@ export default function ExpenseForm({
 
                         <Field>
                             <Label htmlFor="responsible_party">
-                                Cine suporta cheltuiala?
+                                Cine suportă costul?
                             </Label>
                             <select
                                 id="responsible_party"
@@ -435,13 +435,13 @@ export default function ExpenseForm({
                             {!hasActiveTenantContext ? (
                                 <p>
                                     Nu există contract activ pentru această
-                                    proprietate la data cheltuielii. Poți
-                                    înregistra doar cheltuieli plătite și
+                                    proprietate la data selectată. Poți
+                                    înregistra doar costuri plătite și
                                     suportate de proprietar.
                                 </p>
                             ) : null}
                             <p>
-                                Cheltuielile suportate de chirias nu afecteaza
+                                Costurile suportate de chiriaș nu afectează
                                 profitul proprietarului.
                             </p>
                             {settlementHelpText ? (
@@ -450,8 +450,8 @@ export default function ExpenseForm({
                         </div>
                     </FormSection>
 
-                    <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-sm font-medium sm:text-base">
+                    <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-sm font-semibold tracking-tight sm:text-base">
                             Note
                         </h2>
                         <Field>
