@@ -51,7 +51,7 @@ test('theme and locale controls are available on auth and authenticated app shel
         ->toContain("'theme.enableLight': 'Activează modul luminos'");
 
     expect($localeSwitcher)
-        ->toContain('rentier_locale')
+        ->toContain('persistAppLocale')
         ->toContain("changeLocale('ro')")
         ->toContain("changeLocale('en')");
 
