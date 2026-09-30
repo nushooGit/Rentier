@@ -3,6 +3,7 @@ import { ArrowLeft } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ExpenseForm from '@/pages/expenses/form';
+import { useI18n } from '@/lib/i18n';
 import { show, update } from '@/routes/expenses';
 import type {
     Expense,
@@ -35,21 +36,22 @@ export default function ExpenseEdit({
     expenseSettlementTypeOptions,
 }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     return (
         <>
-            <Head title={`Editează ${expense.title}`} />
+            <Head title={`${t('expenses.edit.title')}: ${expense.title}`} />
             <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
-                        title="Editează costul"
+                        title={t('expenses.edit.title')}
                         description={`${expense.title} · ${expense.property.name}`}
                     />
                     <Button variant="outline" asChild>
                         <Link href={show([currentTeamSlug, expense.id])}>
-                            <ArrowLeft /> Înapoi
+                            <ArrowLeft /> {t('common.back')}
                         </Link>
                     </Button>
                 </div>
@@ -59,7 +61,7 @@ export default function ExpenseEdit({
                         action: update([currentTeamSlug, expense.id]).url,
                         method: 'patch',
                     }}
-                    submitLabel="Salvează"
+                    submitLabel={t('common.save')}
                     expense={expense}
                     properties={properties}
                     leases={leases}
