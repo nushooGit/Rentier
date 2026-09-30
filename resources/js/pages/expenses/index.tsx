@@ -11,12 +11,15 @@ import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import {
     expenseCategoryLabel,
     expensePaidByLabel,
     expenseResponsiblePartyLabel,
+    expenseSettlementActionLabel,
+    expenseSettlementSettledLabel,
+    expenseSettlementStateLabel,
     expenseSettlementTypeLabel,
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
@@ -74,7 +77,7 @@ export default function ExpensesIndex({
         if (
             !window.confirm(
                 t('expenses.index.actionConfirm', {
-                    action: expense.settlement_state.action_label,
+                    action: expenseSettlementActionLabel(expense.settlement_state.kind) ?? '',
                 }),
             )
         ) {
@@ -195,10 +198,10 @@ export default function ExpensesIndex({
                                             </p>
                                         </div>
                                         <Badge variant="secondary">
-                                            {expense.settlement_state.label ??
-                                                expenseStatusLabel(
-                                                    expense.status,
-                                                )}
+                                            {expenseSettlementStateLabel(
+                                                expense.settlement_state.kind,
+                                            ) ??
+                                                expenseStatusLabel(expense.status)}
                                         </Badge>
                                     </div>
                                     <div className="grid gap-0.5 text-sm">
@@ -220,26 +223,28 @@ export default function ExpensesIndex({
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 text-xs">
                                         <Badge variant="outline">
-                                            Plătit de:{' '}
+                                            {t('expenses.field.paidByPrefix')}:{' '}
                                             {expensePaidByLabel(
                                                 expense.paid_by,
                                             )}
                                         </Badge>
                                         <Badge variant="outline">
-                                            Suportat de:{' '}
+                                            {t('expenses.field.responsiblePrefix')}:{' '}
                                             {expenseResponsiblePartyLabel(
                                                 expense.responsible_party,
                                             )}
                                         </Badge>
                                         <Badge variant="outline">
-                                            Decontare:{' '}
+                                            {t('expenses.field.settlementPrefix')}:{' '}
                                             {expenseSettlementTypeLabel(
                                                 expense.settlement_type,
                                                 expense.paid_by,
                                                 expense.responsible_party,
                                             )}
                                         </Badge>
-                                        {expense.settlement_state.label ? (
+                                        {expenseSettlementStateLabel(
+                                            expense.settlement_state.kind,
+                                        ) ? (
                                             <Badge
                                                 variant={
                                                     expense.settled_at
@@ -247,7 +252,9 @@ export default function ExpensesIndex({
                                                         : 'outline'
                                                 }
                                             >
-                                                {expense.settlement_state.label}
+                                                {expenseSettlementStateLabel(
+                                                    expense.settlement_state.kind,
+                                                )}
                                             </Badge>
                                         ) : null}
                                         <Badge
@@ -262,17 +269,22 @@ export default function ExpensesIndex({
                                                 : t('expenses.profit.notAffects')}
                                         </Badge>
                                     </div>
-                                    {expense.settlement_state.settled_label ? (
+                                    {expenseSettlementSettledLabel(
+                                        expense.settlement_state.kind,
+                                        expense.settled_at,
+                                    ) ? (
                                         <p className="text-xs text-muted-foreground">
-                                            {
-                                                expense.settlement_state
-                                                    .settled_label
-                                            }
+                                            {expenseSettlementSettledLabel(
+                                                expense.settlement_state.kind,
+                                                expense.settled_at,
+                                            )}
                                         </p>
                                     ) : null}
                                 </Link>
                                 <div className="mt-auto flex justify-end gap-2 px-3 pb-3">
-                                    {expense.settlement_state.action_label ? (
+                                    {expenseSettlementActionLabel(
+                                        expense.settlement_state.kind,
+                                    ) ? (
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -283,10 +295,9 @@ export default function ExpensesIndex({
                                             data-test="expense-settlement-button"
                                         >
                                             <CheckCircle2 className="h-4 w-4" />
-                                            {
-                                                expense.settlement_state
-                                                    .action_label
-                                            }
+                                            {expenseSettlementActionLabel(
+                                                expense.settlement_state.kind,
+                                            )}
                                         </Button>
                                     ) : null}
                                     <Button
@@ -337,10 +348,10 @@ export default function ExpensesIndex({
                     <div className="rounded-lg border border-dashed p-5 text-center sm:p-6">
                         <ReceiptText className="mx-auto h-8 w-8 text-muted-foreground" />
                         <h2 className="mt-3 text-base font-medium">
-                            Nu există cheltuieli
+                            {t('expenses.index.emptyTitle')}
                         </h2>
                         <p className="mt-1 text-sm text-muted-foreground">
-                            Adaugă primul cost pentru o proprietate.
+                            {t('expenses.index.emptyDescription')}
                         </p>
                         <Button className="mt-4" asChild>
                             <Link href={create(currentTeamSlug)}>
@@ -357,7 +368,7 @@ export default function ExpensesIndex({
 ExpensesIndex.layout = (props: { currentTeam?: { slug: string } | null }) => ({
     breadcrumbs: [
         {
-            title: 'Costuri & decontări',
+            title: translateKey('expenses.index.title'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
     ],
