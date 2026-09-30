@@ -63,7 +63,7 @@ class DocumentController extends Controller
         $file = $request->file('file');
         $path = $file->store("documents/{$currentTeam->id}", 'local');
 
-        abort_if($path === false, 500, 'Fișierul nu a putut fi salvat.');
+        abort_if($path === false, 500, __('The file could not be saved.'));
 
         try {
             Document::query()->create([
@@ -90,7 +90,7 @@ class DocumentController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Documentul a fost încărcat.',
+            'message' => __('The document was uploaded.'),
         ]);
 
         return to_route('documents.index', ['current_team' => $currentTeam]);
@@ -122,7 +122,7 @@ class DocumentController extends Controller
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Documentul a fost șters.',
+            'message' => __('The document was deleted.'),
         ]);
 
         return to_route('documents.index', ['current_team' => $currentTeam]);
