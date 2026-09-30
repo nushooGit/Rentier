@@ -77,7 +77,7 @@ class SaveRentPaymentRequest extends FormRequest
             $expectedGuarantee = (float) ($lease->deposit_amount ?? 0);
 
             if ($expectedGuarantee <= 0) {
-                $validator->errors()->add('amount', 'Acest contract nu are garanție de încasat.');
+                $validator->errors()->add('amount', __('This lease has no remaining deposit to collect.'));
 
                 return;
             }
