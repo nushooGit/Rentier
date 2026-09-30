@@ -126,7 +126,7 @@ export default function PaymentForm({
                                 data-test="payment-lease-select"
                             >
                                 <option value="" disabled>
-                                    Alege contractul
+                                    {t('common.chooseLease')}
                                 </option>
                                 {leases.map((lease) => (
                                     <option key={lease.id} value={lease.id}>
@@ -169,7 +169,7 @@ export default function PaymentForm({
                                 className={selectClassName}
                                 defaultValue={fieldValue(payment?.method)}
                             >
-                                <option value="">Nesetat</option>
+                                <option value="">{t('common.notSet')}</option>
                                 {paymentMethods.map((method) => (
                                     <option
                                         key={method.value}
@@ -186,8 +186,8 @@ export default function PaymentForm({
                     <FormSection
                         title={
                             paymentType === 'rent'
-                                ? 'Sumă și perioada chiriei'
-                                : 'Sumă și garanție'
+                                ? t('payments.form.amountRentPeriod')
+                                : t('payments.form.amountDeposit')
                         }
                     >
                         <Field>
@@ -222,7 +222,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="payment_date">Data încasării</Label>
+                            <Label htmlFor="payment_date">{t('payments.field.date')}</Label>
                             <DateInput
                                 id="payment_date"
                                 name="payment_date"
@@ -240,7 +240,7 @@ export default function PaymentForm({
                             <>
                                 <Field>
                                     <Label htmlFor="period_month">
-                                        Luna chiriei
+                                        {t('payments.form.rentMonth')}
                                     </Label>
                                     <Input
                                         id="period_month"
@@ -261,7 +261,7 @@ export default function PaymentForm({
 
                                 <Field>
                                     <Label htmlFor="period_year">
-                                        Anul chiriei
+                                        {t('payments.form.rentYear')}
                                     </Label>
                                     <Input
                                         id="period_year"
@@ -287,14 +287,14 @@ export default function PaymentForm({
                                 <div className="text-xs text-muted-foreground md:col-span-2 xl:col-span-4">
                                     <div className="space-y-1">
                                         <p>
-                                            Garanție contract:{' '}
+                                            {t('payments.form.contractDeposit')}:{' '}
                                             {formatMoney(
                                                 selectedLease?.deposit_amount,
                                                 selectedLease?.currency,
                                             )}
                                         </p>
                                         <p>
-                                            Încasat deja:{' '}
+                                            {t('payments.form.alreadyCollected')}:{' '}
                                             {formatMoney(
                                                 String(
                                                     collectedGuaranteeExcludingCurrent,
@@ -303,7 +303,7 @@ export default function PaymentForm({
                                             )}
                                         </p>
                                         <p>
-                                            Rămas de încasat:{' '}
+                                            {t('payments.form.remaining')}:{' '}
                                             {formatMoney(
                                                 String(remainingGuarantee),
                                                 selectedLease?.currency,
@@ -311,8 +311,7 @@ export default function PaymentForm({
                                         </p>
                                         {guaranteeIsBlocked ? (
                                             <p className="font-medium text-destructive">
-                                                Acest contract nu mai are
-                                                garanție de încasat.
+                                                {t('payments.form.noDepositRemaining')}
                                             </p>
                                         ) : null}
                                     </div>
@@ -323,7 +322,7 @@ export default function PaymentForm({
 
                     <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
                         <h2 className="text-sm font-semibold tracking-tight sm:text-base">
-                            Note
+                            {t('common.notes')}
                         </h2>
                         <Field>
                             <Label htmlFor="notes">{t('common.notes')}</Label>
