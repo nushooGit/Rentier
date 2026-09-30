@@ -63,6 +63,48 @@ test.describe('authenticated landlord smoke', () => {
         });
     });
 
+    test('English locale stays consistent across landlord modules', async ({ page }) => {
+        await login(page);
+        const teamSlug = currentTeamSlug(page);
+
+        await page.getByTestId('locale-switcher').click();
+        await page.getByRole('menuitem', { name: /English/ }).click();
+        await expect(
+            page.getByRole('heading', { name: 'Dashboard' }),
+        ).toBeVisible();
+
+        await page.goto(`/${teamSlug}/properties/create`);
+        await expect(page.getByText('Main details')).toBeVisible();
+        await expect(page.getByText('Usable area (m²)')).toBeVisible();
+        await expect(page.getByText('Total area (m²)')).toBeVisible();
+
+        await page.goto(`/${teamSlug}/leases/create`);
+        await expect(page.getByText('Lease details')).toBeVisible();
+        await expect(page.getByText('Start date')).toBeVisible();
+        await expect(page.getByText('End date')).toBeVisible();
+        await expect(page.getByText('Renter phone')).toBeVisible();
+        await expect(page.getByText('Monthly rent')).toBeVisible();
+        await expect(page.getByText('Due day')).toBeVisible();
+
+        await page.goto(`/${teamSlug}/payments/create`);
+        await expect(page.getByText('Income details')).toBeVisible();
+        await expect(page.getByText('Choose lease')).toBeVisible();
+        await expect(page.getByText('Received date')).toBeVisible();
+
+        await page.goto(`/${teamSlug}/expenses/create`);
+        await expect(page.getByText('Cost details')).toBeVisible();
+        await expect(page.getByText('Property and lease')).toBeVisible();
+        await expect(page.getByText('Who bears this cost?')).toBeVisible();
+
+        await page.goto(`/${teamSlug}/documents`);
+        await expect(page.getByText('Upload document')).toBeVisible();
+        await expect(
+            page.locator('#category').getByRole('option', {
+                name: 'Lease agreement',
+            }),
+        ).toHaveCount(1);
+    });
+
     test('creates property, lease, payments, expense, and returns to dashboard', async ({
         page,
     }) => {
