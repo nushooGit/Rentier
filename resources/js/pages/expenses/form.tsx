@@ -1,7 +1,6 @@
 import { Form } from '@inertiajs/react';
-import type { ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { useMemo, useState } from 'react';
 import DateInput from '@/components/date-input';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
@@ -111,6 +110,7 @@ export default function ExpenseForm({
     expenseResponsiblePartyOptions,
     expenseSettlementTypeOptions,
 }: Props) {
+    const { t } = useI18n();
     const now = new Date();
     const initialExpenseDate =
         expense?.expense_date ?? now.toISOString().slice(0, 10);
@@ -192,7 +192,7 @@ export default function ExpenseForm({
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii cost">
+                    <FormSection title={t('expenses.section.details')}>
                         <Field className="md:col-span-2">
                             <Label htmlFor="title">{t('expenses.field.title')}</Label>
                             <Input
