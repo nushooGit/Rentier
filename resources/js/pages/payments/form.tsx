@@ -51,20 +51,20 @@ function FormSection({
     gridClassName?: string;
 }) {
     return (
-        <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-            <h2 className="text-sm font-medium sm:text-base">{title}</h2>
+        <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+            <h2 className="text-sm font-semibold tracking-tight sm:text-base">{title}</h2>
             <div className={`grid gap-3 ${gridClassName}`}>{children}</div>
         </section>
     );
 }
 
-const inputClassName = 'md:h-8';
+const inputClassName = 'h-10';
 
 const selectClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 const textareaClassName =
-    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-24 w-full rounded-md border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
+    'border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex min-h-28 w-full rounded-xl border px-3 py-2.5 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:min-h-20';
 
 export default function PaymentForm({
     action,
@@ -110,7 +110,7 @@ export default function PaymentForm({
         <Form {...action} className="space-y-3.5">
             {({ errors, processing }) => (
                 <>
-                    <FormSection title="Detalii plată">
+                    <FormSection title="Detalii încasare">
                         <Field className="md:col-span-2">
                             <Label htmlFor="lease_id">Contract</Label>
                             <select
@@ -137,7 +137,7 @@ export default function PaymentForm({
                         </Field>
 
                         <Field>
-                            <Label htmlFor="payment_type">Tip plată</Label>
+                            <Label htmlFor="payment_type">Tip încasare</Label>
                             <select
                                 id="payment_type"
                                 name="payment_type"
@@ -320,8 +320,8 @@ export default function PaymentForm({
                         )}
                     </FormSection>
 
-                    <section className="space-y-2.5 rounded-lg border p-3 sm:p-3.5">
-                        <h2 className="text-sm font-medium sm:text-base">
+                    <section className="space-y-3 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm sm:p-5">
+                        <h2 className="text-sm font-semibold tracking-tight sm:text-base">
                             Note
                         </h2>
                         <Field>
