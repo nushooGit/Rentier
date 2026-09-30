@@ -114,8 +114,33 @@ function appCalendarParts(date = new Date()) {
     };
 }
 
-export function todayParts() {
-    const current = appCalendarParts();
+async function serverDate(page: Page) {
+    const response = await page.request.get('/up');
+    const dateHeader = response.headers()['date'];
+
+    if (!dateHeader) {
+        throw new Error('E2E server did not return a Date header.');
+    }
+
+    const date = new Date(dateHeader);
+
+    if (Number.isNaN(date.getTime())) {
+        throw new Error(`Invalid E2E server Date header: ${dateHeader}`);
+    }
+
+    return date;
+}
+
+export async function serverTodayParts(page: Page) {
+    return calendarDayParts(await serverDate(page));
+}
+
+export async function serverMonthParts(page: Page, offset = 0) {
+    return calendarMonthParts(await serverDate(page), offset);
+}
+
+function calendarDayParts(date: Date) {
+    const current = appCalendarParts(date);
     const year = String(current.year);
     const month = String(current.month);
     const day = String(current.day);
@@ -128,16 +153,18 @@ export function todayParts() {
     };
 }
 
-export function monthParts(offset = 0) {
-    const current = appCalendarParts();
-    const date = new Date(Date.UTC(current.year, current.month - 1 + offset, 1));
-    const month = date.getUTCMonth() + 1;
-    const year = date.getUTCFullYear();
+function calendarMonthParts(date: Date, offset = 0) {
+    const current = appCalendarParts(date);
+    const monthDate = new Date(
+        Date.UTC(current.year, current.month - 1 + offset, 1),
+    );
+    const month = monthDate.getUTCMonth() + 1;
+    const year = monthDate.getUTCFullYear();
     const inlineLabel = new Intl.DateTimeFormat('ro-RO', {
         month: 'long',
         year: 'numeric',
         timeZone: 'UTC',
-    }).format(date);
+    }).format(monthDate);
 
     return {
         date: `${year}-${String(month).padStart(2, '0')}-01`,
@@ -146,4 +173,12 @@ export function monthParts(offset = 0) {
         inlineLabel,
         label: inlineLabel.charAt(0).toUpperCase() + inlineLabel.slice(1),
     };
+}
+
+export function todayParts() {
+    return calendarDayParts(new Date());
+}
+
+export function monthParts(offset = 0) {
+    return calendarMonthParts(new Date(), offset);
 }
