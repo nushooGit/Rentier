@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { useI18n } from '@/lib/i18n';
 import type { TeamInvitationContext } from '@/types';
 
 type Props = {
@@ -25,13 +26,14 @@ export default function Login({
     teamInvitation,
 }: Props) {
     const { canRegister } = usePage().props;
+    const { t } = useI18n();
     const registerUrl = teamInvitation
         ? `/register?invitation=${encodeURIComponent(teamInvitation.code)}`
         : '/register';
 
     return (
         <>
-            <Head title="Autentificare" />
+            <Head title={t('auth.login.head')} />
 
             {teamInvitation && (
                 <TeamInvitationAlert
@@ -41,9 +43,9 @@ export default function Login({
             )}
 
             <PasskeyVerify
-                label="Intră cu passkey"
-                loadingLabel="Se verifică..."
-                separator="sau continuă cu email"
+                label={t('auth.login.passkey')}
+                loadingLabel={t('auth.login.passkeyLoading')}
+                separator={t('auth.login.separator')}
             />
 
             <Form
@@ -55,7 +57,7 @@ export default function Login({
                     <>
                         <div className="grid gap-5">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Adresă de email</Label>
+                                <Label htmlFor="email">{t('auth.login.email')}</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -64,7 +66,7 @@ export default function Login({
                                     autoFocus
                                     tabIndex={1}
                                     autoComplete="email"
-                                    placeholder="nume@exemplu.ro"
+                                    placeholder={t('auth.login.emailPlaceholder')}
                                     className="h-11"
                                 />
                                 <InputError message={errors.email} />
@@ -72,14 +74,14 @@ export default function Login({
 
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Parolă</Label>
+                                    <Label htmlFor="password">{t('auth.login.password')}</Label>
                                     {canResetPassword && (
                                         <TextLink
                                             href={request()}
                                             className="ml-auto text-sm"
                                             tabIndex={5}
                                         >
-                                            Ai uitat parola?
+                                            {t('auth.login.forgot')}
                                         </TextLink>
                                     )}
                                 </div>
@@ -89,7 +91,7 @@ export default function Login({
                                     required
                                     tabIndex={2}
                                     autoComplete="current-password"
-                                    placeholder="Parola ta"
+                                    placeholder={t('auth.login.passwordPlaceholder')}
                                     className="h-11"
                                 />
                                 <InputError message={errors.password} />
@@ -101,7 +103,7 @@ export default function Login({
                                     name="remember"
                                     tabIndex={3}
                                 />
-                                <Label htmlFor="remember">Ține-mă minte</Label>
+                                <Label htmlFor="remember">{t('auth.login.remember')}</Label>
                             </div>
 
                             <Button
@@ -112,19 +114,19 @@ export default function Login({
                                 data-test="login-button"
                             >
                                 {processing && <Spinner />}
-                                Autentificare
+                                {t('auth.login.submit')}
                             </Button>
                         </div>
 
                         {canRegister && (
                             <div className="text-center text-sm text-muted-foreground">
-                                Nu ai cont?{' '}
+                                {t('auth.login.noAccount')}{' '}
                                 <TextLink
                                     href={registerUrl}
                                     data-test="register-link"
                                     tabIndex={5}
                                 >
-                                    Creează cont
+                                    {t('auth.login.createAccount')}
                                 </TextLink>
                             </div>
                         )}
@@ -142,6 +144,6 @@ export default function Login({
 }
 
 Login.layout = {
-    title: 'Bine ai revenit',
-    description: 'Introdu adresa de email și parola pentru a continua în Rentier.',
+    title: 'auth.login.title',
+    description: 'auth.login.description',
 };
