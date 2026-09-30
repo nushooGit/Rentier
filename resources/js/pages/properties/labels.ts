@@ -107,7 +107,13 @@ export function propertyAdvanceNoticeLabel(
     formatMoney: (amount?: string | null, currency?: string) => string,
     currency: string,
 ) {
-    const period = paymentPeriodLabelFromDate(`${notice.period_key}-01`);
+    const formattedPeriod = paymentPeriodLabelFromDate(
+        `${notice.period_key}-01`,
+    );
+    const period =
+        currentAppLocale() === 'en'
+            ? formattedPeriod
+            : formattedPeriod.toLocaleLowerCase('ro-RO');
 
     if (notice.key === 'paid_through') {
         return translateKey('properties.rentStatus.paidThrough', undefined, {
