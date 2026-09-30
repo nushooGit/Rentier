@@ -91,29 +91,57 @@ export async function selectOptionContaining(
     await page.locator(selector).selectOption(value);
 }
 
+const appTimeZone = 'Europe/Bucharest';
+
+function appCalendarParts(date = new Date()) {
+    const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: appTimeZone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+    }).formatToParts(date);
+
+    return Object.fromEntries(
+        parts
+            .filter((part) => part.type !== 'literal')
+            .map((part) => [part.type, part.value]),
+    ) as Record<'year' | 'month' | 'day', string>;
+}
+
 export function todayParts() {
-    const now = new Date();
+    const { year, month, day } = appCalendarParts();
 
     return {
-        date: now.toISOString().slice(0, 10),
-        month: String(now.getMonth() + 1),
-        year: String(now.getFullYear()),
+        date: `${year}-${month}-${day}`,
+        day,
+        month: String(Number(month)),
+        year,
     };
 }
 
 export function monthParts(offset = 0) {
-    const date = new Date();
-    date.setDate(1);
-    date.setMonth(date.getMonth() + offset);
+    const current = appCalendarParts();
+    const target = new Date(
+        Date.UTC(
+            Number(current.year),
+            Number(current.month) - 1 + offset,
+            1,
+            12,
+        ),
+    );
+    const year = String(target.getUTCFullYear());
+    const month = String(target.getUTCMonth() + 1);
+    const date = `${year}-${month.padStart(2, '0')}-01`;
     const inlineLabel = new Intl.DateTimeFormat('ro-RO', {
+        timeZone: appTimeZone,
         month: 'long',
         year: 'numeric',
-    }).format(date);
+    }).format(target);
 
     return {
-        date: date.toISOString().slice(0, 10),
-        month: String(date.getMonth() + 1),
-        year: String(date.getFullYear()),
+        date,
+        month,
+        year,
         inlineLabel,
         label: inlineLabel.charAt(0).toUpperCase() + inlineLabel.slice(1),
     };
