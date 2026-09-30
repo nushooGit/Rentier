@@ -12,8 +12,6 @@ use Symfony\Component\HttpFoundation\Response;
 class EnsureTeamMembership
 {
     /**
-     * Handle an incoming request.
-     *
      * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next, ?string $minimumRole = null): Response
@@ -21,6 +19,7 @@ class EnsureTeamMembership
         [$user, $team] = [$request->user(), $this->team($request)];
 
         abort_if(! $user || ! $team || ! $user->belongsToTeam($team), 403);
+        abort_if($team->isSuspended(), 423, 'Acest workspace Rentier este suspendat.');
 
         $this->ensureTeamMemberHasRequiredRole($user, $team, $minimumRole);
 
@@ -31,9 +30,6 @@ class EnsureTeamMembership
         return $next($request);
     }
 
-    /**
-     * Ensure the given user has at least the given role, if applicable.
-     */
     protected function ensureTeamMemberHasRequiredRole(User $user, Team $team, ?string $minimumRole): void
     {
         if ($minimumRole === null) {
@@ -41,7 +37,6 @@ class EnsureTeamMembership
         }
 
         $role = $user->teamRole($team);
-
         $requiredRole = TeamRole::tryFrom($minimumRole);
 
         abort_if(
@@ -52,9 +47,6 @@ class EnsureTeamMembership
         );
     }
 
-    /**
-     * Get the team associated with the request.
-     */
     protected function team(Request $request): ?Team
     {
         $team = $request->route('current_team') ?? $request->route('team');

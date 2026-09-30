@@ -17,9 +17,6 @@ use Inertia\Inertia;
 
 class TeamInvitationController extends Controller
 {
-    /**
-     * Store a newly created invitation.
-     */
     public function store(CreateTeamInvitationRequest $request, Team $team): RedirectResponse
     {
         Gate::authorize('inviteMember', $team);
@@ -39,9 +36,6 @@ class TeamInvitationController extends Controller
         return to_route('teams.edit', ['team' => $team->slug]);
     }
 
-    /**
-     * Cancel the specified invitation.
-     */
     public function destroy(Team $team, TeamInvitation $invitation): RedirectResponse
     {
         abort_unless($invitation->team_id === $team->id, 404);
@@ -55,16 +49,14 @@ class TeamInvitationController extends Controller
         return to_route('teams.edit', ['team' => $team->slug]);
     }
 
-    /**
-     * Accept the invitation.
-     */
     public function accept(RespondToTeamInvitationRequest $request, TeamInvitation $invitation): RedirectResponse
     {
         $user = $request->user();
+        $team = $invitation->team;
 
-        DB::transaction(function () use ($user, $invitation) {
-            $team = $invitation->team;
+        abort_if($team->isSuspended(), 423, 'Acest workspace Rentier este suspendat.');
 
+        DB::transaction(function () use ($user, $invitation, $team) {
             $team->memberships()->firstOrCreate(
                 ['user_id' => $user->id],
                 ['role' => $invitation->role],
@@ -80,9 +72,6 @@ class TeamInvitationController extends Controller
         return to_route('dashboard');
     }
 
-    /**
-     * Decline the invitation.
-     */
     public function decline(RespondToTeamInvitationRequest $request, TeamInvitation $invitation): RedirectResponse
     {
         $invitation->delete();

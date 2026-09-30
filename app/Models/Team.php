@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -19,6 +20,11 @@ use Illuminate\Support\Carbon;
  * @property string $name
  * @property string $slug
  * @property bool $is_personal
+ * @property Carbon|null $suspended_at
+ * @property string|null $suspension_reason
+ * @property int|null $suspended_by_user_id
+ * @property Carbon|null $reactivated_at
+ * @property int|null $reactivated_by_user_id
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property Carbon|null $deleted_at
@@ -29,7 +35,9 @@ use Illuminate\Support\Carbon;
  * @property-read Collection<int, User> $members
  * @property-read Collection<int, RentPayment> $rentPayments
  * @property-read Collection<int, Property> $properties
+ * @property-read User|null $reactivatedBy
  * @property-read Collection<int, Renter> $renters
+ * @property-read User|null $suspendedBy
  */
 #[Fillable(['name', 'slug', 'is_personal'])]
 class Team extends Model
@@ -37,9 +45,6 @@ class Team extends Model
     /** @use HasFactory<TeamFactory> */
     use GeneratesUniqueTeamSlugs, HasFactory, SoftDeletes;
 
-    /**
-     * Bootstrap the model and its traits.
-     */
     protected static function boot(): void
     {
         parent::boot();
@@ -57,6 +62,11 @@ class Team extends Model
         });
     }
 
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
+    }
+
     /**
      * Get the team owner.
      */
@@ -68,8 +78,22 @@ class Team extends Model
     }
 
     /**
-     * Get all members of this team.
-     *
+     * @return BelongsTo<User, $this>
+     */
+    public function suspendedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'suspended_by_user_id');
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function reactivatedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reactivated_by_user_id');
+    }
+
+    /**
      * @return BelongsToMany<User, $this, Membership, 'pivot'>
      */
     public function members(): BelongsToMany
@@ -81,8 +105,6 @@ class Team extends Model
     }
 
     /**
-     * Get all memberships for this team.
-     *
      * @return HasMany<Membership, $this>
      */
     public function memberships(): HasMany
@@ -91,8 +113,6 @@ class Team extends Model
     }
 
     /**
-     * Get all invitations for this team.
-     *
      * @return HasMany<TeamInvitation, $this>
      */
     public function invitations(): HasMany
@@ -101,8 +121,6 @@ class Team extends Model
     }
 
     /**
-     * Get all properties for this workspace.
-     *
      * @return HasMany<Property, $this>
      */
     public function properties(): HasMany
@@ -111,8 +129,6 @@ class Team extends Model
     }
 
     /**
-     * Get all renter contacts for this workspace.
-     *
      * @return HasMany<Renter, $this>
      */
     public function renters(): HasMany
@@ -121,8 +137,6 @@ class Team extends Model
     }
 
     /**
-     * Get all leases for this workspace.
-     *
      * @return HasMany<Lease, $this>
      */
     public function leases(): HasMany
@@ -131,8 +145,6 @@ class Team extends Model
     }
 
     /**
-     * Get all rent payments for this workspace.
-     *
      * @return HasMany<RentPayment, $this>
      */
     public function rentPayments(): HasMany
@@ -141,8 +153,6 @@ class Team extends Model
     }
 
     /**
-     * Get all expenses for this workspace.
-     *
      * @return HasMany<Expense, $this>
      */
     public function expenses(): HasMany
@@ -151,20 +161,17 @@ class Team extends Model
     }
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
     {
         return [
             'is_personal' => 'boolean',
+            'suspended_at' => 'datetime',
+            'reactivated_at' => 'datetime',
         ];
     }
 
-    /**
-     * Get the route key for the model.
-     */
     public function getRouteKeyName(): string
     {
         return 'slug';
