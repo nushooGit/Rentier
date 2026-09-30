@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\Admin\UserShowController as AdminUserShowController;
 use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
+use App\Http\Controllers\Admin\WorkspaceShowController as AdminWorkspaceShowController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
@@ -25,7 +27,9 @@ if (is_string($adminHost) && $adminHost !== '') {
         ->group(function () {
             Route::get('/', AdminDashboardController::class)->name('dashboard');
             Route::get('users', AdminUserController::class)->name('users.index');
+            Route::get('users/{user}', AdminUserShowController::class)->name('users.show');
             Route::get('workspaces', AdminWorkspaceController::class)->name('workspaces.index');
+            Route::get('workspaces/{workspace}', AdminWorkspaceShowController::class)->name('workspaces.show');
         });
 }
 

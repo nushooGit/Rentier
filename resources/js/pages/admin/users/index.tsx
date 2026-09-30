@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import AdminLayout from '@/layouts/admin-layout';
 import { formatDateLong } from '@/lib/date';
@@ -43,9 +43,17 @@ export default function AdminUsers({ users }: { users: AdminUser[] }) {
                                     </div>
                                     <p className="mt-1 break-all text-sm text-muted-foreground">{user.email}</p>
                                 </div>
-                                <div className="text-sm text-muted-foreground sm:text-right">
-                                    <p>{user.workspaces_count} workspace-uri</p>
-                                    <p>Creat {formatDateLong(user.created_at)}</p>
+                                <div className="flex shrink-0 flex-col gap-2 text-sm text-muted-foreground sm:items-end">
+                                    <div className="sm:text-right">
+                                        <p>{user.workspaces_count} workspace-uri</p>
+                                        <p>Creat {formatDateLong(user.created_at)}</p>
+                                    </div>
+                                    <Link
+                                        href={`/users/${user.id}`}
+                                        className="font-medium text-emerald-700 hover:underline dark:text-emerald-300"
+                                    >
+                                        Vezi detalii
+                                    </Link>
                                 </div>
                             </div>
                         </article>
