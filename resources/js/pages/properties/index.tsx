@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { translateKey, useI18n } from '@/lib/i18n';
+import { currentIntlLocale } from '@/lib/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -37,7 +38,7 @@ function formatMoney(amount?: string | null, currency = 'RON') {
         return translateKey('properties.index.rentUnset');
     }
 
-    return `${Number(amount).toLocaleString(undefined, {
+    return `${Number(amount).toLocaleString(currentIntlLocale(), {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0,
     })} ${currency}`;
