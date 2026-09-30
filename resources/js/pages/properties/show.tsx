@@ -2,6 +2,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import {
     propertyStatusLabel,
@@ -46,6 +47,7 @@ function Detail({
 
 export default function PropertyShow({ property }: Props) {
     const { currentTeam } = usePage().props;
+    const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteProperty = () => {
@@ -76,12 +78,12 @@ export default function PropertyShow({ property }: Props) {
                     <div className="flex flex-col-reverse gap-2 sm:flex-row">
                         <Button variant="outline" asChild>
                             <Link href={index(currentTeamSlug)}>
-                                <ArrowLeft /> Înapoi
+                                <ArrowLeft /> {t('common.back')}
                             </Link>
                         </Button>
                         <Button asChild>
                             <Link href={edit([currentTeamSlug, property.id])}>
-                                <Pencil /> Editează
+                                <Pencil /> {t('common.edit')}
                             </Link>
                         </Button>
                         <Button
@@ -89,48 +91,48 @@ export default function PropertyShow({ property }: Props) {
                             onClick={deleteProperty}
                             data-test="property-delete-button"
                         >
-                            <Trash2 /> Șterge
+                            <Trash2 /> {t('common.delete')}
                         </Button>
                     </div>
                 </div>
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">
-                        Detalii principale
+                        {t('properties.section.main')}
                     </h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         <Detail
-                            label="Tip"
+                            label={t('properties.field.type')}
                             value={propertyTypeLabel(property.type)}
                         />
                         <Detail
-                            label="Status"
+                            label={t('common.status')}
                             value={propertyStatusLabel(property.status)}
                         />
-                        <Detail label="Țară" value={property.country} />
+                        <Detail label={t('properties.field.country')} value={property.country} />
                     </dl>
                 </section>
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
-                    <h2 className="text-base font-medium">Adresă</h2>
+                    <h2 className="text-base font-medium">{t('properties.section.address')}</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        <Detail label="Oraș" value={property.city} />
+                        <Detail label={t('properties.field.city')} value={property.city} />
                         <Detail
-                            label="Județ / Sector"
+                            label={t('properties.field.county')}
                             value={property.county_or_sector}
                         />
                         <Detail
-                            label="Cod poștal"
+                            label={t('properties.field.postalCode')}
                             value={property.postal_code}
                         />
-                        <Detail label="Adresă" value={property.address_line} />
+                        <Detail label={t('properties.field.address')} value={property.address_line} />
                     </dl>
                 </section>
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
-                    <h2 className="text-base font-medium">Caracteristici</h2>
+                    <h2 className="text-base font-medium">{t('properties.section.features')}</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-                        <Detail label="Camere" value={property.rooms} />
+                        <Detail label={t('properties.field.rooms')} value={property.rooms} />
                         <Detail
                             label="Suprafață utilă"
                             value={
@@ -147,27 +149,27 @@ export default function PropertyShow({ property }: Props) {
                                     : null
                             }
                         />
-                        <Detail label="Etaj" value={property.floor} />
+                        <Detail label={t('properties.field.floor')} value={property.floor} />
                         <Detail
-                            label="Total etaje"
+                            label={t('properties.field.totalFloors')}
                             value={property.total_floors}
                         />
                     </dl>
                 </section>
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
-                    <h2 className="text-base font-medium">Setări chirie</h2>
+                    <h2 className="text-base font-medium">{t('properties.section.rent')}</h2>
                     <dl className="mt-2.5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                         <Detail
-                            label="Chirie lunară"
+                            label={t('properties.field.monthlyRent')}
                             value={formatMoney(
                                 property.monthly_rent_amount,
                                 property.currency,
                             )}
                         />
-                        <Detail label="Monedă" value={property.currency} />
+                        <Detail label={t('common.currency')} value={property.currency} />
                         <Detail
-                            label="Garanție"
+                            label={t('properties.field.deposit')}
                             value={formatMoney(
                                 property.deposit_amount,
                                 property.currency,
@@ -211,7 +213,7 @@ export default function PropertyShow({ property }: Props) {
 
                 {property.notes ? (
                     <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
-                        <h2 className="text-base font-medium">Note interne</h2>
+                        <h2 className="text-base font-medium">{t('properties.section.notes')}</h2>
                         <p className="mt-2.5 text-sm whitespace-pre-wrap">
                             {property.notes}
                         </p>
