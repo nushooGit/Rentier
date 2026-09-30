@@ -57,3 +57,37 @@ export function paymentMethodLabel(value?: PaymentMethod | null) {
     const labels = currentAppLocale() === 'en' ? paymentMethodLabelsEn : paymentMethodLabels;
     return labels[value] ?? value;
 }
+
+
+type PaymentSummary = {
+    status_key: 'paid' | 'partial' | 'pending' | 'not_configured' | 'unpaid';
+};
+
+export function paymentSummaryLabel(
+    paymentType: PaymentType,
+    summary: PaymentSummary,
+) {
+    const isEnglish = currentAppLocale() === 'en';
+
+    if (paymentType === 'guarantee') {
+        const labels = {
+            not_configured: isEnglish ? 'Deposit not set' : 'Garanție nesetată',
+            paid: isEnglish ? 'Deposit paid in full' : 'Garanție achitată integral',
+            partial: isEnglish ? 'Deposit partially paid' : 'Garanție parțial achitată',
+            unpaid: isEnglish ? 'Deposit not collected' : 'Garanție neîncasată',
+            pending: isEnglish ? 'Deposit not collected' : 'Garanție neîncasată',
+        };
+
+        return labels[summary.status_key];
+    }
+
+    const labels = {
+        paid: isEnglish ? 'Rent paid in full' : 'Chirie achitată integral',
+        partial: isEnglish ? 'Rent partially paid' : 'Chirie parțial achitată',
+        pending: isEnglish ? 'Rent not collected' : 'Chirie neîncasată',
+        not_configured: isEnglish ? 'Rent not configured' : 'Chirie nesetată',
+        unpaid: isEnglish ? 'Rent not collected' : 'Chirie neîncasată',
+    };
+
+    return labels[summary.status_key];
+}
