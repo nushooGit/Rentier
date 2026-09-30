@@ -184,13 +184,13 @@ class ExpenseController extends Controller
 
         if (! $expense->requiresOwnerReimbursement()) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială nu poate fi marcată ca rambursată.',
+                'expense' => __('This cost cannot be marked as reimbursed.'),
             ]);
         }
 
         if ($expense->settled_at !== null) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială este deja închisă.',
+                'expense' => __('This cost is already settled.'),
             ]);
         }
 
@@ -199,7 +199,7 @@ class ExpenseController extends Controller
             'status' => 'paid',
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Rambursarea a fost marcată ca efectuată.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('The reimbursement was marked as completed.')]);
 
         return back();
     }
@@ -211,13 +211,13 @@ class ExpenseController extends Controller
 
         if (! $expense->requiresTenantRecovery()) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială nu poate fi marcată ca recuperată.',
+                'expense' => __('This cost cannot be marked as recovered.'),
             ]);
         }
 
         if ($expense->settled_at !== null) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială este deja închisă.',
+                'expense' => __('This cost is already settled.'),
             ]);
         }
 
@@ -226,7 +226,7 @@ class ExpenseController extends Controller
             'status' => 'paid',
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Suma a fost marcată ca recuperată.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('The amount was marked as recovered.')]);
 
         return back();
     }
@@ -238,13 +238,13 @@ class ExpenseController extends Controller
 
         if (! $expense->requiresOwnerReimbursement()) {
             throw ValidationException::withMessages([
-                'expense' => 'Această acțiune nu este permisă pentru această cheltuială.',
+                'expense' => __('This action is not allowed for this cost.'),
             ]);
         }
 
         if ($expense->settled_at === null) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială nu este închisă.',
+                'expense' => __('This cost is not settled.'),
             ]);
         }
 
@@ -253,7 +253,7 @@ class ExpenseController extends Controller
             'status' => 'reimbursable',
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Rambursarea a fost anulată.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('The reimbursement was undone.')]);
 
         return back();
     }
@@ -265,13 +265,13 @@ class ExpenseController extends Controller
 
         if (! $expense->requiresTenantRecovery()) {
             throw ValidationException::withMessages([
-                'expense' => 'Această acțiune nu este permisă pentru această cheltuială.',
+                'expense' => __('This action is not allowed for this cost.'),
             ]);
         }
 
         if ($expense->settled_at === null) {
             throw ValidationException::withMessages([
-                'expense' => 'Această cheltuială nu este închisă.',
+                'expense' => __('This cost is not settled.'),
             ]);
         }
 
@@ -280,7 +280,7 @@ class ExpenseController extends Controller
             'status' => 'reimbursable',
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => 'Recuperarea a fost anulată.']);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('The recovery was undone.')]);
 
         return back();
     }
