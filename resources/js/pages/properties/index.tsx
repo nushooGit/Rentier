@@ -1,6 +1,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Eye, Pencil, Plus, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -31,7 +32,7 @@ type Props = {
 
 function formatMoney(amount?: string | null, currency = 'RON') {
     if (!amount) {
-        return t('properties.index.rentUnset');
+        return translateKey('properties.index.rentUnset');
     }
 
     return `${Number(amount).toLocaleString(undefined, {
@@ -63,11 +64,7 @@ export default function PropertiesIndex({ properties }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteProperty = (property: Property) => {
-        if (
-            !window.confirm(
-                'Sigur vrei să ștergi această proprietate? Acțiunea nu poate fi anulată.',
-            )
-        ) {
+        if (!window.confirm(t('properties.index.deleteConfirm'))) {
             return;
         }
 
@@ -78,7 +75,7 @@ export default function PropertiesIndex({ properties }: Props) {
         <>
             <Head title={t('nav.properties')} />
 
-            <h1 className="sr-only">Proprietăți</h1>
+            <h1 className="sr-only">{t('nav.properties')}</h1>
 
             <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
