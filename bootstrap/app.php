@@ -3,6 +3,7 @@
 use App\Console\Commands\E2eBootstrapCommand;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleAppearance;
+use App\Http\Middleware\HandleLocale;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\RedirectApexApplicationRequests;
 use App\Http\Middleware\SetTeamUrlDefaults;
@@ -24,13 +25,14 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
 
-        $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->encryptCookies(except: ['appearance', 'sidebar_state', 'rentier_locale']);
 
         $middleware->web(
             prepend: [
                 RedirectApexApplicationRequests::class,
             ],
             append: [
+                HandleLocale::class,
                 EnsureAccountActive::class,
                 HandleAppearance::class,
                 HandleInertiaRequests::class,
