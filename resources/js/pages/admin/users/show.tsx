@@ -98,7 +98,7 @@ export default function AdminUserShow({
                     <section className="grid grid-cols-2 gap-3">
                         <Metric label="Workspace-uri" value={stats.workspaces} />
                         <Metric
-                            label="Deținute"
+                            label="Workspace-uri deținute"
                             value={stats.owned_workspaces}
                         />
                     </section>
