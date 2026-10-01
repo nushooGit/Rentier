@@ -12,9 +12,13 @@ class UtilityInvoiceTextParser
      *     fields: array<string, array{value: string|null, confidence: float}>
      * }
      */
-    public function parse(string $text): array
-    {
+    public function parse(
+        string $text,
+        string $source = 'embedded_pdf_text',
+        float $confidenceMultiplier = 1.0,
+    ): array {
         $text = $this->normalizeText($text);
+        $confidenceMultiplier = max(0.0, min(1.0, $confidenceMultiplier));
 
         $invoiceNumber = $this->matchFirst($text, [
             '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|seria)|nr\.?\s*factur(?:a|ă))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
@@ -47,8 +51,12 @@ class UtilityInvoiceTextParser
         $confidenceTotal = 0.0;
         $foundFields = 0;
 
-        foreach ($fields as $field) {
-            $confidenceTotal += $field['confidence'];
+        foreach ($fields as $name => $field) {
+            $fields[$name]['confidence'] = round(
+                $field['confidence'] * $confidenceMultiplier,
+                2,
+            );
+            $confidenceTotal += $fields[$name]['confidence'];
 
             if ($field['value'] !== null) {
                 $foundFields++;
@@ -56,7 +64,7 @@ class UtilityInvoiceTextParser
         }
 
         return [
-            'source' => 'embedded_pdf_text',
+            'source' => $source,
             'overall_confidence' => round($confidenceTotal / count($fields), 2),
             'found_fields' => $foundFields,
             'fields' => $fields,
