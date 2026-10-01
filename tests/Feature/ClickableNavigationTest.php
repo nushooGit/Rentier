@@ -140,3 +140,21 @@ test('calendar is available from desktop and mobile navigation', function () {
         ->toContain('data-test="calendar-day"');
 });
 
+test('utilities index exposes account bill and attachment controls', function () {
+    $source = pageSource('utilities/index.tsx');
+    $sidebar = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
+
+    expect($sidebar)
+        ->toContain("t('nav.utilities')")
+        ->toContain('utilitiesIndex');
+
+    expect($source)
+        ->toContain('data-test="utility-add-account-button"')
+        ->toContain('data-test="utility-account-save-button"')
+        ->toContain('data-test="utility-add-bill-button"')
+        ->toContain('data-test="utility-bill-save-button"')
+        ->toContain('data-test="utility-attachment-input"')
+        ->toContain('downloadDocument([')
+        ->toContain('destroyUtilityBill([');
+});
+

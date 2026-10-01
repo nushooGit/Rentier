@@ -33,5 +33,9 @@ return [
                 'guarantee_remaining_max' => 'The amount may not exceed the remaining guarantee of :amount.',
             ],
         ],
+        'utility_account' => [
+            'lease_required_for_renter' => 'A renter-responsible utility account must be linked to a lease.',
+            'lease_property_mismatch' => 'The selected lease does not belong to the selected property.',
+        ],
     ],
 ];

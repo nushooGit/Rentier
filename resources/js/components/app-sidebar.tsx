@@ -7,6 +7,7 @@ import {
     LayoutDashboard,
     ReceiptText,
     WalletCards,
+    Zap,
 } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavMain } from '@/components/nav-main';
@@ -29,6 +30,7 @@ import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
 import { index as paymentsIndex } from '@/routes/payments';
 import { index as propertiesIndex } from '@/routes/properties';
+import { index as utilitiesIndex } from '@/routes/utilities';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -64,6 +66,11 @@ export function AppSidebar() {
             title: t('nav.expenses'),
             href: page.props.currentTeam ? expensesIndex(page.props.currentTeam.slug) : '/',
             icon: ReceiptText,
+        },
+        {
+            title: t('nav.utilities'),
+            href: page.props.currentTeam ? utilitiesIndex(page.props.currentTeam.slug) : '/',
+            icon: Zap,
         },
         {
             title: t('nav.documents'),

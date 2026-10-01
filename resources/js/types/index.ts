@@ -1,5 +1,6 @@
 export type * from './auth';
 export type * from './calendar';
+export type * from './utilities';
 export type * from './dashboard';
 export type * from './documents';
 export type * from './expenses';

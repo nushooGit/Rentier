@@ -56,5 +56,9 @@ return [
                 'guarantee_remaining_max' => 'Suma nu poate depăși garanția rămasă de :amount.',
             ],
         ],
+        'utility_account' => [
+            'lease_required_for_renter' => 'Pentru un cont suportat de chiriaș trebuie ales un contract.',
+            'lease_property_mismatch' => 'Contractul selectat nu aparține proprietății selectate.',
+        ],
     ],
 ];
