@@ -179,6 +179,7 @@ test.describe('authenticated landlord smoke', () => {
         const expenseTitle = `E2E Smoke Expense ${suffix}`;
         const reminderTitle = `E2E Smoke Reminder ${suffix}`;
         const utilityProvider = `E2E Utility ${suffix}`;
+        const secondUtilityProvider = `E2E Water ${suffix}`;
         const utilityInvoice = `E2E-INV-${suffix}`;
         const { date, month, year } = todayParts();
 
@@ -340,12 +341,47 @@ test.describe('authenticated landlord smoke', () => {
         await page.getByTestId('utility-account-save-button').click();
         await expect(page.getByText(utilityProvider).first()).toBeVisible();
 
-        await page.getByTestId('utility-add-bill-button').click();
+        await page.getByTestId('utility-add-account-button').click();
         await selectOptionContaining(
             page,
-            '[data-test="utility-bill-account-select"]',
-            utilityProvider,
+            '[data-test="utility-account-property-select"]',
+            propertyName,
         );
+        await page
+            .getByTestId('utility-provider-input')
+            .fill(secondUtilityProvider);
+        await page
+            .getByTestId('utility-service-select')
+            .selectOption('water');
+        await page.getByTestId('utility-account-save-button').click();
+        await expect(page.getByText(secondUtilityProvider).first()).toBeVisible();
+
+        const utilityAccountSection = page
+            .getByTestId('utility-account-section')
+            .filter({ hasText: utilityProvider });
+        const secondUtilityAccountSection = page
+            .getByTestId('utility-account-section')
+            .filter({ hasText: secondUtilityProvider });
+
+        await expect(
+            utilityAccountSection.getByTestId('utility-account-dropzone'),
+        ).toBeVisible();
+        await utilityAccountSection
+            .getByTestId('utility-account-upload-input')
+            .setInputFiles({
+                name: 'e2e-utility-invoice.pdf',
+                mimeType: 'application/pdf',
+                buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
+            });
+        await expect(
+            page
+                .getByTestId('utility-bill-account-select')
+                .locator('option:checked'),
+        ).toContainText(utilityProvider);
+        await expect(
+            page.getByText('e2e-utility-invoice.pdf', { exact: true }),
+        ).toBeVisible();
+
         await page
             .getByTestId('utility-bill-number-input')
             .fill(utilityInvoice);
@@ -354,13 +390,12 @@ test.describe('authenticated landlord smoke', () => {
         await page.getByTestId('utility-billing-end-input').fill(date);
         await page.getByTestId('utility-issue-date-input').fill(date);
         await page.getByTestId('utility-due-date-input').fill(date);
-        await page.getByTestId('utility-attachment-input').setInputFiles({
-            name: 'e2e-utility-invoice.pdf',
-            mimeType: 'application/pdf',
-            buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
-        });
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
+        await expect(utilityAccountSection).toContainText(utilityInvoice);
+        await expect(secondUtilityAccountSection).not.toContainText(
+            utilityInvoice,
+        );
 
         const utilityGroup = page
             .getByTestId('utility-property-group')
