@@ -73,6 +73,7 @@ test('invoice reader falls back to OCR when a PDF has no embedded text', functio
             return <<<'TEXT'
 DIGI ROMANIA
 FACTURA NR. OCR-2026-77
+Cod client: 998877
 Data emiterii: 02.10.2026
 Scadenta: 20.10.2026
 Perioada de facturare: 01.09.2026 - 30.09.2026
@@ -100,7 +101,8 @@ TEXT;
         ->assertJsonPath('found_fields', 7)
         ->assertJsonPath('fields.invoice_number.value', 'OCR-2026-77')
         ->assertJsonPath('fields.amount.value', '99.50')
-        ->assertJsonPath('fields.currency.value', 'RON');
+        ->assertJsonPath('fields.currency.value', 'RON')
+        ->assertJsonPath('metadata.account_identifier.value', '998877');
 
     expect((float) $response->json('overall_confidence'))->toBeLessThan(0.9);
 });

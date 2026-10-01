@@ -106,6 +106,9 @@ type InvoiceReaderResult = {
         amount: InvoiceReaderField;
         currency: InvoiceReaderField;
     };
+    metadata: {
+        account_identifier: InvoiceReaderField;
+    };
 };
 
 type InvoiceReaderStatus = 'idle' | 'reading' | 'success' | 'warning' | 'error';
@@ -121,6 +124,10 @@ function isPdfFile(file: File): boolean {
         file.type === 'application/pdf' ||
         file.name.toLowerCase().endsWith('.pdf')
     );
+}
+
+function normalizeAccountIdentifier(value: string): string {
+    return value.replace(/\s+/g, '').toUpperCase();
 }
 
 const selectClassName =
@@ -549,6 +556,9 @@ function BillDialog({
     const [readerStatus, setReaderStatus] =
         useState<InvoiceReaderStatus>('idle');
     const [readerMessage, setReaderMessage] = useState<string | null>(null);
+    const [readerAccountWarning, setReaderAccountWarning] = useState<string | null>(
+        null,
+    );
     const [dateRevision, setDateRevision] = useState(0);
     const autoReadFile = useRef<string | null>(null);
 
@@ -560,6 +570,7 @@ function BillDialog({
 
             setReaderStatus('reading');
             setReaderMessage(t('utilities.reader.reading'));
+            setReaderAccountWarning(null);
             form.clearErrors('attachment');
 
             const payload = new FormData();
@@ -592,35 +603,47 @@ function BillDialog({
 
                 const result = (await response.json()) as InvoiceReaderResult;
 
-                if (result.fields.invoice_number.value) {
-                    form.setData(
-                        'invoice_number',
-                        result.fields.invoice_number.value,
-                    );
-                }
-                if (result.fields.billing_period_start.value) {
-                    form.setData(
-                        'billing_period_start',
-                        result.fields.billing_period_start.value,
-                    );
-                }
-                if (result.fields.billing_period_end.value) {
-                    form.setData(
-                        'billing_period_end',
-                        result.fields.billing_period_end.value,
-                    );
-                }
-                if (result.fields.issue_date.value) {
-                    form.setData('issue_date', result.fields.issue_date.value);
-                }
-                if (result.fields.due_date.value) {
-                    form.setData('due_date', result.fields.due_date.value);
-                }
-                if (result.fields.amount.value) {
-                    form.setData('amount', result.fields.amount.value);
-                }
+                form.setData(
+                    'invoice_number',
+                    result.fields.invoice_number.value ?? '',
+                );
+                form.setData(
+                    'billing_period_start',
+                    result.fields.billing_period_start.value ?? '',
+                );
+                form.setData(
+                    'billing_period_end',
+                    result.fields.billing_period_end.value ?? '',
+                );
+                form.setData('issue_date', result.fields.issue_date.value ?? '');
+                form.setData('due_date', result.fields.due_date.value ?? '');
+                form.setData('amount', result.fields.amount.value ?? '');
+
                 if (result.fields.currency.value) {
                     form.setData('currency', result.fields.currency.value);
+                }
+
+                const detectedAccountIdentifier =
+                    result.metadata.account_identifier.value;
+                const selectedAccount = accounts.find(
+                    (account) =>
+                        account.id.toString() === form.data.utility_account_id,
+                );
+
+                if (
+                    detectedAccountIdentifier &&
+                    selectedAccount?.account_identifier &&
+                    normalizeAccountIdentifier(detectedAccountIdentifier) !==
+                        normalizeAccountIdentifier(
+                            selectedAccount.account_identifier,
+                        )
+                ) {
+                    setReaderAccountWarning(
+                        t('utilities.reader.accountMismatch', {
+                            detected: detectedAccountIdentifier,
+                            selected: selectedAccount.account_identifier,
+                        }),
+                    );
                 }
 
                 setDateRevision((revision) => revision + 1);
@@ -644,7 +667,7 @@ function BillDialog({
                 );
             }
         },
-        [bill, form, t, teamSlug],
+        [accounts, bill, form, t, teamSlug],
     );
 
     useEffect(() => {
@@ -672,6 +695,7 @@ function BillDialog({
         setFileName(null);
         setReaderStatus('idle');
         setReaderMessage(null);
+        setReaderAccountWarning(null);
         setDateRevision(0);
         autoReadFile.current = null;
         onOpenChange(false);
@@ -1027,6 +1051,14 @@ function BillDialog({
                                     <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
                                 )}
                                 <p>{readerMessage}</p>
+                            </div>
+                        ) : null}
+                        {readerAccountWarning ? (
+                            <div
+                                className="rounded-xl border border-amber-300/60 bg-amber-50/70 px-3 py-2.5 text-sm text-amber-900 dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100"
+                                data-test="utility-invoice-account-warning"
+                            >
+                                {readerAccountWarning}
                             </div>
                         ) : null}
                     </div>

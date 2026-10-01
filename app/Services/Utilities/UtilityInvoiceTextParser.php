@@ -9,7 +9,8 @@ class UtilityInvoiceTextParser
      *     source: string,
      *     overall_confidence: float,
      *     found_fields: int,
-     *     fields: array<string, array{value: string|null, confidence: float}>
+     *     fields: array<string, array{value: string|null, confidence: float}>,
+     *     metadata: array{account_identifier: array{value: string|null, confidence: float}}
      * }
      */
     public function parse(
@@ -28,7 +29,7 @@ class UtilityInvoiceTextParser
         ]);
 
         $issueDate = $this->matchDate($text, [
-            '/\b(?:data\s+(?:emiterii|facturii)|emis[ăa]\s+la|issue\s+date)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\b(?:data\s+(?:emiterii|emitere|facturii)|emis[ăa]\s+la|issue\s+date)\s*[:#-]?\s*(%s)/iu' => 0.95,
         ]);
 
         $dueDate = $this->matchDate($text, [
@@ -37,6 +38,10 @@ class UtilityInvoiceTextParser
 
         [$billingStart, $billingEnd] = $this->matchBillingPeriod($text);
         [$amount, $currency] = $this->matchAmountAndCurrency($text);
+        $accountIdentifier = $this->matchFirst($text, [
+            '/\bcod\s+client\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
+            '/\bcustomer\s+(?:code|id)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+        ]);
 
         $fields = [
             'invoice_number' => $this->field($invoiceNumber),
@@ -63,11 +68,20 @@ class UtilityInvoiceTextParser
             }
         }
 
+        $accountIdentifierField = $this->field($accountIdentifier);
+        $accountIdentifierField['confidence'] = round(
+            $accountIdentifierField['confidence'] * $confidenceMultiplier,
+            2,
+        );
+
         return [
             'source' => $source,
             'overall_confidence' => round($confidenceTotal / count($fields), 2),
             'found_fields' => $foundFields,
             'fields' => $fields,
+            'metadata' => [
+                'account_identifier' => $accountIdentifierField,
+            ],
         ];
     }
 
