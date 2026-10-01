@@ -177,6 +177,7 @@ test.describe('authenticated landlord smoke', () => {
         const propertyName = `E2E Smoke Property ${suffix}`;
         const renterName = `E2E Smoke Renter ${suffix}`;
         const expenseTitle = `E2E Smoke Expense ${suffix}`;
+        const reminderTitle = `E2E Smoke Reminder ${suffix}`;
         const { date, month, year } = todayParts();
 
         await login(page);
@@ -278,6 +279,19 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByText(propertyName).first()).toBeVisible();
         await expect(page.getByText(renterName).first()).toBeVisible();
         await expect(page.getByText('Achitată').first()).toBeVisible();
+
+        await page.getByTestId('add-reminder-button').click();
+        await page.getByTestId('reminder-title-input').fill(reminderTitle);
+        await page.getByTestId('reminder-date-input').fill(date);
+        await page
+            .getByTestId('reminder-property-select')
+            .selectOption({ label: new RegExp(propertyName) });
+        await page.getByTestId('reminder-save-button').click();
+        await expect(page.getByText(reminderTitle).first()).toBeVisible();
+
+        await page.getByText(reminderTitle).first().click();
+        await page.getByTestId('reminder-toggle-button').click();
+        await expect(page.getByText('Făcut').first()).toBeVisible();
 
         await page.goto(`/${teamSlug}/payments/create`);
         await selectOptionContaining(
