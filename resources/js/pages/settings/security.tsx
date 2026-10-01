@@ -8,9 +8,10 @@ import ManagePasskeys from '@/components/manage-passkeys';
 import type { Props as ManageTwoFactorProps } from '@/components/manage-two-factor';
 import ManageTwoFactor from '@/components/manage-two-factor';
 import PasswordInput from '@/components/password-input';
+import PasswordRequirements from '@/components/password-requirements';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { edit } from '@/routes/security';
 
 type Props = {
@@ -90,6 +91,7 @@ export default function Security(props: Props) {
                                     passwordrules={props.passwordRules}
                                 />
 
+                                <PasswordRequirements />
                                 <InputError message={errors.password} />
                             </div>
 
@@ -142,7 +144,7 @@ export default function Security(props: Props) {
 Security.layout = {
     breadcrumbs: [
         {
-            title: 'Securitate',
+            title: translateKey('settings.security.title'),
             href: edit(),
         },
     ],
