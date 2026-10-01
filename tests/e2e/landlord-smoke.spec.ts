@@ -283,9 +283,11 @@ test.describe('authenticated landlord smoke', () => {
         await page.getByTestId('add-reminder-button').click();
         await page.getByTestId('reminder-title-input').fill(reminderTitle);
         await page.getByTestId('reminder-date-input').fill(date);
-        await page
-            .getByTestId('reminder-property-select')
-            .selectOption({ label: new RegExp(propertyName) });
+        await selectOptionContaining(
+            page,
+            '[data-test="reminder-property-select"]',
+            propertyName,
+        );
         await page.getByTestId('reminder-save-button').click();
         await expect(page.getByText(reminderTitle).first()).toBeVisible();
 
