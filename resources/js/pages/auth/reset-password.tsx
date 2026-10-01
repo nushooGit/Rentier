@@ -1,5 +1,6 @@
 import { Form, Head } from '@inertiajs/react';
 import InputError from '@/components/input-error';
+import PasswordRequirements from '@/components/password-requirements';
 import PasswordInput from '@/components/password-input';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,6 +57,7 @@ export default function ResetPassword({ token, email, passwordRules }: Props) {
                                 placeholder={t('auth.reset.newPassword')}
                                 passwordrules={passwordRules}
                             />
+                            <PasswordRequirements />
                             <InputError message={errors.password} />
                         </div>
 

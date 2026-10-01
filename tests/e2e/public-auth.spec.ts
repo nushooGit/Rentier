@@ -107,7 +107,9 @@ test.describe('public and auth smoke', () => {
             page.getByRole('heading', { name: 'Welcome back' }),
         ).toBeVisible();
         await expect(page.getByLabel('Email address')).toBeVisible();
-        await expect(page.getByLabel('Password')).toBeVisible();
+        await expect(
+            page.getByLabel('Password', { exact: true }),
+        ).toBeVisible();
         await expect(page.getByTestId('login-button')).toHaveText('Log in');
     });
 
@@ -134,9 +136,21 @@ test.describe('public and auth smoke', () => {
         if (response.status() === 200) {
             await page.goto('/register');
             await expect(
-                page.getByRole('heading', { name: 'Create an account' }),
+                page.getByRole('heading', { name: 'Creează cont' }),
             ).toBeVisible();
             await expect(page.locator('form[action="/register"]')).toBeVisible();
+            await expect(
+                page.getByTestId('password-requirements'),
+            ).toContainText('minimum 10 caractere');
+
+            await page.getByTestId('locale-switcher').click();
+            await page.getByRole('menuitem', { name: /English/ }).click();
+            await expect(
+                page.getByRole('heading', { name: 'Create account' }),
+            ).toBeVisible();
+            await expect(
+                page.getByTestId('password-requirements'),
+            ).toContainText('at least 10 characters');
 
             return;
         }

@@ -3,6 +3,13 @@
 test('authentication UI uses Rentier branding and the localization layer', function () {
     $layout = file_get_contents(resource_path('js/layouts/auth/auth-simple-layout.tsx'));
     $login = file_get_contents(resource_path('js/pages/auth/login.tsx'));
+    $register = file_get_contents(resource_path('js/pages/auth/register.tsx'));
+    $passwordInput = file_get_contents(resource_path('js/components/password-input.tsx'));
+    $passwordRequirements = file_get_contents(resource_path('js/components/password-requirements.tsx'));
+    $passkeyItem = file_get_contents(resource_path('js/components/passkey-item.tsx'));
+    $passkeyRegister = file_get_contents(resource_path('js/components/passkey-register.tsx'));
+    $twoFactorCodes = file_get_contents(resource_path('js/components/two-factor-recovery-codes.tsx'));
+    $twoFactorSetup = file_get_contents(resource_path('js/components/two-factor-setup-modal.tsx'));
     $translations = file_get_contents(resource_path('js/lib/i18n.ts'));
     $baseView = file_get_contents(resource_path('views/app.blade.php'));
 
@@ -30,6 +37,44 @@ test('authentication UI uses Rentier branding and the localization layer', funct
         ->toContain("t('auth.login.submit')")
         ->toContain("t('auth.login.passkey')")
         ->not->toContain('Log in to your account');
+
+    expect($register)
+        ->toContain("title: 'auth.register.title'")
+        ->toContain("t('auth.register.name')")
+        ->toContain("t('auth.register.email')")
+        ->toContain("t('auth.register.password')")
+        ->toContain('<PasswordRequirements')
+        ->not->toContain('Create an account');
+
+    expect($passwordInput)
+        ->toContain("t('password.show')")
+        ->toContain("t('password.hide')")
+        ->not->toContain('Afișează parola')
+        ->not->toContain('Ascunde parola');
+
+    expect($passwordRequirements)
+        ->toContain("t('password.requirements.title')")
+        ->toContain("t('password.requirements.length')")
+        ->toContain("t('password.requirements.symbol')");
+
+    expect($passkeyItem)
+        ->toContain("t('settings.passkeys.removeTitle')")
+        ->not->toContain('Remove passkey');
+
+    expect($passkeyRegister)
+        ->toContain("t('settings.passkeys.add')")
+        ->toContain("t('settings.passkeys.name')")
+        ->not->toContain('Passkeys are not supported in this browser.');
+
+    expect($twoFactorCodes)
+        ->toContain("t('settings.twoFactor.recoveryTitle')")
+        ->toContain("t('settings.twoFactor.regenerateCodes')")
+        ->not->toContain('2FA recovery codes');
+
+    expect($twoFactorSetup)
+        ->toContain("t('settings.twoFactor.enableTitle')")
+        ->toContain("t('settings.twoFactor.verifyTitle')")
+        ->not->toContain('Two-factor authentication enabled');
 
     expect($baseView)
         ->toContain("config('app.name', 'Rentier')")
@@ -94,7 +139,9 @@ test('settings UI uses the shared localization layer', function () {
 
     expect($security)
         ->toContain("t('settings.security.passwordTitle')")
-        ->toContain("t('settings.security.currentPassword')");
+        ->toContain("t('settings.security.currentPassword')")
+        ->toContain('<PasswordRequirements')
+        ->toContain("translateKey('settings.security.title')");
 
     expect($deleteUser)
         ->toContain("t('settings.delete.title')")
