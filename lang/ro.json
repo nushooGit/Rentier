@@ -1,5 +1,16 @@
 {
     "Regards": "Cu respect",
     "Regards,": "Cu respect,",
-    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Dacă butonul \":actionText\" nu funcționează, copiază linkul de mai jos în browser:"
+    "If you're having trouble clicking the \":actionText\" button, copy and paste the URL below\ninto your web browser:": "Dacă butonul \":actionText\" nu funcționează, copiază linkul de mai jos în browser:",
+    "Workspace created.": "Workspace-ul a fost creat.",
+    "Workspace updated.": "Workspace-ul a fost actualizat.",
+    "You left the workspace \":name\"": "Ai părăsit workspace-ul „:name”.",
+    "Workspace deleted.": "Workspace-ul a fost șters.",
+    "Invitation sent.": "Invitația a fost trimisă.",
+    "Invitation cancelled.": "Invitația a fost anulată.",
+    "Invitation accepted.": "Invitația a fost acceptată.",
+    "Invitation declined.": "Invitația a fost refuzată.",
+    "Member role updated.": "Rolul membrului a fost actualizat.",
+    "Member removed.": "Membrul a fost eliminat.",
+    "The workspace owner cannot be removed.": "Proprietarul workspace-ului nu poate fi eliminat."
 }
