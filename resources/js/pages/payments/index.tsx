@@ -137,8 +137,8 @@ export default function PaymentsIndex({ payments }: Props) {
                                     data-test="payment-card-link"
                                     aria-label={t('payments.index.view', { name: payment.renter.name })}
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
                                             <h2 className="truncate text-base font-medium">
                                                 {payment.renter.name}
                                             </h2>
