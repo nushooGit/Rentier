@@ -10,6 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import { destroy as destroyInvitation } from '@/routes/teams/invitations';
 import type { Team, TeamInvitation } from '@/types';
 
@@ -26,6 +27,7 @@ export default function CancelInvitationModal({
     open,
     onOpenChange,
 }: Props) {
+    const { t } = useI18n();
     const [processing, setProcessing] = useState(false);
 
     const cancelInvitation = () => {
@@ -44,16 +46,19 @@ export default function CancelInvitationModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Cancel invitation</DialogTitle>
+                    <DialogTitle>{t('workspaces.cancelInvitation.title')}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to cancel the invitation for{' '}
-                        <strong>{invitation?.email}</strong>?
+                        {t('workspaces.cancelInvitation.description', {
+                            email: invitation?.email ?? '',
+                        })}
                     </DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>
-                        <Button variant="secondary">Keep invitation</Button>
+                        <Button variant="secondary">
+                            {t('workspaces.cancelInvitation.keep')}
+                        </Button>
                     </DialogClose>
 
                     <Button
@@ -62,7 +67,7 @@ export default function CancelInvitationModal({
                         disabled={processing}
                         onClick={cancelInvitation}
                     >
-                        Cancel invitation
+                        {t('workspaces.cancelInvitation.confirm')}
                     </Button>
                 </DialogFooter>
             </DialogContent>

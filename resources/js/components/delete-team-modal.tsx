@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useI18n } from '@/lib/i18n';
 import { destroy } from '@/routes/teams';
 import type { Team } from '@/types';
 
@@ -23,6 +24,7 @@ type Props = {
 };
 
 export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
+    const { t } = useI18n();
     const [confirmationName, setConfirmationName] = useState('');
 
     const canDeleteTeam = confirmationName === team.name;
@@ -47,19 +49,20 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                     {({ errors, processing }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Are you sure?</DialogTitle>
+                                <DialogTitle>{t('workspaces.delete.title')}</DialogTitle>
                                 <DialogDescription>
-                                    This action cannot be undone. This will
-                                    permanently delete the team{' '}
-                                    <strong>"{team.name}"</strong>.
+                                    {t('workspaces.delete.description', {
+                                        name: team.name,
+                                    })}
                                 </DialogDescription>
                             </DialogHeader>
 
                             <div className="space-y-4 py-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="confirmation-name">
-                                        Type <strong>"{team.name}"</strong> to
-                                        confirm
+                                        {t('workspaces.delete.typeName', {
+                                            name: team.name,
+                                        })}
                                     </Label>
                                     <Input
                                         id="confirmation-name"
@@ -71,7 +74,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                                                 event.target.value,
                                             )
                                         }
-                                        placeholder="Enter team name"
+                                        placeholder={t('workspaces.delete.placeholder')}
                                         autoComplete="off"
                                     />
                                     <InputError message={errors.name} />
@@ -80,7 +83,9 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
 
                             <DialogFooter className="gap-2">
                                 <DialogClose asChild>
-                                    <Button variant="secondary">Cancel</Button>
+                                    <Button variant="secondary">
+                                        {t('common.cancel')}
+                                    </Button>
                                 </DialogClose>
 
                                 <Button
@@ -89,7 +94,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                                     data-test="delete-team-confirm"
                                     disabled={!canDeleteTeam || processing}
                                 >
-                                    Delete team
+                                    {t('workspaces.delete.confirm')}
                                 </Button>
                             </DialogFooter>
                         </>
