@@ -82,12 +82,13 @@ Recommended progression:
 2. Track utility accounts for each property or lease.
 3. Record utility bills with billing periods, due dates, amounts, status, and attachments.
 4. Extract embedded text from digital PDF invoices and offer confidence-scored form suggestions.
-5. Add OCR/vision for scans and images only after digital-PDF extraction quality is measured.
-6. Record meter readings where useful.
+5. Fall back to local OCR for scanned PDFs when no usable embedded text is available.
+6. Measure extraction quality before expanding OCR to standalone images or adding external AI/document services.
+7. Record meter readings where useful.
 7. Add reminders and renter visibility.
 8. Add official provider integrations only after manual workflows are proven.
 
-The first invoice-reader increment is self-hosted. Production images include Poppler's `pdftotext` binary, invoked through Symfony Process with an argument array, a page limit and a short timeout. Analysis uses the request's temporary upload and does not persist a document or utility bill. Parsed values are suggestions only; the existing bill form remains the confirmation boundary and the user must save explicitly. No provider passwords or external AI/document APIs are required for this increment.
+The invoice reader remains self-hosted. Production images include Poppler for `pdftotext`/`pdftoppm` and Tesseract for scanned-PDF OCR. Embedded text is attempted first; OCR is a fallback only. OCR-derived confidence is discounted before the existing bill form is autofilled. Analysis uses the request's temporary upload and does not persist a document or utility bill. Parsed values are suggestions only; the existing bill form remains the confirmation boundary and the user must save explicitly. No provider passwords or external AI/document APIs are required.
 
 Avoid scraping or unofficial integrations unless explicitly approved and legally reviewed.
 
