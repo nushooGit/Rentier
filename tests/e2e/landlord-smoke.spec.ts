@@ -181,6 +181,7 @@ test.describe('authenticated landlord smoke', () => {
         const utilityProvider = `E2E Utility ${suffix}`;
         const secondUtilityProvider = `E2E Water ${suffix}`;
         const utilityInvoice = `E2E-INV-${suffix}`;
+        const secondUtilityInvoice = `E2E-WATER-INV-${suffix}`;
         const { date, month, year } = todayParts();
 
         await login(page);
@@ -369,9 +370,9 @@ test.describe('authenticated landlord smoke', () => {
         await utilityAccountSection
             .getByTestId('utility-account-upload-input')
             .setInputFiles({
-                name: 'e2e-utility-invoice.pdf',
-                mimeType: 'application/pdf',
-                buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
+                name: 'e2e-invalid-invoice.txt',
+                mimeType: 'text/plain',
+                buffer: Buffer.from('not an invoice'),
             });
         await expect(
             page
@@ -379,23 +380,75 @@ test.describe('authenticated landlord smoke', () => {
                 .locator('option:checked'),
         ).toContainText(utilityProvider);
         await expect(
-            page.getByText('e2e-utility-invoice.pdf', { exact: true }),
+            page.getByText('e2e-invalid-invoice.txt', { exact: true }),
         ).toBeVisible();
 
         await page
             .getByTestId('utility-bill-number-input')
             .fill(utilityInvoice);
-        await page.getByTestId('utility-bill-amount-input').fill('150.50');
+        await page.getByTestId('utility-bill-amount-input').fill('asd');
         await page.getByTestId('utility-billing-start-input').fill(date);
         await page.getByTestId('utility-billing-end-input').fill(date);
         await page.getByTestId('utility-issue-date-input').fill(date);
         await page.getByTestId('utility-due-date-input').fill(date);
+        await page.getByTestId('utility-bill-save-button').click();
+        await expect(
+            page.getByText(
+                'Suma trebuie să fie un număr valid, cu maximum 2 zecimale.',
+            ),
+        ).toBeVisible();
+        await expect(
+            page.getByText('Factura trebuie să fie PDF, JPG, PNG sau WebP.'),
+        ).toBeVisible();
+
+        await page.getByTestId('utility-bill-amount-input').fill('150.50');
+        await page.getByTestId('utility-attachment-input').setInputFiles({
+            name: 'e2e-utility-invoice.pdf',
+            mimeType: 'application/pdf',
+            buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
+        });
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
         await expect(utilityAccountSection).toContainText(utilityInvoice);
         await expect(secondUtilityAccountSection).not.toContainText(
             utilityInvoice,
         );
+
+        await secondUtilityAccountSection
+            .getByTestId('utility-account-add-bill-button')
+            .click();
+        await expect(
+            page
+                .getByTestId('utility-bill-account-select')
+                .locator('option:checked'),
+        ).toContainText(secondUtilityProvider);
+        await page
+            .getByTestId('utility-bill-number-input')
+            .fill(secondUtilityInvoice);
+        await page.getByTestId('utility-bill-amount-input').fill('75.25');
+        await page.getByTestId('utility-billing-start-input').fill(date);
+        await page.getByTestId('utility-billing-end-input').fill(date);
+        await page.getByTestId('utility-issue-date-input').fill(date);
+        await page.getByTestId('utility-due-date-input').fill(date);
+        await page.getByTestId('utility-bill-save-button').click();
+
+        const secondUtilityBillCard = secondUtilityAccountSection
+            .getByTestId('utility-bill-card')
+            .filter({ hasText: secondUtilityInvoice });
+        await expect(secondUtilityBillCard).toBeVisible();
+        await secondUtilityBillCard
+            .getByTestId('utility-bill-edit-button')
+            .click();
+        await expect(page.getByTestId('utility-attachment-input')).toBeVisible();
+        await page.getByTestId('utility-attachment-input').setInputFiles({
+            name: 'e2e-added-later.pdf',
+            mimeType: 'application/pdf',
+            buffer: Buffer.from('%PDF-1.4\n% E2E added later\n'),
+        });
+        await page.getByTestId('utility-bill-save-button').click();
+        await expect(
+            secondUtilityBillCard.getByTestId('utility-bill-download-link'),
+        ).toBeVisible();
 
         const utilityGroup = page
             .getByTestId('utility-property-group')
