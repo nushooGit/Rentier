@@ -41,7 +41,7 @@ type Props = {
 };
 
 const selectClassName =
-    'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
+    'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 md:h-8';
 
 function localToday(): string {
     const now = new Date();
@@ -177,12 +177,14 @@ export default function DocumentsIndex({
 
             <h1 className="sr-only">{t('nav.documents')}</h1>
 
-            <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 p-3 sm:p-4">
-                <Heading
-                    variant="small"
-                    title={t('nav.documents')}
-                    description={t('documents.index.description')}
-                />
+            <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:p-5">
+                    <Heading
+                        variant="small"
+                        title={t('nav.documents')}
+                        description={t('documents.index.description')}
+                    />
+                </div>
 
                 <section className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
                     <div className="mb-4 flex items-start gap-3">
@@ -198,7 +200,7 @@ export default function DocumentsIndex({
                     </div>
 
                     {properties.length === 0 ? (
-                        <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                        <div className="rounded-2xl border border-dashed border-border bg-background/55 p-4 text-sm text-muted-foreground">
                             <p>
                                 {t('documents.noPropertyTitle')}
                             </p>
@@ -506,7 +508,7 @@ export default function DocumentsIndex({
                     </div>
 
                     {documents.length === 0 ? (
-                        <div className="rounded-xl border border-dashed p-8 text-center">
+                        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                             <FolderOpen className="mx-auto size-9 text-muted-foreground" />
                             <h3 className="mt-3 font-medium">
                                 {t('documents.emptyTitle')}
@@ -516,7 +518,7 @@ export default function DocumentsIndex({
                             </p>
                         </div>
                     ) : filteredDocuments.length === 0 ? (
-                        <div className="rounded-xl border border-dashed p-8 text-center">
+                        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center shadow-sm">
                             <Search className="mx-auto size-9 text-muted-foreground" />
                             <h3 className="mt-3 font-medium">
                                 {t('documents.noResultsTitle')}
