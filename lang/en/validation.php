@@ -37,5 +37,18 @@ return [
             'lease_required_for_renter' => 'A renter-responsible utility account must be linked to a lease.',
             'lease_property_mismatch' => 'The selected lease does not belong to the selected property.',
         ],
+        'utility_bill' => [
+            'amount' => [
+                'regex' => 'The amount must be a valid number with at most 2 decimal places.',
+            ],
+            'currency' => [
+                'regex' => 'The currency must be a valid 3-letter code, for example RON.',
+            ],
+            'attachment' => [
+                'file' => 'The attachment must be a valid file.',
+                'mimes' => 'The invoice must be a PDF, JPG, PNG or WebP file.',
+                'max' => 'The invoice may not be larger than 20 MB.',
+            ],
+        ],
     ],
 ];
