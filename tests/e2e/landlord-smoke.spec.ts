@@ -178,6 +178,8 @@ test.describe('authenticated landlord smoke', () => {
         const renterName = `E2E Smoke Renter ${suffix}`;
         const expenseTitle = `E2E Smoke Expense ${suffix}`;
         const reminderTitle = `E2E Smoke Reminder ${suffix}`;
+        const utilityProvider = `E2E Utility ${suffix}`;
+        const utilityInvoice = `E2E-INV-${suffix}`;
         const { date, month, year } = todayParts();
 
         await login(page);
@@ -324,6 +326,37 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page).toHaveURL(new RegExp(`/${teamSlug}/expenses`));
         await expect(page.getByText(expenseTitle)).toBeVisible();
 
+        await page.goto(`/${teamSlug}/utilities`);
+        await page.getByTestId('utility-add-account-button').click();
+        await selectOptionContaining(
+            page,
+            '[data-test="utility-account-property-select"]',
+            propertyName,
+        );
+        await page.getByTestId('utility-provider-input').fill(utilityProvider);
+        await page
+            .getByTestId('utility-service-select')
+            .selectOption('electricity');
+        await page.getByTestId('utility-account-save-button').click();
+        await expect(page.getByText(utilityProvider).first()).toBeVisible();
+
+        await page.getByTestId('utility-add-bill-button').click();
+        await selectOptionContaining(
+            page,
+            '[data-test="utility-bill-account-select"]',
+            utilityProvider,
+        );
+        await page
+            .getByTestId('utility-bill-number-input')
+            .fill(utilityInvoice);
+        await page.getByTestId('utility-bill-amount-input').fill('150.50');
+        await page.getByTestId('utility-billing-start-input').fill(date);
+        await page.getByTestId('utility-billing-end-input').fill(date);
+        await page.getByTestId('utility-issue-date-input').fill(date);
+        await page.getByTestId('utility-due-date-input').fill(date);
+        await page.getByTestId('utility-bill-save-button').click();
+        await expect(page.getByText(utilityInvoice).first()).toBeVisible();
+
         await page.goto(`/${teamSlug}/dashboard`);
         await expect(
             page.getByRole('heading', { name: 'Panou de control' }),
@@ -341,6 +374,7 @@ test.describe('authenticated landlord smoke', () => {
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],
             ['expenses', `/${teamSlug}/expenses`],
+            ['utilities', `/${teamSlug}/utilities`],
             ['documents', `/${teamSlug}/documents`],
         ] as const) {
             await page.goto(path);
@@ -360,6 +394,7 @@ test.describe('authenticated landlord smoke', () => {
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],
             ['expenses', `/${teamSlug}/expenses`],
+            ['utilities', `/${teamSlug}/utilities`],
             ['documents', `/${teamSlug}/documents`],
         ] as const) {
             await page.goto(path);
@@ -381,6 +416,12 @@ test.describe('authenticated landlord smoke', () => {
         await page.setViewportSize({ width: 1280, height: 720 });
         await page.getByTestId('locale-switcher').click();
         await page.getByRole('menuitem', { name: /English/ }).click();
+        await page.goto(`/${teamSlug}/utilities`);
+        await expect(
+            page.getByRole('heading', { name: 'Utilities', exact: true }),
+        ).toBeVisible();
+        await expect(page.getByText('Utilități', { exact: true })).toHaveCount(0);
+
         await page.goto(`/${teamSlug}/properties`);
 
         const propertyCard = page
