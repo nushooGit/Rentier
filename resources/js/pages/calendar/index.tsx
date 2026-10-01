@@ -42,7 +42,6 @@ import { show as showLease } from '@/routes/leases';
 import {
     destroy as destroyReminder,
     store as storeReminder,
-    toggle as toggleReminder,
     update as updateReminder,
 } from '@/routes/reminders';
 import type {
@@ -387,7 +386,7 @@ function ReminderDialog({
         }
 
         router.patch(
-            toggleReminder([teamSlug, reminder.reminder_id]).url,
+`/${teamSlug}/reminders/${reminder.reminder_id}/toggle-complete`,
             {},
             {
                 preserveScroll: true,
