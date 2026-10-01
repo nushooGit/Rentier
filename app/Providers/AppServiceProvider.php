@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\Utilities\PdfOcrTextExtractor;
 use App\Services\Utilities\PdfTextExtractor;
 use App\Services\Utilities\PopplerPdfTextExtractor;
+use App\Services\Utilities\TesseractPdfOcrTextExtractor;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -18,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->bind(PdfTextExtractor::class, PopplerPdfTextExtractor::class);
+        $this->app->bind(PdfOcrTextExtractor::class, TesseractPdfOcrTextExtractor::class);
     }
 
     /**

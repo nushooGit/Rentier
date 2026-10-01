@@ -94,7 +94,7 @@ type InvoiceReaderField = {
 };
 
 type InvoiceReaderResult = {
-    source: 'embedded_pdf_text';
+    source: 'embedded_pdf_text' | 'pdf_ocr';
     overall_confidence: number;
     found_fields: number;
     fields: {

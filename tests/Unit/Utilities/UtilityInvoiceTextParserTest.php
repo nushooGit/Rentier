@@ -58,3 +58,24 @@ test('invoice text parser leaves unknown fields empty instead of guessing', func
         ->and($result['fields']['amount']['value'])->toBeNull()
         ->and($result['fields']['due_date']['value'])->toBeNull();
 });
+
+test('invoice text parser reduces confidence for OCR-derived text', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(
+        <<<'TEXT'
+FACTURA NR. OCR-1
+Data emiterii: 01.10.2026
+Scadenta: 15.10.2026
+Perioada de facturare: 01.09.2026 - 30.09.2026
+Total de plata: 100,00 RON
+TEXT,
+        'pdf_ocr',
+        0.80,
+    );
+
+    expect($result['source'])->toBe('pdf_ocr')
+        ->and($result['found_fields'])->toBe(7)
+        ->and($result['overall_confidence'])->toBeLessThan(0.9)
+        ->and($result['fields']['invoice_number']['confidence'])->toBeLessThan(0.95);
+});

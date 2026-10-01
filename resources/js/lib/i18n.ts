@@ -672,7 +672,7 @@ const ro = {
     'utilities.reader.success': 'Am completat automat {count} câmpuri din PDF. Verifică datele înainte de salvare.',
     'utilities.reader.lowConfidence': 'Am găsit doar {count} câmpuri cu suficientă încredere. Verifică atent și completează restul manual.',
     'utilities.reader.manualFallback': 'Nu am putut citi automat factura. Poți continua cu completarea manuală.',
-    'utilities.reader.digitalPdfHint': 'PDF-urile digitale se citesc automat. Scanările și pozele vor primi OCR într-un pas următor.',
+    'utilities.reader.digitalPdfHint': 'PDF-urile digitale se citesc direct; pentru PDF-urile scanate încercăm automat OCR local.',
     'utilities.downloadAttachment': 'Descarcă factura',
     'utilities.saveAccount': 'Salvează contul',
     'utilities.saveBill': 'Salvează factura',
@@ -686,7 +686,7 @@ const ro = {
     'utilities.noLease': 'Fără contract asociat',
     'utilities.renterNeedsLease': 'Pentru responsabilitatea chiriașului trebuie ales un contract.',
     'utilities.accountFormDescription': 'Configurează manual contul furnizorului. Nu stocăm parole de portal.',
-    'utilities.billFormDescription': 'Atașează un PDF digital pentru completare automată sau introdu datele manual.',
+    'utilities.billFormDescription': 'Atașează un PDF pentru completare automată; dacă nu are text, încercăm OCR local.',
 } as const;
 
 type TranslationKey = keyof typeof ro;
@@ -1362,7 +1362,7 @@ const en: Record<TranslationKey, string> = {
     'utilities.reader.success': 'We autofilled {count} fields from the PDF. Review the data before saving.',
     'utilities.reader.lowConfidence': 'We found only {count} fields with enough confidence. Review carefully and fill in the rest manually.',
     'utilities.reader.manualFallback': 'We could not read this invoice automatically. You can continue with manual entry.',
-    'utilities.reader.digitalPdfHint': 'Digital PDFs are read automatically. Scans and images will get OCR in a later step.',
+    'utilities.reader.digitalPdfHint': 'Digital PDFs are read directly; scanned PDFs automatically fall back to local OCR.',
     'utilities.downloadAttachment': 'Download invoice',
     'utilities.saveAccount': 'Save account',
     'utilities.saveBill': 'Save bill',
@@ -1376,7 +1376,7 @@ const en: Record<TranslationKey, string> = {
     'utilities.noLease': 'No associated lease',
     'utilities.renterNeedsLease': 'A lease is required when the renter is responsible.',
     'utilities.accountFormDescription': 'Configure the provider account manually. Rentier does not store provider portal passwords.',
-    'utilities.billFormDescription': 'Attach a digital PDF for autofill or enter the bill manually.',
+    'utilities.billFormDescription': 'Attach a PDF for autofill; if it has no text layer, we try local OCR.',
 };
 
 const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };
