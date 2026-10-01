@@ -57,7 +57,7 @@ test('invoice reader rejects non PDF files before extraction', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
 
-    $response = $this
+    $this
         ->actingAs($user)
         ->postJson(
             route('utility-bills.analyze', $team),
@@ -68,16 +68,10 @@ test('invoice reader rejects non PDF files before extraction', function () {
                     'image/png',
                 ),
             ],
-        );
-
-    $payload = json_decode(
-        (string) $response->getContent(),
-        true,
-        flags: JSON_THROW_ON_ERROR,
-    );
-
-    expect($response->getStatusCode())->toBe(422)
-        ->and($payload['errors']['attachment'][0])->toBe(
+        )
+        ->assertUnprocessable()
+        ->assertJsonPath(
+            'errors.attachment.0',
             'Citirea automată v1 acceptă momentan doar facturi PDF.',
         );
 });
@@ -96,7 +90,7 @@ test('invoice reader returns a safe localized error when embedded text cannot be
         }
     });
 
-    $response = $this
+    $this
         ->actingAs($user)
         ->postJson(
             route('utility-bills.analyze', $team),
@@ -107,16 +101,10 @@ test('invoice reader returns a safe localized error when embedded text cannot be
                     'application/pdf',
                 ),
             ],
-        );
-
-    $payload = json_decode(
-        (string) $response->getContent(),
-        true,
-        flags: JSON_THROW_ON_ERROR,
-    );
-
-    expect($response->getStatusCode())->toBe(422)
-        ->and($payload['errors']['attachment'][0])->toBe(
+        )
+        ->assertUnprocessable()
+        ->assertJsonPath(
+            'errors.attachment.0',
             'Nu am putut extrage text suficient din acest PDF. Poți completa factura manual; scanările și pozele vor fi tratate într-un pas OCR separat.',
         );
 });
