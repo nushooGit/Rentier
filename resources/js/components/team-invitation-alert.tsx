@@ -1,5 +1,6 @@
 import { InfoIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useI18n } from '@/lib/i18n';
 import type { TeamInvitationContext } from '@/types';
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export default function TeamInvitationAlert({ invitation, action }: Props) {
+    const { t } = useI18n();
+
     return (
         <Alert
             data-test="team-invitation-alert"
