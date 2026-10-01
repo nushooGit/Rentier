@@ -321,10 +321,6 @@ test.describe('authenticated landlord smoke', () => {
                 'calendar',
                 `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
             ],
-            [
-                'calendar',
-                `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
-            ],
             ['properties', `/${teamSlug}/properties`],
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],
@@ -340,6 +336,10 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.setViewportSize({ width: 390, height: 844 });
         for (const [name, path] of [
+            [
+                'calendar',
+                `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
+            ],
             ['properties', `/${teamSlug}/properties`],
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],
