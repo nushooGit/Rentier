@@ -104,6 +104,19 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByText('Data început')).toHaveCount(0);
         await expect(page.getByText('Telefon chiriaș')).toHaveCount(0);
 
+        await page.goto(`/${teamSlug}/leases`);
+        await expect(
+            page.getByRole('heading', {
+                name: 'Leases',
+                level: 2,
+                exact: true,
+            }),
+        ).toBeVisible();
+        await expect(page.getByText('Contracte', { exact: true })).toHaveCount(0);
+        await expect(page.getByText('Editează contractul')).toHaveCount(0);
+        await expect(page.getByText('Șterge contractul')).toHaveCount(0);
+        await expect(page.getByText('Nu există contracte încă')).toHaveCount(0);
+
         await page.goto(`/${teamSlug}/payments/create`);
         await expect(page.getByTestId('payment-lease-select')).toContainText('Choose lease');
         await expect(page.getByText('Income type')).toBeVisible();

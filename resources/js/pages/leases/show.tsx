@@ -2,7 +2,8 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { currentIntlLocale } from '@/lib/locale';
 import { Button } from '@/components/ui/button';
 import { formatDateLong } from '@/lib/date';
 import { leaseStatusLabel } from '@/pages/leases/labels';
@@ -14,15 +15,15 @@ type Props = {
 };
 
 function formatValue(value?: string | number | null) {
-    return value ?? 'Nesetat';
+    return value ?? translateKey('common.notSet');
 }
 
 function formatMoney(amount?: string | null, currency = 'RON') {
     if (!amount) {
-        return 'Nesetat';
+        return translateKey('common.notSet');
     }
 
-    return `${Number(amount).toLocaleString(undefined, {
+    return `${Number(amount).toLocaleString(currentIntlLocale(), {
         maximumFractionDigits: 2,
         minimumFractionDigits: 0,
     })} ${currency}`;
@@ -49,7 +50,11 @@ export default function LeaseShow({ lease }: Props) {
     const currentTeamSlug = currentTeam?.slug ?? '';
 
     const deleteLease = () => {
-        if (!window.confirm(`Ștergi contractul pentru ${lease.renter.name}?`)) {
+        if (
+            !window.confirm(
+                t('leases.show.deleteConfirm', { name: lease.renter.name }),
+            )
+        ) {
             return;
         }
 
@@ -58,7 +63,7 @@ export default function LeaseShow({ lease }: Props) {
 
     return (
         <>
-            <Head title={`Contract ${lease.renter.name}`} />
+            <Head title={t('leases.show.head', { name: lease.renter.name })} />
 
             <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
                 <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-start sm:justify-between sm:p-5">
@@ -183,7 +188,7 @@ LeaseShow.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Contracte',
+            title: translateKey('nav.leases'),
             href: props.currentTeam ? index(props.currentTeam.slug) : '/',
         },
         {

@@ -10,6 +10,8 @@ test('english landlord surfaces do not keep Romanian runtime copy in the affecte
         'js/pages/payments/form.tsx',
         'js/pages/documents/index.tsx',
         'js/pages/leases/form.tsx',
+        'js/pages/leases/index.tsx',
+        'js/pages/leases/show.tsx',
         'js/pages/properties/show.tsx',
         'js/pages/properties/index.tsx',
     ];
@@ -39,6 +41,11 @@ test('english landlord surfaces do not keep Romanian runtime copy in the affecte
         'luni restante',
         'Scăzut din chirie',
         'Încasat:',
+        'Vezi contractul',
+        'Editează contractul',
+        'Șterge contractul',
+        'Nu există contracte încă',
+        'Ștergi contractul pentru',
     ];
 
     foreach ($paths as $path) {
