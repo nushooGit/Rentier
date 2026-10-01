@@ -19,4 +19,12 @@ class MoneyInput
 
         return ((int) $whole * 100) + (int) $fraction;
     }
+
+    public static function fromMinorUnits(int $amountMinor): string
+    {
+        $whole = intdiv($amountMinor, 100);
+        $fraction = abs($amountMinor % 100);
+
+        return sprintf('%d.%02d', $whole, $fraction);
+    }
 }
