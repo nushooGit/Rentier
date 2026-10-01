@@ -668,6 +668,11 @@ const ro = {
     'utilities.attachment': 'Atașament',
     'utilities.attachmentHelp': 'PDF, JPG, PNG sau WebP · maximum 20 MB',
     'utilities.replaceAttachmentHelp': 'Alege un fișier nou doar dacă vrei să înlocuiești atașamentul existent.',
+    'utilities.reader.reading': 'Citesc datele din PDF…',
+    'utilities.reader.success': 'Am completat automat {count} câmpuri din PDF. Verifică datele înainte de salvare.',
+    'utilities.reader.lowConfidence': 'Am găsit doar {count} câmpuri cu suficientă încredere. Verifică atent și completează restul manual.',
+    'utilities.reader.manualFallback': 'Nu am putut citi automat factura. Poți continua cu completarea manuală.',
+    'utilities.reader.digitalPdfHint': 'PDF-urile digitale se citesc automat. Scanările și pozele vor primi OCR într-un pas următor.',
     'utilities.downloadAttachment': 'Descarcă factura',
     'utilities.saveAccount': 'Salvează contul',
     'utilities.saveBill': 'Salvează factura',
@@ -681,7 +686,7 @@ const ro = {
     'utilities.noLease': 'Fără contract asociat',
     'utilities.renterNeedsLease': 'Pentru responsabilitatea chiriașului trebuie ales un contract.',
     'utilities.accountFormDescription': 'Configurează manual contul furnizorului. Nu stocăm parole de portal.',
-    'utilities.billFormDescription': 'Înregistrează factura manual. Extragerea automată din PDF/OCR vine într-un pas separat.',
+    'utilities.billFormDescription': 'Atașează un PDF digital pentru completare automată sau introdu datele manual.',
 } as const;
 
 type TranslationKey = keyof typeof ro;
@@ -1353,6 +1358,11 @@ const en: Record<TranslationKey, string> = {
     'utilities.attachment': 'Attachment',
     'utilities.attachmentHelp': 'PDF, JPG, PNG or WebP · maximum 20 MB',
     'utilities.replaceAttachmentHelp': 'Choose a new file only if you want to replace the existing attachment.',
+    'utilities.reader.reading': 'Reading invoice data from the PDF…',
+    'utilities.reader.success': 'We autofilled {count} fields from the PDF. Review the data before saving.',
+    'utilities.reader.lowConfidence': 'We found only {count} fields with enough confidence. Review carefully and fill in the rest manually.',
+    'utilities.reader.manualFallback': 'We could not read this invoice automatically. You can continue with manual entry.',
+    'utilities.reader.digitalPdfHint': 'Digital PDFs are read automatically. Scans and images will get OCR in a later step.',
     'utilities.downloadAttachment': 'Download invoice',
     'utilities.saveAccount': 'Save account',
     'utilities.saveBill': 'Save bill',
@@ -1366,7 +1376,7 @@ const en: Record<TranslationKey, string> = {
     'utilities.noLease': 'No associated lease',
     'utilities.renterNeedsLease': 'A lease is required when the renter is responsible.',
     'utilities.accountFormDescription': 'Configure the provider account manually. Rentier does not store provider portal passwords.',
-    'utilities.billFormDescription': 'Record the bill manually. Automatic PDF/OCR extraction comes in a separate step.',
+    'utilities.billFormDescription': 'Attach a digital PDF for autofill or enter the bill manually.',
 };
 
 const messages: Record<AppLocale, Record<TranslationKey, string>> = { ro, en };

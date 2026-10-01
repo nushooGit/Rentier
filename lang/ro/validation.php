@@ -74,4 +74,11 @@ return [
             ],
         ],
     ],
+    'utility_invoice_reader' => [
+        'required' => 'Alege o factură PDF pentru citire automată.',
+        'file' => 'Factura trebuie să fie un fișier valid.',
+        'mimes' => 'Citirea automată v1 acceptă momentan doar facturi PDF.',
+        'max' => 'Factura nu poate depăși 20 MB.',
+        'unreadable' => 'Nu am putut extrage text suficient din acest PDF. Poți completa factura manual; scanările și pozele vor fi tratate într-un pas OCR separat.',
+    ],
 ];

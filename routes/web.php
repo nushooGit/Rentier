@@ -17,6 +17,7 @@ use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\UtilityAccountController;
 use App\Http\Controllers\UtilityBillController;
+use App\Http\Controllers\UtilityBillReaderController;
 use App\Http\Controllers\UtilityController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsurePlatformAdmin;
@@ -82,6 +83,7 @@ Route::prefix('{current_team}')
         Route::put('utility-accounts/{utility_account}', [UtilityAccountController::class, 'update'])->name('utility-accounts.update');
         Route::delete('utility-accounts/{utility_account}', [UtilityAccountController::class, 'destroy'])->name('utility-accounts.destroy');
         Route::post('utility-bills', [UtilityBillController::class, 'store'])->name('utility-bills.store');
+        Route::post('utility-bills/analyze', UtilityBillReaderController::class)->name('utility-bills.analyze');
         Route::put('utility-bills/{utility_bill}', [UtilityBillController::class, 'update'])->name('utility-bills.update');
         Route::delete('utility-bills/{utility_bill}', [UtilityBillController::class, 'destroy'])->name('utility-bills.destroy');
         Route::post('reminders', [ReminderController::class, 'store'])->name('reminders.store');

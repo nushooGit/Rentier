@@ -51,4 +51,11 @@ return [
             ],
         ],
     ],
+    'utility_invoice_reader' => [
+        'required' => 'Choose a PDF invoice for automatic reading.',
+        'file' => 'The invoice must be a valid file.',
+        'mimes' => 'Invoice Reader v1 currently accepts PDF invoices only.',
+        'max' => 'The invoice may not be larger than 20 MB.',
+        'unreadable' => 'We could not extract enough text from this PDF. You can still fill in the bill manually; scans and images will be handled by a later OCR step.',
+    ],
 ];

@@ -1,0 +1,58 @@
+<?php
+
+namespace App\Http\Requests\Utilities;
+
+use App\Models\Team;
+use App\Models\UtilityBill;
+use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Gate;
+
+class AnalyzeUtilityBillRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        $team = $this->route('current_team');
+
+        return $team instanceof Team
+            && Gate::allows('create', [UtilityBill::class, $team]);
+    }
+
+    /**
+     * @return array<string, ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
+    {
+        return [
+            'attachment' => [
+                'required',
+                'file',
+                'mimes:pdf',
+                'max:20480',
+            ],
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'attachment.required' => __('validation.utility_invoice_reader.required'),
+            'attachment.file' => __('validation.utility_invoice_reader.file'),
+            'attachment.mimes' => __('validation.utility_invoice_reader.mimes'),
+            'attachment.max' => __('validation.utility_invoice_reader.max'),
+        ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(response()->json([
+            'message' => $validator->errors()->first(),
+            'errors' => $validator->errors()->toArray(),
+        ], 422));
+    }
+}
