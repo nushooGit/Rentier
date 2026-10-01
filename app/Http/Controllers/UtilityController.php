@@ -7,6 +7,7 @@ use App\Models\Property;
 use App\Models\Team;
 use App\Models\UtilityAccount;
 use App\Models\UtilityBill;
+use App\Support\MoneyInput;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
@@ -70,7 +71,7 @@ class UtilityController extends Controller
                 'billing_period_end' => $bill->billing_period_end->toDateString(),
                 'issue_date' => $bill->issue_date->toDateString(),
                 'due_date' => $bill->due_date->toDateString(),
-                'amount' => number_format($bill->amount_minor / 100, 2, '.', ''),
+                'amount' => MoneyInput::fromMinorUnits($bill->amount_minor),
                 'amount_minor' => $bill->amount_minor,
                 'currency' => $bill->currency,
                 'status' => $bill->status->value,
