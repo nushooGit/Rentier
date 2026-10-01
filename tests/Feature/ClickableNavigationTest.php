@@ -154,7 +154,11 @@ test('utilities index exposes account bill and attachment controls', function ()
         ->toContain('data-test="utility-add-bill-button"')
         ->toContain('data-test="utility-bill-save-button"')
         ->toContain('data-test="utility-attachment-input"')
+        ->toContain('data-test="utility-property-group"')
+        ->toContain('data-test="utility-bill-download-link"')
+        ->toContain('<a')
         ->toContain('downloadDocument([')
+        ->toContain('download')
         ->toContain('destroyUtilityBill([');
 });
 
