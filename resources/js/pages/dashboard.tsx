@@ -582,7 +582,7 @@ export default function Dashboard({
                 </section>
 
                 {Number(summary.unsettled_tenant_paid_owner_expenses) > 0 ? (
-                    <section className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900 sm:p-3.5">
+                    <section className="rounded-2xl border border-amber-200 bg-amber-50/90 p-3.5 text-sm text-amber-900 shadow-sm dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100 sm:p-4">
                         {t('dashboard.unsettledCosts', { amount: formatMoney(summary.unsettled_tenant_paid_owner_expenses, summary.currency) })}
                     </section>
                 ) : null}
