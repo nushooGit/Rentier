@@ -84,6 +84,7 @@ test.describe('authenticated landlord smoke', () => {
         await page.goto('/settings/teams');
         await expect(
             page.getByRole('heading', {
+                level: 2,
                 name: 'Workspaces',
                 exact: true,
             }),
