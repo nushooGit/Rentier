@@ -3,14 +3,16 @@ import {
     Building2,
     CalendarClock,
     Download,
+    LoaderCircle,
     Pencil,
     Plus,
     ReceiptText,
+    Sparkles,
     Trash2,
     Upload,
     Zap,
 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FormEvent } from 'react';
 import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
@@ -37,6 +39,7 @@ import {
     update as updateUtilityAccount,
 } from '@/routes/utility-accounts';
 import {
+    analyze as analyzeUtilityBill,
     destroy as destroyUtilityBill,
     store as storeUtilityBill,
     update as updateUtilityBill,
@@ -84,6 +87,41 @@ type BillFormData = {
     notes: string;
     attachment: File | null;
 };
+
+type InvoiceReaderField = {
+    value: string | null;
+    confidence: number;
+};
+
+type InvoiceReaderResult = {
+    source: 'embedded_pdf_text';
+    overall_confidence: number;
+    found_fields: number;
+    fields: {
+        invoice_number: InvoiceReaderField;
+        billing_period_start: InvoiceReaderField;
+        billing_period_end: InvoiceReaderField;
+        issue_date: InvoiceReaderField;
+        due_date: InvoiceReaderField;
+        amount: InvoiceReaderField;
+        currency: InvoiceReaderField;
+    };
+};
+
+type InvoiceReaderStatus = 'idle' | 'reading' | 'success' | 'warning' | 'error';
+
+function csrfToken(): string | null {
+    return document
+        .querySelector<HTMLMetaElement>('meta[name="csrf-token"]')
+        ?.getAttribute('content') ?? null;
+}
+
+function isPdfFile(file: File): boolean {
+    return (
+        file.type === 'application/pdf' ||
+        file.name.toLowerCase().endsWith('.pdf')
+    );
+}
 
 const selectClassName =
     'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
@@ -508,11 +546,134 @@ function BillDialog({
     const [fileName, setFileName] = useState<string | null>(
         bill ? null : (initialAttachment?.name ?? null),
     );
+    const [readerStatus, setReaderStatus] =
+        useState<InvoiceReaderStatus>('idle');
+    const [readerMessage, setReaderMessage] = useState<string | null>(null);
+    const [dateRevision, setDateRevision] = useState(0);
+    const autoReadFile = useRef<string | null>(null);
+
+    const analyzeAttachment = useCallback(
+        async (file: File) => {
+            if (bill || !isPdfFile(file)) {
+                return;
+            }
+
+            setReaderStatus('reading');
+            setReaderMessage(t('utilities.reader.reading'));
+            form.clearErrors('attachment');
+
+            const payload = new FormData();
+            payload.append('attachment', file);
+
+            try {
+                const token = csrfToken();
+                const response = await fetch(analyzeUtilityBill(teamSlug).url, {
+                    method: 'POST',
+                    body: payload,
+                    credentials: 'same-origin',
+                    headers: {
+                        Accept: 'application/json',
+                        ...(token ? { 'X-CSRF-TOKEN': token } : {}),
+                    },
+                });
+
+                if (!response.ok) {
+                    const errorPayload = (await response.json().catch(() => null)) as
+                        | {
+                              errors?: { attachment?: string[] };
+                          }
+                        | null;
+
+                    throw new Error(
+                        errorPayload?.errors?.attachment?.[0] ??
+                            t('utilities.reader.manualFallback'),
+                    );
+                }
+
+                const result = (await response.json()) as InvoiceReaderResult;
+
+                if (result.fields.invoice_number.value) {
+                    form.setData(
+                        'invoice_number',
+                        result.fields.invoice_number.value,
+                    );
+                }
+                if (result.fields.billing_period_start.value) {
+                    form.setData(
+                        'billing_period_start',
+                        result.fields.billing_period_start.value,
+                    );
+                }
+                if (result.fields.billing_period_end.value) {
+                    form.setData(
+                        'billing_period_end',
+                        result.fields.billing_period_end.value,
+                    );
+                }
+                if (result.fields.issue_date.value) {
+                    form.setData('issue_date', result.fields.issue_date.value);
+                }
+                if (result.fields.due_date.value) {
+                    form.setData('due_date', result.fields.due_date.value);
+                }
+                if (result.fields.amount.value) {
+                    form.setData('amount', result.fields.amount.value);
+                }
+                if (result.fields.currency.value) {
+                    form.setData('currency', result.fields.currency.value);
+                }
+
+                setDateRevision((revision) => revision + 1);
+
+                const confident = result.found_fields >= 4;
+                setReaderStatus(confident ? 'success' : 'warning');
+                setReaderMessage(
+                    t(
+                        confident
+                            ? 'utilities.reader.success'
+                            : 'utilities.reader.lowConfidence',
+                        { count: result.found_fields },
+                    ),
+                );
+            } catch (error) {
+                setReaderStatus('error');
+                setReaderMessage(
+                    error instanceof Error
+                        ? error.message
+                        : t('utilities.reader.manualFallback'),
+                );
+            }
+        },
+        [bill, form, t, teamSlug],
+    );
+
+    useEffect(() => {
+        if (!initialAttachment || bill || !isPdfFile(initialAttachment)) {
+            return;
+        }
+
+        const fingerprint = [
+            initialAttachment.name,
+            initialAttachment.size,
+            initialAttachment.lastModified,
+        ].join(':');
+
+        if (autoReadFile.current === fingerprint) {
+            return;
+        }
+
+        autoReadFile.current = fingerprint;
+        void analyzeAttachment(initialAttachment);
+    }, [analyzeAttachment, bill, initialAttachment]);
 
     const close = () => {
         form.clearErrors();
         form.reset();
         setFileName(null);
+        setReaderStatus('idle');
+        setReaderMessage(null);
+        setDateRevision(0);
+        autoReadFile.current = null;
         onOpenChange(false);
     };
 
@@ -668,7 +829,7 @@ function BillDialog({
                         <div className="grid gap-1.5">
                             <Label>{t('utilities.billingPeriodStart')}</Label>
                             <DateInput
-                                key={`start-${bill?.id ?? 'new'}`}
+                                key={`start-${bill?.id ?? 'new'}-${dateRevision}`}
                                 name="billing_period_start"
                                 defaultValue={form.data.billing_period_start}
                                 locale={locale === 'ro' ? 'ro-RO' : 'en-US'}
@@ -687,7 +848,7 @@ function BillDialog({
                         <div className="grid gap-1.5">
                             <Label>{t('utilities.billingPeriodEnd')}</Label>
                             <DateInput
-                                key={`end-${bill?.id ?? 'new'}`}
+                                key={`end-${bill?.id ?? 'new'}-${dateRevision}`}
                                 name="billing_period_end"
                                 defaultValue={form.data.billing_period_end}
                                 locale={locale === 'ro' ? 'ro-RO' : 'en-US'}
@@ -705,7 +866,7 @@ function BillDialog({
                         <div className="grid gap-1.5">
                             <Label>{t('utilities.issueDate')}</Label>
                             <DateInput
-                                key={`issue-${bill?.id ?? 'new'}`}
+                                key={`issue-${bill?.id ?? 'new'}-${dateRevision}`}
                                 name="issue_date"
                                 defaultValue={form.data.issue_date}
                                 locale={locale === 'ro' ? 'ro-RO' : 'en-US'}
@@ -721,7 +882,7 @@ function BillDialog({
                         <div className="grid gap-1.5">
                             <Label>{t('utilities.dueDate')}</Label>
                             <DateInput
-                                key={`due-${bill?.id ?? 'new'}`}
+                                key={`due-${bill?.id ?? 'new'}-${dateRevision}`}
                                 name="due_date"
                                 defaultValue={form.data.due_date}
                                 locale={locale === 'ro' ? 'ro-RO' : 'en-US'}
@@ -842,10 +1003,32 @@ function BillDialog({
                                     event.currentTarget.files?.[0] ?? null;
                                 form.setData('attachment', file);
                                 setFileName(file?.name ?? null);
+
+                                if (file) {
+                                    void analyzeAttachment(file);
+                                }
                             }}
                             data-test="utility-attachment-input"
                         />
                         <InputError message={form.errors.attachment} />
+                        {!bill && readerStatus === 'idle' ? (
+                            <p className="text-xs text-muted-foreground">
+                                {t('utilities.reader.digitalPdfHint')}
+                            </p>
+                        ) : null}
+                        {readerStatus !== 'idle' && readerMessage ? (
+                            <div
+                                className="flex items-start gap-2 rounded-xl border border-border bg-muted/20 px-3 py-2.5 text-sm"
+                                data-test="utility-invoice-reader-status"
+                            >
+                                {readerStatus === 'reading' ? (
+                                    <LoaderCircle className="mt-0.5 size-4 shrink-0 animate-spin text-primary" />
+                                ) : (
+                                    <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" />
+                                )}
+                                <p>{readerMessage}</p>
+                            </div>
+                        ) : null}
                     </div>
 
                     <DialogFooter>
