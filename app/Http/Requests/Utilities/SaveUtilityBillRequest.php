@@ -61,7 +61,7 @@ class SaveUtilityBillRequest extends FormRequest
             'billing_period_end' => ['required', 'date', 'after_or_equal:billing_period_start'],
             'issue_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:issue_date'],
-            'amount' => ['required', 'regex:/^\d+(?:[\.,]\d{1,2})?$/', 'max:20'],
+            'amount' => ['required', 'regex:/^\d{1,12}(?:[\.,]\d{1,2})?$/'],
             'currency' => ['required', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
             'status' => ['required', Rule::enum(UtilityBillStatus::class)],
             'paid_on' => [
