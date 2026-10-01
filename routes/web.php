@@ -13,6 +13,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
+use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsurePlatformAdmin;
@@ -73,6 +74,10 @@ Route::prefix('{current_team}')
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::get('calendar', CalendarController::class)->name('calendar.index');
+        Route::post('reminders', [ReminderController::class, 'store'])->name('reminders.store');
+        Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');
+        Route::patch('reminders/{reminder}/toggle-complete', [ReminderController::class, 'toggleComplete'])->name('reminders.toggle-complete');
+        Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
         Route::resource('properties', PropertyController::class);
         Route::resource('leases', LeaseController::class);
         Route::resource('payments', RentPaymentController::class);
