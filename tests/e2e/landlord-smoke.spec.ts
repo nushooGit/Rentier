@@ -354,8 +354,37 @@ test.describe('authenticated landlord smoke', () => {
         await page.getByTestId('utility-billing-end-input').fill(date);
         await page.getByTestId('utility-issue-date-input').fill(date);
         await page.getByTestId('utility-due-date-input').fill(date);
+        await page.getByTestId('utility-attachment-input').setInputFiles({
+            name: 'e2e-utility-invoice.pdf',
+            mimeType: 'application/pdf',
+            buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
+        });
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
+
+        const utilityGroup = page
+            .getByTestId('utility-property-group')
+            .filter({ hasText: propertyName });
+        await expect(utilityGroup).toBeVisible();
+        await expect(
+            utilityGroup.getByRole('heading', {
+                name: utilityProvider,
+                exact: true,
+            }),
+        ).toBeVisible();
+
+        const utilityBillCard = utilityGroup
+            .getByTestId('utility-bill-card')
+            .filter({ hasText: utilityInvoice });
+        await expect(utilityBillCard).toBeVisible();
+
+        const [utilityDownload] = await Promise.all([
+            page.waitForEvent('download'),
+            utilityBillCard.getByTestId('utility-bill-download-link').click(),
+        ]);
+        expect(utilityDownload.suggestedFilename()).toBe(
+            'e2e-utility-invoice.pdf',
+        );
 
         await page.goto(`/${teamSlug}/dashboard`);
         await expect(

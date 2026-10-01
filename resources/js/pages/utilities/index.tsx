@@ -1,5 +1,6 @@
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import {
+    Building2,
     CalendarClock,
     Download,
     Pencil,
@@ -855,6 +856,231 @@ function BillDialog({
     );
 }
 
+
+function UtilityAccountCard({
+    account,
+    onEdit,
+    onDelete,
+}: {
+    account: UtilityAccountItem;
+    onEdit: (account: UtilityAccountItem) => void;
+    onDelete: (account: UtilityAccountItem) => void;
+}) {
+    const { t } = useI18n();
+
+    return (
+        <article
+            className="rounded-2xl border border-border/70 bg-background/55 p-4"
+            data-test="utility-account-card"
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="truncate font-semibold">
+                            {account.provider_name}
+                        </h3>
+                        <Badge
+                            variant="outline"
+                            className={
+                                account.status === 'active'
+                                    ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200'
+                                    : ''
+                            }
+                        >
+                            {account.status === 'active'
+                                ? t('utilities.active')
+                                : t('utilities.inactive')}
+                        </Badge>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {serviceLabel(account.service_type, t)}
+                    </p>
+                </div>
+
+                <div className="flex shrink-0 gap-1">
+                    <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onEdit(account)}
+                        aria-label={t('utilities.accounts.edit')}
+                    >
+                        <Pencil />
+                    </Button>
+                    <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onDelete(account)}
+                        aria-label={t('utilities.deleteAccount')}
+                    >
+                        <Trash2 />
+                    </Button>
+                </div>
+            </div>
+
+            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+                <div>
+                    <dt className="text-xs text-muted-foreground">
+                        {t('utilities.accountIdentifier')}
+                    </dt>
+                    <dd className="mt-0.5 font-medium">
+                        {account.account_identifier ?? '—'}
+                    </dd>
+                </div>
+                <div>
+                    <dt className="text-xs text-muted-foreground">
+                        {t('utilities.responsibility')}
+                    </dt>
+                    <dd className="mt-0.5 font-medium">
+                        {account.responsible_party === 'owner'
+                            ? t('utilities.owner')
+                            : `${t('utilities.renter')}${account.renter_name ? ` · ${account.renter_name}` : ''}`}
+                    </dd>
+                </div>
+            </dl>
+
+            {account.notes ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                    {account.notes}
+                </p>
+            ) : null}
+        </article>
+    );
+}
+
+function UtilityBillCard({
+    bill,
+    teamSlug,
+    onEdit,
+    onDelete,
+}: {
+    bill: UtilityBillItem;
+    teamSlug: string;
+    onEdit: (bill: UtilityBillItem) => void;
+    onDelete: (bill: UtilityBillItem) => void;
+}) {
+    const { t } = useI18n();
+
+    return (
+        <article
+            className="rounded-2xl border border-border/70 bg-background/55 p-4"
+            data-test="utility-bill-card"
+        >
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-semibold">
+                            {bill.account.provider_name} · {bill.invoice_number}
+                        </h3>
+                        <Badge
+                            variant="outline"
+                            className={
+                                bill.overdue
+                                    ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200'
+                                    : bill.status === 'paid'
+                                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200'
+                                      : ''
+                            }
+                        >
+                            {bill.overdue
+                                ? t('utilities.overdue')
+                                : bill.status === 'paid'
+                                  ? t('utilities.paid')
+                                  : t('utilities.unpaid')}
+                        </Badge>
+                    </div>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                        {serviceLabel(bill.account.service_type, t)}
+                        {bill.renter_name ? ` · ${bill.renter_name}` : ''}
+                    </p>
+                </div>
+
+                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {bill.document ? (
+                        <Button variant="outline" size="sm" asChild>
+                            <a
+                                href={
+                                    downloadDocument([
+                                        teamSlug,
+                                        bill.document.id,
+                                    ]).url
+                                }
+                                download
+                                data-test="utility-bill-download-link"
+                            >
+                                <Download />
+                                {t('utilities.downloadAttachment')}
+                            </a>
+                        </Button>
+                    ) : null}
+                    <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onEdit(bill)}
+                        aria-label={t('utilities.bills.edit')}
+                    >
+                        <Pencil />
+                    </Button>
+                    <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        onClick={() => onDelete(bill)}
+                        aria-label={t('utilities.deleteBill')}
+                    >
+                        <Trash2 />
+                    </Button>
+                </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+                <div>
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.billingPeriod')}
+                    </p>
+                    <p className="mt-0.5 font-medium">
+                        {formatDateLong(bill.billing_period_start)} –{' '}
+                        {formatDateLong(bill.billing_period_end)}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.dueDate')}
+                    </p>
+                    <p className="mt-0.5 flex items-center gap-1.5 font-medium">
+                        <CalendarClock className="size-3.5 text-muted-foreground" />
+                        {formatDateLong(bill.due_date)}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.amount')}
+                    </p>
+                    <p className="mt-0.5 font-semibold">
+                        {formatMoney(bill.amount, bill.currency)}
+                    </p>
+                </div>
+                <div>
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.attachment')}
+                    </p>
+                    <p className="mt-0.5 truncate font-medium">
+                        {bill.document?.original_name ?? '—'}
+                    </p>
+                </div>
+            </div>
+
+            {bill.notes ? (
+                <p className="mt-3 text-xs text-muted-foreground">
+                    {bill.notes}
+                </p>
+            ) : null}
+        </article>
+    );
+}
+
 export default function UtilitiesIndex({
     accounts,
     bills,
@@ -872,6 +1098,36 @@ export default function UtilitiesIndex({
         useState<UtilityAccountItem | null>(null);
     const [editingBill, setEditingBill] =
         useState<UtilityBillItem | null>(null);
+
+    const propertyGroups = useMemo(
+        () =>
+            properties
+                .map((property) => {
+                    const propertyAccounts = accounts.filter(
+                        (account) => account.property_id === property.id,
+                    );
+                    const propertyBills = bills.filter(
+                        (bill) => bill.property.id === property.id,
+                    );
+
+                    return {
+                        property,
+                        accounts: propertyAccounts,
+                        bills: propertyBills,
+                        unpaidCount: propertyBills.filter(
+                            (bill) => bill.status === 'unpaid',
+                        ).length,
+                        overdueCount: propertyBills.filter(
+                            (bill) => bill.overdue,
+                        ).length,
+                    };
+                })
+                .filter(
+                    (group) =>
+                        group.accounts.length > 0 || group.bills.length > 0,
+                ),
+        [accounts, bills, properties],
+    );
 
     const openNewAccount = () => {
         setEditingAccount(null);
@@ -1000,28 +1256,16 @@ export default function UtilitiesIndex({
                 ) : null}
 
                 <section className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
-                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-base font-semibold">
-                                {t('utilities.accounts.title')}
-                            </h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {t('utilities.accounts.description')}
-                            </p>
-                        </div>
-                        <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={openNewAccount}
-                            disabled={properties.length === 0}
-                        >
-                            <Plus />
-                            {t('utilities.accounts.new')}
-                        </Button>
+                    <div className="mb-4">
+                        <h2 className="text-base font-semibold">
+                            {t('utilities.group.title')}
+                        </h2>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                            {t('utilities.group.description')}
+                        </p>
                     </div>
 
-                    {accounts.length === 0 ? (
+                    {propertyGroups.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-border bg-background/50 p-8 text-center">
                             <Zap className="mx-auto size-8 text-muted-foreground" />
                             <h3 className="mt-3 text-sm font-semibold">
@@ -1032,303 +1276,121 @@ export default function UtilitiesIndex({
                             </p>
                         </div>
                     ) : (
-                        <div className="grid gap-3 lg:grid-cols-2">
-                            {accounts.map((account) => (
-                                <article
-                                    key={account.id}
-                                    className="rounded-2xl border border-border/70 bg-background/55 p-4"
-                                    data-test="utility-account-card"
-                                >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="truncate font-semibold">
-                                                    {account.provider_name}
-                                                </h3>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={
-                                                        account.status ===
-                                                        'active'
-                                                            ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200'
-                                                            : ''
-                                                    }
-                                                >
-                                                    {account.status ===
-                                                    'active'
-                                                        ? t('utilities.active')
-                                                        : t(
-                                                              'utilities.inactive',
-                                                          )}
-                                                </Badge>
-                                            </div>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {serviceLabel(
-                                                    account.service_type,
-                                                    t,
-                                                )}{' '}
-                                                · {account.property.name}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex shrink-0 gap-1">
-                                            <Button
-                                                type="button"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    openAccount(account)
-                                                }
-                                                aria-label={t(
-                                                    'utilities.accounts.edit',
-                                                )}
-                                            >
-                                                <Pencil />
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    deleteAccount(account)
-                                                }
-                                                aria-label={t(
-                                                    'utilities.deleteAccount',
-                                                )}
-                                            >
-                                                <Trash2 />
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
-                                        <div>
-                                            <dt className="text-xs text-muted-foreground">
-                                                {t(
-                                                    'utilities.accountIdentifier',
-                                                )}
-                                            </dt>
-                                            <dd className="mt-0.5 font-medium">
-                                                {account.account_identifier ??
-                                                    '—'}
-                                            </dd>
-                                        </div>
-                                        <div>
-                                            <dt className="text-xs text-muted-foreground">
-                                                {t(
-                                                    'utilities.responsibility',
-                                                )}
-                                            </dt>
-                                            <dd className="mt-0.5 font-medium">
-                                                {account.responsible_party ===
-                                                'owner'
-                                                    ? t('utilities.owner')
-                                                    : `${t('utilities.renter')}${account.renter_name ? ` · ${account.renter_name}` : ''}`}
-                                            </dd>
-                                        </div>
-                                    </dl>
-
-                                    {account.notes ? (
-                                        <p className="mt-3 text-xs text-muted-foreground">
-                                            {account.notes}
-                                        </p>
-                                    ) : null}
-                                </article>
-                            ))}
-                        </div>
-                    )}
-                </section>
-
-                <section className="rounded-2xl border border-border/70 bg-card/90 p-4 shadow-sm sm:p-5">
-                    <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <h2 className="text-base font-semibold">
-                                {t('utilities.bills.title')}
-                            </h2>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {t('utilities.bills.description')}
-                            </p>
-                        </div>
-                        <Button
-                            type="button"
-                            size="sm"
-                            onClick={openNewBill}
-                            disabled={accounts.length === 0}
-                        >
-                            <Plus />
-                            {t('utilities.bills.new')}
-                        </Button>
-                    </div>
-
-                    {bills.length === 0 ? (
-                        <div className="rounded-2xl border border-dashed border-border bg-background/50 p-8 text-center">
-                            <ReceiptText className="mx-auto size-8 text-muted-foreground" />
-                            <h3 className="mt-3 text-sm font-semibold">
-                                {t('utilities.bills.emptyTitle')}
-                            </h3>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                                {t('utilities.bills.emptyDescription')}
-                            </p>
-                        </div>
-                    ) : (
                         <div className="space-y-3">
-                            {bills.map((bill) => (
-                                <article
-                                    key={bill.id}
-                                    className="rounded-2xl border border-border/70 bg-background/55 p-4"
-                                    data-test="utility-bill-card"
+                            {propertyGroups.map((group, index) => (
+                                <details
+                                    key={group.property.id}
+                                    className="group rounded-2xl border border-border/70 bg-background/45"
+                                    open={
+                                        propertyGroups.length <= 3 ||
+                                        group.overdueCount > 0 ||
+                                        index === 0
+                                    }
+                                    data-test="utility-property-group"
                                 >
-                                    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                                        <div className="min-w-0">
-                                            <div className="flex flex-wrap items-center gap-2">
-                                                <h3 className="font-semibold">
-                                                    {
-                                                        bill.account
-                                                            .provider_name
-                                                    }{' '}
-                                                    · {bill.invoice_number}
+                                    <summary className="flex cursor-pointer list-none flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+                                        <div className="flex min-w-0 items-center gap-3">
+                                            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                                                <Building2 className="size-5" />
+                                            </span>
+                                            <div className="min-w-0">
+                                                <h3 className="truncate font-semibold">
+                                                    {group.property.name}
                                                 </h3>
+                                                {group.property.city ? (
+                                                    <p className="truncate text-xs text-muted-foreground">
+                                                        {group.property.city}
+                                                    </p>
+                                                ) : null}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex flex-wrap gap-1.5 sm:shrink-0 sm:justify-end">
+                                            <Badge variant="secondary">
+                                                {t('utilities.group.accounts', {
+                                                    count: group.accounts.length,
+                                                })}
+                                            </Badge>
+                                            <Badge variant="secondary">
+                                                {t('utilities.group.bills', {
+                                                    count: group.bills.length,
+                                                })}
+                                            </Badge>
+                                            {group.unpaidCount > 0 ? (
+                                                <Badge variant="outline">
+                                                    {t('utilities.group.unpaid', {
+                                                        count: group.unpaidCount,
+                                                    })}
+                                                </Badge>
+                                            ) : null}
+                                            {group.overdueCount > 0 ? (
                                                 <Badge
                                                     variant="outline"
-                                                    className={
-                                                        bill.overdue
-                                                            ? 'border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200'
-                                                            : bill.status ===
-                                                                'paid'
-                                                              ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200'
-                                                              : ''
-                                                    }
+                                                    className="border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-400/20 dark:bg-rose-400/10 dark:text-rose-200"
                                                 >
-                                                    {bill.overdue
-                                                        ? t(
-                                                              'utilities.overdue',
-                                                          )
-                                                        : bill.status ===
-                                                            'paid'
-                                                          ? t(
-                                                                'utilities.paid',
-                                                            )
-                                                          : t(
-                                                                'utilities.unpaid',
-                                                            )}
+                                                    {t('utilities.group.overdue', {
+                                                        count: group.overdueCount,
+                                                    })}
                                                 </Badge>
-                                            </div>
-                                            <p className="mt-1 text-sm text-muted-foreground">
-                                                {serviceLabel(
-                                                    bill.account.service_type,
-                                                    t,
-                                                )}{' '}
-                                                · {bill.property.name}
-                                                {bill.renter_name
-                                                    ? ` · ${bill.renter_name}`
-                                                    : ''}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex shrink-0 flex-wrap items-center gap-2">
-                                            {bill.document ? (
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    asChild
-                                                >
-                                                    <Link
-                                                        href={
-                                                            downloadDocument([
-                                                                teamSlug,
-                                                                bill.document
-                                                                    .id,
-                                                            ]).url
-                                                        }
-                                                    >
-                                                        <Download />
-                                                        {t(
-                                                            'utilities.downloadAttachment',
-                                                        )}
-                                                    </Link>
-                                                </Button>
                                             ) : null}
-                                            <Button
-                                                type="button"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                onClick={() => openBill(bill)}
-                                                aria-label={t(
-                                                    'utilities.bills.edit',
+                                        </div>
+                                    </summary>
+
+                                    <div className="border-t border-border/70 p-4 sm:p-5">
+                                        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
+                                            <div>
+                                                <h4 className="mb-3 text-sm font-semibold">
+                                                    {t('utilities.accounts.title')}
+                                                </h4>
+
+                                                {group.accounts.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {group.accounts.map(
+                                                            (account) => (
+                                                                <UtilityAccountCard
+                                                                    key={account.id}
+                                                                    account={account}
+                                                                    onEdit={openAccount}
+                                                                    onDelete={deleteAccount}
+                                                                />
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <p className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+                                                        {t('utilities.accounts.emptyTitle')}
+                                                    </p>
                                                 )}
-                                            >
-                                                <Pencil />
-                                            </Button>
-                                            <Button
-                                                type="button"
-                                                size="icon-sm"
-                                                variant="ghost"
-                                                onClick={() =>
-                                                    deleteBill(bill)
-                                                }
-                                                aria-label={t(
-                                                    'utilities.deleteBill',
+                                            </div>
+
+                                            <div>
+                                                <h4 className="mb-3 text-sm font-semibold">
+                                                    {t('utilities.bills.title')}
+                                                </h4>
+
+                                                {group.bills.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {group.bills.map(
+                                                            (bill) => (
+                                                                <UtilityBillCard
+                                                                    key={bill.id}
+                                                                    bill={bill}
+                                                                    teamSlug={teamSlug}
+                                                                    onEdit={openBill}
+                                                                    onDelete={deleteBill}
+                                                                />
+                                                            ),
+                                                        )}
+                                                    </div>
+                                                ) : (
+                                                    <p className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+                                                        {t('utilities.bills.emptyTitle')}
+                                                    </p>
                                                 )}
-                                            >
-                                                <Trash2 />
-                                            </Button>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t(
-                                                    'utilities.billingPeriod',
-                                                )}
-                                            </p>
-                                            <p className="mt-0.5 font-medium">
-                                                {formatDateLong(
-                                                    bill.billing_period_start,
-                                                )}{' '}
-                                                –{' '}
-                                                {formatDateLong(
-                                                    bill.billing_period_end,
-                                                )}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('utilities.dueDate')}
-                                            </p>
-                                            <p className="mt-0.5 flex items-center gap-1.5 font-medium">
-                                                <CalendarClock className="size-3.5 text-muted-foreground" />
-                                                {formatDateLong(bill.due_date)}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('utilities.amount')}
-                                            </p>
-                                            <p className="mt-0.5 font-semibold">
-                                                {formatMoney(
-                                                    bill.amount,
-                                                    bill.currency,
-                                                )}
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">
-                                                {t('utilities.attachment')}
-                                            </p>
-                                            <p className="mt-0.5 truncate font-medium">
-                                                {bill.document?.original_name ??
-                                                    '—'}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {bill.notes ? (
-                                        <p className="mt-3 text-xs text-muted-foreground">
-                                            {bill.notes}
-                                        </p>
-                                    ) : null}
-                                </article>
+                                </details>
                             ))}
                         </div>
                     )}
