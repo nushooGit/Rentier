@@ -91,7 +91,7 @@ export default function PasskeyRegistration({ onSuccess }: Props) {
                     autoFocus
                 />
                 <p className="text-xs text-muted-foreground">
-                    A name helps you identify this passkey later.
+                    {t('settings.passkeys.nameHelp')}
                 </p>
             </div>
 
