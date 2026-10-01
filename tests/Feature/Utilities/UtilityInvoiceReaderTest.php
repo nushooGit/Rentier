@@ -74,7 +74,7 @@ test('invoice reader rejects non PDF files before extraction', function () {
         ->assertStatus(422)
         ->assertJsonPath(
             'errors.attachment.0',
-            'Invoice Reader v1 currently accepts PDF invoices only.',
+            'Citirea automată v1 acceptă momentan doar facturi PDF.',
         );
 });
 
