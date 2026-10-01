@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
+    CalendarDays,
     FileText,
     FolderOpen,
     LayoutDashboard,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useI18n } from '@/lib/i18n';
 import { dashboard } from '@/routes';
+import { index as calendarIndex } from '@/routes/calendar';
 import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
@@ -38,6 +40,11 @@ export function AppSidebar() {
 
     const mainNavItems: NavItem[] = [
         { title: t('nav.dashboard'), href: dashboardUrl, icon: LayoutDashboard },
+        {
+            title: t('nav.calendar'),
+            href: page.props.currentTeam ? calendarIndex(page.props.currentTeam.slug) : '/',
+            icon: CalendarDays,
+        },
         {
             title: t('nav.properties'),
             href: page.props.currentTeam ? propertiesIndex(page.props.currentTeam.slug) : '/',

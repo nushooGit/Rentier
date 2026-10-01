@@ -144,6 +144,18 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByText('Who bears the cost?')).toBeVisible();
         await expect(page.getByText('Decontare')).toHaveCount(0);
 
+        await page.goto(`/${teamSlug}/calendar`);
+        await expect(
+            page.getByRole('heading', {
+                level: 2,
+                name: 'Calendar',
+                exact: true,
+            }),
+        ).toBeVisible();
+        await expect(
+            page.getByText('Rent due dates and lease changes in a monthly view.'),
+        ).toBeVisible();
+
         await page.goto(`/${teamSlug}/documents`);
         await expect(page.locator('#category')).toBeVisible();
         await expect(page.locator('#category')).toContainText('Lease contract');
@@ -259,6 +271,14 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page).toHaveURL(new RegExp(`/${teamSlug}/payments`));
         await expect(page.getByText(renterName).first()).toBeVisible();
 
+        await page.goto(
+            `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
+        );
+        await expect(page.getByText('Scadență chirie').first()).toBeVisible();
+        await expect(page.getByText(propertyName).first()).toBeVisible();
+        await expect(page.getByText(renterName).first()).toBeVisible();
+        await expect(page.getByText('Achitată').first()).toBeVisible();
+
         await page.goto(`/${teamSlug}/payments/create`);
         await selectOptionContaining(
             page,
@@ -297,6 +317,10 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.setViewportSize({ width: 1440, height: 1000 });
         for (const [name, path] of [
+            [
+                'calendar',
+                `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
+            ],
             ['properties', `/${teamSlug}/properties`],
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],
@@ -312,6 +336,10 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.setViewportSize({ width: 390, height: 844 });
         for (const [name, path] of [
+            [
+                'calendar',
+                `/${teamSlug}/calendar?month=${year}-${month.padStart(2, '0')}`,
+            ],
             ['properties', `/${teamSlug}/properties`],
             ['leases', `/${teamSlug}/leases`],
             ['payments', `/${teamSlug}/payments`],

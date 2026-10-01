@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\UserSuspensionController as AdminUserSuspensionCo
 use App\Http\Controllers\Admin\WorkspaceController as AdminWorkspaceController;
 use App\Http\Controllers\Admin\WorkspaceShowController as AdminWorkspaceShowController;
 use App\Http\Controllers\Admin\WorkspaceSuspensionController as AdminWorkspaceSuspensionController;
+use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ExpenseController;
@@ -71,6 +72,7 @@ Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', RejectAdminHost::class, EnsureTeamMembership::class])
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('calendar', CalendarController::class)->name('calendar.index');
         Route::resource('properties', PropertyController::class);
         Route::resource('leases', LeaseController::class);
         Route::resource('payments', RentPaymentController::class);

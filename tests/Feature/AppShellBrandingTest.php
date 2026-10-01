@@ -14,8 +14,10 @@ test('authenticated app shell uses Rentier branding and localized product naviga
         ->not->toContain('Laravel Starter Kit');
 
     expect($sidebar)
+        ->toContain("t('nav.calendar')")
         ->toContain("t('nav.payments')")
         ->toContain("t('nav.expenses')")
+        ->toContain("t('nav.documents')")
         ->not->toContain('laravel/react-starter-kit')
         ->not->toContain('laravel.com/docs');
 
@@ -29,14 +31,16 @@ test('authenticated app shell uses Rentier branding and localized product naviga
 
     expect($mobileNavigation)
         ->toContain("t('nav.home')")
+        ->toContain("t('nav.calendar')")
         ->toContain("t('nav.properties')")
         ->toContain("t('nav.leases')")
         ->toContain("t('nav.payments')")
         ->toContain("t('nav.expenses')")
-        ->toContain("t('nav.documents')");
+        ->not->toContain("t('nav.documents')");
 
     expect($translations)
         ->toContain("'app.tagline': 'Administrare chirii'")
+        ->toContain("'nav.calendar': 'Calendar'")
         ->toContain("'nav.payments': 'Încasări'")
         ->toContain("'nav.expenses': 'Costuri'")
         ->toContain("'nav.payments': 'Income'")

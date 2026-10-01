@@ -1,8 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
+    CalendarDays,
     FileText,
-    FolderOpen,
     LayoutDashboard,
     ReceiptText,
     WalletCards,
@@ -10,7 +10,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useI18n } from '@/lib/i18n';
 import { dashboard } from '@/routes';
-import { index as documentsIndex } from '@/routes/documents';
+import { index as calendarIndex } from '@/routes/calendar';
 import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
 import { index as paymentsIndex } from '@/routes/payments';
@@ -25,11 +25,11 @@ export function MobileBottomNav() {
 
     const items = [
         { label: t('nav.home'), href: dashboard(currentTeam.slug), icon: LayoutDashboard },
+        { label: t('nav.calendar'), href: calendarIndex(currentTeam.slug), icon: CalendarDays },
         { label: t('nav.properties'), href: propertiesIndex(currentTeam.slug), icon: Building2 },
         { label: t('nav.leases'), href: leasesIndex(currentTeam.slug), icon: FileText },
         { label: t('nav.payments'), href: paymentsIndex(currentTeam.slug), icon: WalletCards },
         { label: t('nav.expenses'), href: expensesIndex(currentTeam.slug), icon: ReceiptText },
-        { label: t('nav.documents'), href: documentsIndex(currentTeam.slug), icon: FolderOpen },
     ];
 
     return (
