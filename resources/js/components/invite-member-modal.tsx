@@ -20,6 +20,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useI18n } from '@/lib/i18n';
+import { teamRoleLabel } from '@/pages/teams/labels';
 import { store as storeInvitation } from '@/routes/teams/invitations';
 import type { RoleOption, Team } from '@/types';
 
@@ -37,6 +39,7 @@ export default function InviteMemberModal({
     onOpenChange,
 }: Props) {
     const [inviteRole, setInviteRole] = useState<RoleOption['value']>('member');
+    const { t } = useI18n();
 
     const handleOpenChange = (nextOpen: boolean) => {
         onOpenChange(nextOpen);
@@ -58,7 +61,7 @@ export default function InviteMemberModal({
                     {({ errors, processing }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Invite a team member</DialogTitle>
+                                <DialogTitle>{t('team.invite.title')}</DialogTitle>
                                 <DialogDescription>
                                     Send an invitation to join this team.
                                 </DialogDescription>
@@ -66,7 +69,7 @@ export default function InviteMemberModal({
 
                             <div className="grid gap-4">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                    <Label htmlFor="email">{t('team.invite.email')}</Label>
                                     <Input
                                         id="email"
                                         name="email"
@@ -79,7 +82,7 @@ export default function InviteMemberModal({
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="role">Role</Label>
+                                    <Label htmlFor="role">{t('team.invite.role')}</Label>
                                     <Select
                                         name="role"
                                         data-test="invite-role"
@@ -91,7 +94,7 @@ export default function InviteMemberModal({
                                         }
                                     >
                                         <SelectTrigger className="w-full">
-                                            <SelectValue placeholder="Select a role" />
+                                            <SelectValue placeholder={t('team.invite.chooseRole')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {availableRoles.map((role) => (
@@ -99,7 +102,7 @@ export default function InviteMemberModal({
                                                     key={role.value}
                                                     value={role.value}
                                                 >
-                                                    {role.label}
+                                                    {teamRoleLabel(role.value)}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -110,7 +113,7 @@ export default function InviteMemberModal({
 
                             <DialogFooter className="gap-2">
                                 <DialogClose asChild>
-                                    <Button variant="secondary">Cancel</Button>
+                                    <Button variant="secondary">{t('common.cancel')}</Button>
                                 </DialogClose>
 
                                 <Button
@@ -118,7 +121,7 @@ export default function InviteMemberModal({
                                     data-test="invite-submit"
                                     disabled={processing}
                                 >
-                                    Send invitation
+                                    {t('team.invite.submit')}
                                 </Button>
                             </DialogFooter>
                         </>
