@@ -234,7 +234,10 @@ test('members can leave non personal teams', function () {
         ->delete(route('teams.leave', $team));
 
     $response->assertRedirect(route('teams.index'));
-    $response->assertInertiaFlash('toast', ['type' => 'success', 'message' => "You left the team \"{$team->name}\""]);
+    $response->assertInertiaFlash('toast', [
+        'type' => 'success',
+        'message' => __('You left the workspace ":name"', ['name' => $team->name]),
+    ]);
 
     expect($member->fresh()->belongsToTeam($team))->toBeFalse();
 });
