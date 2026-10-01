@@ -15,6 +15,9 @@ use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\RentPaymentController;
+use App\Http\Controllers\UtilityAccountController;
+use App\Http\Controllers\UtilityBillController;
+use App\Http\Controllers\UtilityController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsurePlatformAdmin;
 use App\Http\Middleware\EnsureTeamMembership;
@@ -74,6 +77,13 @@ Route::prefix('{current_team}')
     ->group(function () {
         Route::get('dashboard', DashboardController::class)->name('dashboard');
         Route::get('calendar', CalendarController::class)->name('calendar.index');
+        Route::get('utilities', [UtilityController::class, 'index'])->name('utilities.index');
+        Route::post('utility-accounts', [UtilityAccountController::class, 'store'])->name('utility-accounts.store');
+        Route::put('utility-accounts/{utility_account}', [UtilityAccountController::class, 'update'])->name('utility-accounts.update');
+        Route::delete('utility-accounts/{utility_account}', [UtilityAccountController::class, 'destroy'])->name('utility-accounts.destroy');
+        Route::post('utility-bills', [UtilityBillController::class, 'store'])->name('utility-bills.store');
+        Route::put('utility-bills/{utility_bill}', [UtilityBillController::class, 'update'])->name('utility-bills.update');
+        Route::delete('utility-bills/{utility_bill}', [UtilityBillController::class, 'destroy'])->name('utility-bills.destroy');
         Route::post('reminders', [ReminderController::class, 'store'])->name('reminders.store');
         Route::put('reminders/{reminder}', [ReminderController::class, 'update'])->name('reminders.update');
         Route::patch('reminders/{reminder}/toggle-complete', [ReminderController::class, 'toggleComplete'])->name('reminders.toggle-complete');
