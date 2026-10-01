@@ -83,7 +83,7 @@ class SaveUtilityAccountRequest extends FormRequest
                 && ! $this->filled('lease_id')) {
                 $validator->errors()->add(
                     'lease_id',
-                    __('A renter-responsible utility account must be linked to a lease.'),
+                    __('validation.custom.utility_account.lease_required_for_renter'),
                 );
 
                 return;
@@ -101,7 +101,7 @@ class SaveUtilityAccountRequest extends FormRequest
             if ($lease && $lease->property_id !== $this->integer('property_id')) {
                 $validator->errors()->add(
                     'lease_id',
-                    __('The selected lease does not belong to the selected property.'),
+                    __('validation.custom.utility_account.lease_property_mismatch'),
                 );
             }
         });
