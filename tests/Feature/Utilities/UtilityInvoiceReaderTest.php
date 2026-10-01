@@ -29,8 +29,7 @@ TEXT;
 
     $response = $this
         ->actingAs($user)
-        ->withHeaders(['Accept' => 'application/json'])
-        ->post(
+        ->postJson(
             route('utility-bills.analyze', $team),
             [
                 'attachment' => UploadedFile::fake()->create(
@@ -60,8 +59,7 @@ test('invoice reader rejects non PDF files before extraction', function () {
 
     $this
         ->actingAs($user)
-        ->withHeaders(['Accept' => 'application/json'])
-        ->post(
+        ->postJson(
             route('utility-bills.analyze', $team),
             [
                 'attachment' => UploadedFile::fake()->create(
@@ -94,8 +92,7 @@ test('invoice reader returns a safe localized error when embedded text cannot be
 
     $this
         ->actingAs($user)
-        ->withHeaders(['Accept' => 'application/json'])
-        ->post(
+        ->postJson(
             route('utility-bills.analyze', $team),
             [
                 'attachment' => UploadedFile::fake()->create(
@@ -118,8 +115,7 @@ test('invoice reader is unavailable outside the requested workspace', function (
 
     $response = $this
         ->actingAs($user)
-        ->withHeaders(['Accept' => 'application/json'])
-        ->post(
+        ->postJson(
             route('utility-bills.analyze', $otherTeam),
             [
                 'attachment' => UploadedFile::fake()->create(
