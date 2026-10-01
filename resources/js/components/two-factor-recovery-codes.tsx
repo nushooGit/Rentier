@@ -10,6 +10,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { useI18n } from '@/lib/i18n';
 import { regenerateRecoveryCodes } from '@/routes/two-factor';
 
 type Props = {
@@ -24,6 +25,7 @@ export default function TwoFactorRecoveryCodes({
     errors,
 }: Props) {
     const [codesAreVisible, setCodesAreVisible] = useState<boolean>(false);
+    const { t } = useI18n();
     const codesSectionRef = useRef<HTMLDivElement | null>(null);
     const canRegenerateCodes = recoveryCodesList.length > 0 && codesAreVisible;
 
@@ -57,7 +59,7 @@ export default function TwoFactorRecoveryCodes({
             <CardHeader>
                 <CardTitle className="flex gap-3">
                     <LockKeyhole className="size-4" aria-hidden="true" />
-                    2FA recovery codes
+                    {t('settings.twoFactor.recoveryTitle')}
                 </CardTitle>
                 <CardDescription>
                     Recovery codes let you regain access if you lose your 2FA
@@ -76,7 +78,9 @@ export default function TwoFactorRecoveryCodes({
                             className="size-4"
                             aria-hidden="true"
                         />
-                        {codesAreVisible ? 'Hide' : 'View'} recovery codes
+                        {codesAreVisible
+                            ? t('settings.twoFactor.hideRecovery')
+                            : t('settings.twoFactor.viewRecovery')}
                     </Button>
 
                     {canRegenerateCodes && (
@@ -92,7 +96,7 @@ export default function TwoFactorRecoveryCodes({
                                     disabled={processing}
                                     aria-describedby="regenerate-warning"
                                 >
-                                    <RefreshCw /> Regenerate codes
+                                    <RefreshCw /> {t('settings.twoFactor.regenerateRecovery')}
                                 </Button>
                             )}
                         </Form>
@@ -112,7 +116,7 @@ export default function TwoFactorRecoveryCodes({
                                     ref={codesSectionRef}
                                     className="grid gap-1 rounded-lg bg-muted p-4 font-mono text-sm"
                                     role="list"
-                                    aria-label="Recovery codes"
+                                    aria-label={t('settings.twoFactor.recoveryAria')}
                                 >
                                     {recoveryCodesList.length ? (
                                         recoveryCodesList.map((code, index) => (
@@ -127,7 +131,7 @@ export default function TwoFactorRecoveryCodes({
                                     ) : (
                                         <div
                                             className="space-y-2"
-                                            aria-label="Loading recovery codes"
+                                            aria-label={t('settings.twoFactor.loadingRecoveryAria')}
                                         >
                                             {Array.from(
                                                 { length: 8 },
