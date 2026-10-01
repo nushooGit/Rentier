@@ -8,7 +8,6 @@ use App\Models\Team;
 use App\Services\Utilities\UtilityInvoiceReader;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Validation\ValidationException;
 
 class UtilityBillReaderController extends Controller
 {
@@ -26,9 +25,14 @@ class UtilityBillReaderController extends Controller
         try {
             $result = $reader->read($attachment);
         } catch (InvoiceTextExtractionException) {
-            throw ValidationException::withMessages([
-                'attachment' => __('validation.utility_invoice_reader.unreadable'),
-            ]);
+            $message = __('validation.utility_invoice_reader.unreadable');
+
+            return response()->json([
+                'message' => $message,
+                'errors' => [
+                    'attachment' => [$message],
+                ],
+            ], 422);
         }
 
         return response()->json($result);
