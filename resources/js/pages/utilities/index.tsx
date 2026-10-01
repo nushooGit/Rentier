@@ -474,17 +474,24 @@ function BillDialog({
     bill,
     accounts,
     teamSlug,
+    initialAccountId,
+    initialAttachment,
 }: {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     bill: UtilityBillItem | null;
     accounts: UtilityAccountItem[];
     teamSlug: string;
+    initialAccountId?: number | null;
+    initialAttachment?: File | null;
 }) {
     const { locale, t } = useI18n();
     const today = localToday();
     const form = useForm<BillFormData>({
-        utility_account_id: bill?.utility_account_id.toString() ?? '',
+        utility_account_id:
+            bill?.utility_account_id.toString() ??
+            initialAccountId?.toString() ??
+            '',
         invoice_number: bill?.invoice_number ?? '',
         billing_period_start:
             bill?.billing_period_start ?? localMonthStart(),
@@ -496,9 +503,11 @@ function BillDialog({
         status: bill?.status ?? 'unpaid',
         paid_on: bill?.paid_on ?? '',
         notes: bill?.notes ?? '',
-        attachment: null,
+        attachment: bill ? null : (initialAttachment ?? null),
     });
-    const [fileName, setFileName] = useState<string | null>(null);
+    const [fileName, setFileName] = useState<string | null>(
+        bill ? null : (initialAttachment?.name ?? null),
+    );
 
     const close = () => {
         form.clearErrors();
@@ -1081,6 +1090,136 @@ function UtilityBillCard({
     );
 }
 
+function UtilityAccountBills({
+    account,
+    bills,
+    teamSlug,
+    onCreateBill,
+    onUploadBill,
+    onEditBill,
+    onDeleteBill,
+}: {
+    account: UtilityAccountItem;
+    bills: UtilityBillItem[];
+    teamSlug: string;
+    onCreateBill: (account: UtilityAccountItem) => void;
+    onUploadBill: (account: UtilityAccountItem, file: File) => void;
+    onEditBill: (bill: UtilityBillItem) => void;
+    onDeleteBill: (bill: UtilityBillItem) => void;
+}) {
+    const { t } = useI18n();
+    const [dragActive, setDragActive] = useState(false);
+    const inputId = `utility-bill-upload-${account.id}`;
+
+    const selectFile = (file: File | null) => {
+        if (file) {
+            onUploadBill(account, file);
+        }
+    };
+
+    return (
+        <section
+            className="rounded-2xl border border-border/70 bg-background/35 p-4"
+            data-test="utility-account-bills"
+        >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h4 className="text-sm font-semibold">
+                        {t('utilities.bills.forAccount', {
+                            provider: account.provider_name,
+                        })}
+                    </h4>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                        {serviceLabel(account.service_type, t)}
+                    </p>
+                </div>
+                <Badge variant="outline">
+                    {t('utilities.group.bills', { count: bills.length })}
+                </Badge>
+            </div>
+
+            {bills.length > 0 ? (
+                <div className="mt-4 space-y-3">
+                    {bills.map((bill) => (
+                        <UtilityBillCard
+                            key={bill.id}
+                            bill={bill}
+                            teamSlug={teamSlug}
+                            onEdit={onEditBill}
+                            onDelete={onDeleteBill}
+                        />
+                    ))}
+                </div>
+            ) : (
+                <p className="mt-4 rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+                    {t('utilities.bills.emptyTitle')}
+                </p>
+            )}
+
+            <div className="mt-4 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => onCreateBill(account)}
+                    data-test="utility-account-add-bill-button"
+                >
+                    <Plus />
+                    {t('utilities.bills.addForAccount')}
+                </Button>
+
+                <label
+                    htmlFor={inputId}
+                    className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-dashed px-3 py-2 transition ${
+                        dragActive
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border bg-muted/15 hover:bg-muted/30'
+                    }`}
+                    onDragEnter={(event) => {
+                        event.preventDefault();
+                        setDragActive(true);
+                    }}
+                    onDragOver={(event) => {
+                        event.preventDefault();
+                        setDragActive(true);
+                    }}
+                    onDragLeave={(event) => {
+                        event.preventDefault();
+                        setDragActive(false);
+                    }}
+                    onDrop={(event) => {
+                        event.preventDefault();
+                        setDragActive(false);
+                        selectFile(event.dataTransfer.files?.[0] ?? null);
+                    }}
+                    data-test="utility-account-dropzone"
+                >
+                    <Upload className="size-4 shrink-0 text-primary" />
+                    <span className="min-w-0">
+                        <span className="block text-sm font-medium">
+                            {t('utilities.dropzone.title')}
+                        </span>
+                        <span className="block text-xs text-muted-foreground">
+                            {t('utilities.dropzone.description')}
+                        </span>
+                    </span>
+                </label>
+                <input
+                    id={inputId}
+                    type="file"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp"
+                    className="sr-only"
+                    onChange={(event) => {
+                        const file = event.currentTarget.files?.[0] ?? null;
+                        selectFile(file);
+                        event.currentTarget.value = '';
+                    }}
+                    data-test="utility-account-upload-input"
+                />
+            </div>
+        </section>
+    );
+}
+
 export default function UtilitiesIndex({
     accounts,
     bills,
@@ -1098,6 +1237,13 @@ export default function UtilitiesIndex({
         useState<UtilityAccountItem | null>(null);
     const [editingBill, setEditingBill] =
         useState<UtilityBillItem | null>(null);
+    const [newBillAccountId, setNewBillAccountId] = useState<number | null>(
+        null,
+    );
+    const [newBillAttachment, setNewBillAttachment] = useState<File | null>(
+        null,
+    );
+    const [billDialogNonce, setBillDialogNonce] = useState(0);
 
     const propertyGroups = useMemo(
         () =>
@@ -1141,10 +1287,26 @@ export default function UtilitiesIndex({
 
     const openNewBill = () => {
         setEditingBill(null);
+        setNewBillAccountId(null);
+        setNewBillAttachment(null);
+        setBillDialogNonce((nonce) => nonce + 1);
+        setBillDialogOpen(true);
+    };
+
+    const openNewBillForAccount = (
+        account: UtilityAccountItem,
+        attachment: File | null = null,
+    ) => {
+        setEditingBill(null);
+        setNewBillAccountId(account.id);
+        setNewBillAttachment(attachment);
+        setBillDialogNonce((nonce) => nonce + 1);
         setBillDialogOpen(true);
     };
 
     const openBill = (bill: UtilityBillItem) => {
+        setNewBillAccountId(null);
+        setNewBillAttachment(null);
         setEditingBill(bill);
         setBillDialogOpen(true);
     };
@@ -1337,58 +1499,44 @@ export default function UtilitiesIndex({
                                     </summary>
 
                                     <div className="border-t border-border/70 p-4 sm:p-5">
-                                        <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
-                                            <div>
-                                                <h4 className="mb-3 text-sm font-semibold">
-                                                    {t('utilities.accounts.title')}
-                                                </h4>
-
-                                                {group.accounts.length > 0 ? (
-                                                    <div className="space-y-3">
-                                                        {group.accounts.map(
-                                                            (account) => (
-                                                                <UtilityAccountCard
-                                                                    key={account.id}
-                                                                    account={account}
-                                                                    onEdit={openAccount}
-                                                                    onDelete={deleteAccount}
-                                                                />
-                                                            ),
-                                                        )}
+                                        {group.accounts.length > 0 ? (
+                                            <div className="space-y-4">
+                                                {group.accounts.map((account) => (
+                                                    <div
+                                                        key={account.id}
+                                                        className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]"
+                                                        data-test="utility-account-section"
+                                                    >
+                                                        <UtilityAccountCard
+                                                            account={account}
+                                                            onEdit={openAccount}
+                                                            onDelete={deleteAccount}
+                                                        />
+                                                        <UtilityAccountBills
+                                                            account={account}
+                                                            bills={group.bills.filter(
+                                                                (bill) =>
+                                                                    bill.utility_account_id ===
+                                                                    account.id,
+                                                            )}
+                                                            teamSlug={teamSlug}
+                                                            onCreateBill={
+                                                                openNewBillForAccount
+                                                            }
+                                                            onUploadBill={
+                                                                openNewBillForAccount
+                                                            }
+                                                            onEditBill={openBill}
+                                                            onDeleteBill={deleteBill}
+                                                        />
                                                     </div>
-                                                ) : (
-                                                    <p className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
-                                                        {t('utilities.accounts.emptyTitle')}
-                                                    </p>
-                                                )}
+                                                ))}
                                             </div>
-
-                                            <div>
-                                                <h4 className="mb-3 text-sm font-semibold">
-                                                    {t('utilities.bills.title')}
-                                                </h4>
-
-                                                {group.bills.length > 0 ? (
-                                                    <div className="space-y-3">
-                                                        {group.bills.map(
-                                                            (bill) => (
-                                                                <UtilityBillCard
-                                                                    key={bill.id}
-                                                                    bill={bill}
-                                                                    teamSlug={teamSlug}
-                                                                    onEdit={openBill}
-                                                                    onDelete={deleteBill}
-                                                                />
-                                                            ),
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <p className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
-                                                        {t('utilities.bills.emptyTitle')}
-                                                    </p>
-                                                )}
-                                            </div>
-                                        </div>
+                                        ) : (
+                                            <p className="rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+                                                {t('utilities.accounts.emptyTitle')}
+                                            </p>
+                                        )}
                                     </div>
                                 </details>
                             ))}
@@ -1415,13 +1563,15 @@ export default function UtilitiesIndex({
                 key={
                     editingBill
                         ? `bill-${editingBill.id}`
-                        : `bill-new-${billDialogOpen ? 'open' : 'closed'}`
+                        : `bill-new-${billDialogNonce}`
                 }
                 open={billDialogOpen}
                 onOpenChange={setBillDialogOpen}
                 bill={editingBill}
                 accounts={accounts}
                 teamSlug={teamSlug}
+                initialAccountId={newBillAccountId}
+                initialAttachment={newBillAttachment}
             />
         </>
     );
