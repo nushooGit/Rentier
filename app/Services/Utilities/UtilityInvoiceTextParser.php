@@ -17,8 +17,10 @@ class UtilityInvoiceTextParser
         $text = $this->normalizeText($text);
 
         $invoiceNumber = $this->matchFirst($text, [
-            '/\b(?:factur(?:a|ă)\s*(?:nr\.?|num[aă]r(?:ul)?|seria)?|nr\.?\s*factur(?:a|ă))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
-            '/\binvoice\s*(?:no\.?|number)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|seria)|nr\.?\s*factur(?:a|ă))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\bfactur(?:a|ă)\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+            '/\binvoice\s+(?:no\.?|number)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\binvoice\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
         ]);
 
         $issueDate = $this->matchDate($text, [
@@ -151,7 +153,7 @@ class UtilityInvoiceTextParser
             return [null, null];
         }
 
-        $amount = $this->normalizeAmount((string) ($matches[1] ?? ''));
+        $amount = $this->normalizeAmount((string) $matches[1]);
 
         if ($amount === null) {
             return [null, null];
