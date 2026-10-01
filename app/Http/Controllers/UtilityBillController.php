@@ -121,6 +121,14 @@ class UtilityBillController extends Controller
                     : null,
                 'notes' => $request->validated('notes'),
             ]);
+
+            if ($newDocument === null && $oldDocument) {
+                $oldDocument->update([
+                    'property_id' => $account->property_id,
+                    'lease_id' => $account->lease_id,
+                    'document_date' => $request->validated('issue_date'),
+                ]);
+            }
         } catch (Throwable $exception) {
             if ($newDocument) {
                 Storage::disk($newDocument->disk)->delete($newDocument->path);
