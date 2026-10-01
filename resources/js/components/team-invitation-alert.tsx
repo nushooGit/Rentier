@@ -1,5 +1,6 @@
 import { InfoIcon } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useI18n } from '@/lib/i18n';
 import type { TeamInvitationContext } from '@/types';
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
 };
 
 export default function TeamInvitationAlert({ invitation, action }: Props) {
+    const { t } = useI18n();
+
     return (
         <Alert
             data-test="team-invitation-alert"
@@ -15,8 +18,12 @@ export default function TeamInvitationAlert({ invitation, action }: Props) {
         >
             <InfoIcon />
             <AlertDescription className="text-blue-900 dark:text-blue-100">
-                {action === 'Log in' ? 'Autentifică-te' : 'Înregistrează-te'} pentru
-                a te alătura workspace-ului "{invitation.teamName}".
+                {t(
+                    action === 'Log in'
+                        ? 'auth.invitation.login'
+                        : 'auth.invitation.register',
+                    { team: invitation.teamName },
+                )}
             </AlertDescription>
         </Alert>
     );
