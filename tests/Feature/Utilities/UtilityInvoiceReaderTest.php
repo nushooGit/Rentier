@@ -71,8 +71,11 @@ test('invoice reader rejects non PDF files before extraction', function () {
             ],
             ['Accept' => 'application/json'],
         )
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('attachment');
+        ->assertStatus(422)
+        ->assertJsonPath(
+            'errors.attachment.0',
+            'Invoice Reader v1 currently accepts PDF invoices only.',
+        );
 });
 
 test('invoice reader returns a safe localized error when embedded text cannot be extracted', function () {
@@ -102,8 +105,7 @@ test('invoice reader returns a safe localized error when embedded text cannot be
             ],
             ['Accept' => 'application/json'],
         )
-        ->assertUnprocessable()
-        ->assertJsonValidationErrors('attachment')
+        ->assertStatus(422)
         ->assertJsonPath(
             'errors.attachment.0',
             'Nu am putut extrage text suficient din acest PDF. Poți completa factura manual; scanările și pozele vor fi tratate într-un pas OCR separat.',
