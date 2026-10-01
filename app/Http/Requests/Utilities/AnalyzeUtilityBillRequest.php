@@ -39,10 +39,10 @@ class AnalyzeUtilityBillRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'attachment.required' => __('validation.custom.utility_bill.reader.required'),
-            'attachment.file' => __('validation.custom.utility_bill.reader.file'),
-            'attachment.mimes' => __('validation.custom.utility_bill.reader.mimes'),
-            'attachment.max' => __('validation.custom.utility_bill.reader.max'),
+            'attachment.required' => __('validation.utility_invoice_reader.required'),
+            'attachment.file' => __('validation.utility_invoice_reader.file'),
+            'attachment.mimes' => __('validation.utility_invoice_reader.mimes'),
+            'attachment.max' => __('validation.utility_invoice_reader.max'),
         ];
     }
 }
