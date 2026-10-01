@@ -2,7 +2,6 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import {
     CalendarClock,
     Download,
-    FileText,
     Pencil,
     Plus,
     ReceiptText,
@@ -28,7 +27,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { formatDateLong } from '@/lib/date';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { formatMoney } from '@/lib/money';
 import { download as downloadDocument } from '@/routes/documents';
 import {
@@ -116,7 +115,20 @@ function serviceLabel(
     service: UtilityServiceType,
     t: ReturnType<typeof useI18n>['t'],
 ) {
-    return t(`utilities.service.${service}`);
+    const keys: Record<
+        UtilityServiceType,
+        Parameters<typeof t>[0]
+    > = {
+        electricity: 'utilities.service.electricity',
+        gas: 'utilities.service.gas',
+        water: 'utilities.service.water',
+        heating: 'utilities.service.heating',
+        internet: 'utilities.service.internet',
+        sanitation: 'utilities.service.sanitation',
+        other: 'utilities.service.other',
+    };
+
+    return t(keys[service]);
 }
 
 function AccountDialog({
@@ -1358,7 +1370,7 @@ UtilitiesIndex.layout = (props: {
 }) => ({
     breadcrumbs: [
         {
-            title: 'Utilities',
+            title: translateKey('nav.utilities'),
             href: props.currentTeam ? utilitiesIndex(props.currentTeam.slug) : '/',
         },
     ],
