@@ -51,8 +51,7 @@ export default function PendingInvitationsModal({
                 <DialogHeader>
                     <DialogTitle>{t('team.pending.title')}</DialogTitle>
                     <DialogDescription>
-                        Accept or decline the teams you have been invited to
-                        join.
+                        {t('team.pending.description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -68,8 +67,9 @@ export default function PendingInvitationsModal({
                                     {invitation.team.name}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    {invitation.inviterName} invited you to join
-                                    this team.
+                                    {t('team.pending.invitedBy', {
+                                        name: invitation.inviterName,
+                                    })}
                                 </p>
                             </div>
 
