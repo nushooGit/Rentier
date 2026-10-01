@@ -12,6 +12,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { workspaceRoleLabel } from '@/pages/teams/labels';
 import { edit, index } from '@/routes/teams';
 import type { Team } from '@/types';
 
@@ -20,6 +22,7 @@ type Props = {
 };
 
 export default function TeamsIndex({ teams }: Props) {
+    const { t } = useI18n();
     const [leaveTeamDialogOpen, setLeaveTeamDialogOpen] = useState(false);
     const [teamLeaving, setTeamLeaving] = useState<Team | null>(null);
 
@@ -30,21 +33,21 @@ export default function TeamsIndex({ teams }: Props) {
 
     return (
         <>
-            <Head title="Teams" />
+            <Head title={t('workspaces.index.title')} />
 
-            <h1 className="sr-only">Teams</h1>
+            <h1 className="sr-only">{t('workspaces.index.title')}</h1>
 
-            <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
-                        title="Teams"
-                        description="Manage your teams and team memberships"
+                        title={t('workspaces.index.title')}
+                        description={t('workspaces.index.description')}
                     />
 
                     <CreateTeamModal>
                         <Button data-test="teams-new-team-button">
-                            <Plus /> New team
+                            <Plus /> {t('workspaces.index.new')}
                         </Button>
                     </CreateTeamModal>
                 </div>
@@ -58,7 +61,7 @@ export default function TeamsIndex({ teams }: Props) {
                             <div
                                 key={team.id}
                                 data-test="team-row"
-                                className="flex items-center justify-between gap-4 rounded-lg border p-4"
+                                className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
                             >
                                 <div className="flex items-center gap-4">
                                     <div>
@@ -68,12 +71,14 @@ export default function TeamsIndex({ teams }: Props) {
                                             </span>
                                             {team.isPersonal ? (
                                                 <Badge variant="secondary">
-                                                    Personal
+                                                    {t('workspaces.index.personal')}
                                                 </Badge>
                                             ) : null}
                                         </div>
                                         <span className="text-sm text-muted-foreground">
-                                            {team.roleLabel}
+                                            {team.role
+                                                ? workspaceRoleLabel(team.role)
+                                                : team.roleLabel}
                                         </span>
                                     </div>
                                 </div>
@@ -97,7 +102,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Leave team</p>
+                                                    <p>{t('workspaces.index.leave')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : null}
@@ -121,7 +126,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>View team</p>
+                                                    <p>{t('workspaces.index.view')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (
@@ -143,7 +148,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Edit team</p>
+                                                    <p>{t('workspaces.index.edit')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         )}
@@ -154,9 +159,9 @@ export default function TeamsIndex({ teams }: Props) {
                     })}
 
                     {teams.length === 0 ? (
-                        <p className="py-8 text-center text-muted-foreground">
-                            You don't belong to any teams yet.
-                        </p>
+                        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-muted-foreground shadow-sm">
+                            {t('workspaces.index.empty')}
+                        </div>
                     ) : null}
                 </div>
             </div>
@@ -173,7 +178,7 @@ export default function TeamsIndex({ teams }: Props) {
 TeamsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Teams',
+            title: translateKey('workspaces.index.title'),
             href: index(),
         },
     ],

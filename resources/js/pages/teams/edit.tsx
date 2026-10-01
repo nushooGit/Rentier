@@ -25,6 +25,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { workspaceRoleLabel } from '@/pages/teams/labels';
 import { edit, index, update } from '@/routes/teams';
 import { update as updateMember } from '@/routes/teams/members';
 import type {
@@ -51,6 +53,7 @@ export default function TeamEdit({
     availableRoles,
 }: Props) {
     const getInitials = useInitials();
+    const { t } = useI18n();
 
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -66,9 +69,9 @@ export default function TeamEdit({
     const pageTitle = useMemo(
         () =>
             permissions.canUpdateTeam
-                ? `Edit ${team.name}`
-                : `View ${team.name}`,
-        [permissions.canUpdateTeam, team.name],
+                ? t('workspaces.edit.editTitle', { name: team.name })
+                : t('workspaces.edit.viewTitle', { name: team.name }),
+        [permissions.canUpdateTeam, t, team.name],
     );
 
     const updateMemberRole = (member: TeamMember, newRole: string) => {
@@ -94,14 +97,14 @@ export default function TeamEdit({
 
             <h1 className="sr-only">{pageTitle}</h1>
 
-            <div className="flex flex-col space-y-10">
-                <div className="space-y-6">
+            <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-5 p-3 sm:p-5 lg:p-6">
+                <div className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     {permissions.canUpdateTeam ? (
                         <>
                             <Heading
                                 variant="small"
-                                title="Team settings"
-                                description="Update your team name and settings"
+                                title={t('workspaces.edit.settingsTitle')}
+                                description={t('workspaces.edit.settingsDescription')}
                             />
 
                             <Form
@@ -112,7 +115,7 @@ export default function TeamEdit({
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="name">
-                                                Team name
+                                                {t('workspaces.edit.name')}
                                             </Label>
                                             <Input
                                                 id="name"
@@ -130,7 +133,7 @@ export default function TeamEdit({
                                                 data-test="team-save-button"
                                                 disabled={processing}
                                             >
-                                                Save
+                                                {t('common.save')}
                                             </Button>
                                         </div>
                                     </>
@@ -144,14 +147,14 @@ export default function TeamEdit({
                     )}
                 </div>
 
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
+                <div className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                         <Heading
                             variant="small"
-                            title="Team members"
+                            title={t('workspaces.edit.members')}
                             description={
                                 permissions.canCreateInvitation
-                                    ? 'Manage who belongs to this team'
+                                    ? t('workspaces.edit.membersDescription')
                                     : ''
                             }
                         />
@@ -161,7 +164,7 @@ export default function TeamEdit({
                                 data-test="invite-member-button"
                                 onClick={() => setInviteDialogOpen(true)}
                             >
-                                <UserPlus /> Invite member
+                                <UserPlus /> {t('workspaces.edit.inviteMember')}
                             </Button>
                         ) : null}
                     </div>
@@ -171,7 +174,7 @@ export default function TeamEdit({
                             <div
                                 key={member.id}
                                 data-test="member-row"
-                                className="flex items-center justify-between rounded-lg border p-4"
+                                className="flex flex-col gap-3 rounded-xl border border-border/70 bg-background/55 p-4 sm:flex-row sm:items-center sm:justify-between"
                             >
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-10 w-10">
@@ -205,7 +208,7 @@ export default function TeamEdit({
                                                     size="sm"
                                                     data-test="member-role-trigger"
                                                 >
-                                                    {member.role_label}
+                                                    {workspaceRoleLabel(member.role)}
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -221,14 +224,14 @@ export default function TeamEdit({
                                                             )
                                                         }
                                                     >
-                                                        {role.label}
+                                                        {workspaceRoleLabel(role.value)}
                                                     </DropdownMenuItem>
                                                 ))}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     ) : (
                                         <Badge variant="secondary">
-                                            {member.role_label}
+                                            {workspaceRoleLabel(member.role)}
                                         </Badge>
                                     )}
 
@@ -251,7 +254,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Remove member</p>
+                                                    <p>{t('workspaces.edit.removeMember')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -263,11 +266,11 @@ export default function TeamEdit({
                 </div>
 
                 {invitations.length > 0 ? (
-                    <div className="space-y-6">
+                    <div className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                         <Heading
                             variant="small"
-                            title="Pending invitations"
-                            description="Invitations that haven't been accepted yet"
+                            title={t('workspaces.edit.pendingInvitations')}
+                            description={t('workspaces.edit.pendingDescription')}
                         />
 
                         <div className="space-y-3">
@@ -275,7 +278,7 @@ export default function TeamEdit({
                                 <div
                                     key={invitation.code}
                                     data-test="invitation-row"
-                                    className="flex items-center justify-between rounded-lg border p-4"
+                                    className="mt-3 flex flex-col gap-3 rounded-xl border border-border/70 bg-background/55 p-4 sm:flex-row sm:items-center sm:justify-between"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -286,7 +289,7 @@ export default function TeamEdit({
                                                 {invitation.email}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {invitation.role_label}
+                                                {workspaceRoleLabel(invitation.role)}
                                             </div>
                                         </div>
                                     </div>
@@ -309,7 +312,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Cancel invitation</p>
+                                                    <p>{t('workspaces.edit.cancelInvitation')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -321,18 +324,17 @@ export default function TeamEdit({
                 ) : null}
 
                 {permissions.canDeleteTeam && !team.isPersonal ? (
-                    <div className="space-y-6">
+                    <div className="rounded-2xl border border-red-200/80 bg-red-50/80 p-4 shadow-sm dark:border-red-300/15 dark:bg-red-400/10 sm:p-5">
                         <Heading
                             variant="small"
-                            title="Delete team"
-                            description="Permanently delete your team"
+                            title={t('workspaces.edit.deleteTitle')}
+                            description={t('workspaces.edit.deleteDescription')}
                         />
-                        <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
-                            <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                                <p className="font-medium">Warning</p>
+                        <div className="mt-4 space-y-4">
+                            <div className="relative space-y-0.5 text-red-700 dark:text-red-100">
+                                <p className="font-medium">{t('workspaces.edit.warning')}</p>
                                 <p className="text-sm">
-                                    Please proceed with caution, this cannot be
-                                    undone.
+                                    {t('workspaces.edit.warningDescription')}
                                 </p>
                             </div>
                             <Button
@@ -340,7 +342,7 @@ export default function TeamEdit({
                                 data-test="delete-team-button"
                                 onClick={() => setDeleteDialogOpen(true)}
                             >
-                                Delete team
+                                {t('workspaces.edit.deleteAction')}
                             </Button>
                         </div>
                     </div>
@@ -384,7 +386,7 @@ export default function TeamEdit({
 TeamEdit.layout = (props: { team: { name: string; slug: string } }) => ({
     breadcrumbs: [
         {
-            title: 'Teams',
+            title: translateKey('workspaces.index.title'),
             href: index(),
         },
         {

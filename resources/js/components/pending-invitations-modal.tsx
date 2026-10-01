@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import type { DashboardInvitation } from '@/types';
 
 type Props = {
@@ -22,6 +23,7 @@ export default function PendingInvitationsModal({
     open,
     onOpenChange,
 }: Props) {
+    const { t } = useI18n();
     const [processingCode, setProcessingCode] = useState<string | null>(null);
 
     const acceptInvitation = (invitation: DashboardInvitation) => {
@@ -47,10 +49,9 @@ export default function PendingInvitationsModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent data-test="pending-invitations-modal">
                 <DialogHeader>
-                    <DialogTitle>Pending team invitations</DialogTitle>
+                    <DialogTitle>{t('workspaces.pending.title')}</DialogTitle>
                     <DialogDescription>
-                        Accept or decline the teams you have been invited to
-                        join.
+                        {t('workspaces.pending.description')}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -59,15 +60,16 @@ export default function PendingInvitationsModal({
                         <div
                             key={invitation.code}
                             data-test="pending-invitation-row"
-                            className="rounded-lg border p-4"
+                            className="rounded-xl border border-border/70 bg-muted/25 p-4"
                         >
                             <div className="space-y-1">
                                 <p className="font-medium">
                                     {invitation.team.name}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    {invitation.inviterName} invited you to join
-                                    this team.
+                                    {t('workspaces.pending.invitedBy', {
+                                        name: invitation.inviterName,
+                                    })}
                                 </p>
                             </div>
 
@@ -82,7 +84,7 @@ export default function PendingInvitationsModal({
                                         declineInvitation(invitation)
                                     }
                                 >
-                                    Decline
+                                    {t('workspaces.pending.decline')}
                                 </Button>
 
                                 <Button
@@ -92,7 +94,7 @@ export default function PendingInvitationsModal({
                                     }
                                     onClick={() => acceptInvitation(invitation)}
                                 >
-                                    Accept
+                                    {t('workspaces.pending.accept')}
                                 </Button>
                             </div>
                         </div>

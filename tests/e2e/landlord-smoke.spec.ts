@@ -81,6 +81,18 @@ test.describe('authenticated landlord smoke', () => {
 
         const teamSlug = currentTeamSlug(page);
 
+        await page.goto('/settings/teams');
+        await expect(
+            page.getByRole('heading', {
+                name: 'Workspaces',
+                exact: true,
+            }),
+        ).toBeVisible();
+        await expect(page.getByText('Teams', { exact: true })).toHaveCount(0);
+        await expect(
+            page.getByText('Manage your workspaces and member access.'),
+        ).toBeVisible();
+
         await page.goto(`/${teamSlug}/properties/create`);
         await expect(page.getByText('Property name')).toBeVisible();
         await page.getByTestId('property-name-input').fill(propertyName);
