@@ -63,7 +63,7 @@ export default function InviteMemberModal({
                             <DialogHeader>
                                 <DialogTitle>{t('team.invite.title')}</DialogTitle>
                                 <DialogDescription>
-                                    Send an invitation to join this team.
+                                    {t('team.invite.description')}
                                 </DialogDescription>
                             </DialogHeader>
 
