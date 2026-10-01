@@ -60,5 +60,18 @@ return [
             'lease_required_for_renter' => 'Pentru un cont suportat de chiriaș trebuie ales un contract.',
             'lease_property_mismatch' => 'Contractul selectat nu aparține proprietății selectate.',
         ],
+        'utility_bill' => [
+            'amount' => [
+                'regex' => 'Suma trebuie să fie un număr valid, cu maximum 2 zecimale.',
+            ],
+            'currency' => [
+                'regex' => 'Moneda trebuie să fie un cod valid din 3 litere, de exemplu RON.',
+            ],
+            'attachment' => [
+                'file' => 'Atașamentul trebuie să fie un fișier valid.',
+                'mimes' => 'Factura trebuie să fie PDF, JPG, PNG sau WebP.',
+                'max' => 'Factura nu poate depăși 20 MB.',
+            ],
+        ],
     ],
 ];
