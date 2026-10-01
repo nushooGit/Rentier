@@ -56,7 +56,9 @@ class UtilityBillController extends Controller
                 'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
                 'currency' => strtoupper((string) $request->validated('currency')),
                 'status' => $request->validated('status'),
-                'paid_on' => $request->validated('paid_on'),
+                'paid_on' => $request->validated('status') === 'paid'
+                    ? $request->validated('paid_on')
+                    : null,
                 'notes' => $request->validated('notes'),
             ]);
         } catch (Throwable $exception) {
@@ -112,7 +114,9 @@ class UtilityBillController extends Controller
                 'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
                 'currency' => strtoupper((string) $request->validated('currency')),
                 'status' => $request->validated('status'),
-                'paid_on' => $request->validated('paid_on'),
+                'paid_on' => $request->validated('status') === 'paid'
+                    ? $request->validated('paid_on')
+                    : null,
                 'notes' => $request->validated('notes'),
             ]);
         } catch (Throwable $exception) {
