@@ -54,6 +54,8 @@ TEXT;
 });
 
 test('invoice reader rejects non PDF files before extraction', function () {
+    $this->withoutExceptionHandling();
+
     $user = User::factory()->create();
     $team = $user->currentTeam;
 
