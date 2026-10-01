@@ -333,3 +333,74 @@ test('deleting a utility bill removes its dedicated attachment', function () {
     $this->assertDatabaseMissing('documents', ['id' => $document->id]);
     Storage::disk('local')->assertMissing($document->path);
 });
+
+test('updating a utility bill keeps its attachment metadata aligned with the selected account', function () {
+    Storage::fake('local');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $firstProperty = Property::factory()->for($team)->create();
+    $secondProperty = Property::factory()->for($team)->create();
+    $firstAccount = createUtilityAccountFor($team, $firstProperty);
+    $secondAccount = createUtilityAccountFor($team, $secondProperty);
+
+    $document = Document::query()->create([
+        'team_id' => $team->id,
+        'property_id' => $firstProperty->id,
+        'uploaded_by_user_id' => $user->id,
+        'category' => DocumentCategory::InvoiceReceipt,
+        'document_date' => '2026-10-01',
+        'disk' => 'local',
+        'path' => "documents/{$team->id}/move.pdf",
+        'original_name' => 'move.pdf',
+        'mime_type' => 'application/pdf',
+        'size_bytes' => 50,
+    ]);
+
+    $bill = UtilityBill::query()->create([
+        'team_id' => $team->id,
+        'utility_account_id' => $firstAccount->id,
+        'property_id' => $firstProperty->id,
+        'document_id' => $document->id,
+        'created_by_user_id' => $user->id,
+        'invoice_number' => 'MOVE-1',
+        'billing_period_start' => '2026-09-01',
+        'billing_period_end' => '2026-09-30',
+        'issue_date' => '2026-10-01',
+        'due_date' => '2026-10-15',
+        'amount_minor' => 1000,
+        'currency' => 'RON',
+        'status' => 'unpaid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->put(route('utility-bills.update', [$team, $bill]), [
+            'utility_account_id' => $secondAccount->id,
+            'invoice_number' => 'MOVE-1',
+            'billing_period_start' => '2026-09-01',
+            'billing_period_end' => '2026-09-30',
+            'issue_date' => '2026-10-02',
+            'due_date' => '2026-10-16',
+            'amount' => '10.00',
+            'currency' => 'RON',
+            'status' => 'paid',
+            'paid_on' => '2026-10-10',
+            'notes' => null,
+        ])
+        ->assertRedirect();
+
+    expect($bill->fresh())
+        ->utility_account_id->toBe($secondAccount->id)
+        ->property_id->toBe($secondProperty->id)
+        ->status->value->toBe('paid');
+
+    $freshDocument = $document->fresh();
+
+    expect($freshDocument)
+        ->property_id->toBe($secondProperty->id)
+        ->lease_id->toBeNull();
+
+    expect($freshDocument->document_date->toDateString())->toBe('2026-10-02');
+});
+
