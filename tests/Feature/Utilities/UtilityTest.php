@@ -158,6 +158,97 @@ test('workspace member can create a utility bill with private invoice attachment
     Storage::disk('local')->assertExists($document->path);
 });
 
+test('utility bill validation errors are localized for invalid amount and attachment', function () {
+    Storage::fake('local');
+    app()->setLocale('ro');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), [
+            'utility_account_id' => $account->id,
+            'invoice_number' => 'INV-INVALID',
+            'billing_period_start' => '2026-09-01',
+            'billing_period_end' => '2026-09-30',
+            'issue_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+            'amount' => 'asd',
+            'currency' => 'RON',
+            'status' => 'unpaid',
+            'paid_on' => null,
+            'notes' => null,
+            'attachment' => UploadedFile::fake()->create(
+                'factura.txt',
+                10,
+                'text/plain',
+            ),
+        ])
+        ->assertSessionHasErrors([
+            'amount' => 'Suma trebuie să fie un număr valid, cu maximum 2 zecimale.',
+            'attachment' => 'Factura trebuie să fie PDF, JPG, PNG sau WebP.',
+        ]);
+});
+
+test('utility bill without a document can receive an attachment when edited', function () {
+    Storage::fake('local');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $bill = UtilityBill::query()->create([
+        'team_id' => $team->id,
+        'utility_account_id' => $account->id,
+        'property_id' => $property->id,
+        'created_by_user_id' => $user->id,
+        'invoice_number' => 'NO-FILE-1',
+        'billing_period_start' => '2026-09-01',
+        'billing_period_end' => '2026-09-30',
+        'issue_date' => '2026-10-01',
+        'due_date' => '2026-10-15',
+        'amount_minor' => 12300,
+        'currency' => 'RON',
+        'status' => 'unpaid',
+    ]);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.update', [$team, $bill]), [
+            '_method' => 'put',
+            'utility_account_id' => $account->id,
+            'invoice_number' => 'NO-FILE-1',
+            'billing_period_start' => '2026-09-01',
+            'billing_period_end' => '2026-09-30',
+            'issue_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+            'amount' => '123.00',
+            'currency' => 'RON',
+            'status' => 'unpaid',
+            'paid_on' => null,
+            'notes' => null,
+            'attachment' => UploadedFile::fake()->create(
+                'added-later.pdf',
+                20,
+                'application/pdf',
+            ),
+        ])
+        ->assertRedirect();
+
+    $freshBill = $bill->fresh();
+
+    expect($freshBill->document_id)->not->toBeNull();
+
+    $document = $freshBill->document()->firstOrFail();
+
+    expect($document->original_name)->toBe('added-later.pdf');
+    Storage::disk('local')->assertExists($document->path);
+});
+
 test('utility bill invoice number is unique per account and paid state requires paid date', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;

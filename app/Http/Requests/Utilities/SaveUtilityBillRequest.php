@@ -79,4 +79,19 @@ class SaveUtilityBillRequest extends FormRequest
             ],
         ];
     }
+
+    /**
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'amount.regex' => __('validation.custom.utility_bill.amount.regex'),
+            'currency.regex' => __('validation.custom.utility_bill.currency.regex'),
+            'attachment.file' => __('validation.custom.utility_bill.attachment.file'),
+            'attachment.mimes' => __('validation.custom.utility_bill.attachment.mimes'),
+            'attachment.max' => __('validation.custom.utility_bill.attachment.max'),
+        ];
+    }
+
 }
