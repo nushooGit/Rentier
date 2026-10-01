@@ -119,3 +119,24 @@ test('documents index includes practical client-side search and filters', functi
         ->toContain('filteredDocuments.map')
         ->toContain('normalizeSearchText');
 });
+
+test('calendar is available from desktop and mobile navigation', function () {
+    $sidebar = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
+    $mobile = file_get_contents(resource_path('js/components/mobile-bottom-nav.tsx'));
+    $calendar = pageSource('calendar/index.tsx');
+
+    expect($sidebar)
+        ->toContain("t('nav.calendar')")
+        ->toContain('calendarIndex');
+
+    expect($mobile)
+        ->toContain("t('nav.calendar')")
+        ->toContain('calendarIndex')
+        ->toContain('grid-cols-7');
+
+    expect($calendar)
+        ->toContain('data-test="calendar-event"')
+        ->toContain('href={showLease([teamSlug, event.lease_id])}')
+        ->toContain('data-test="calendar-day"');
+});
+
