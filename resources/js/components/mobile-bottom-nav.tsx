@@ -1,6 +1,7 @@
 import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
+    CalendarDays,
     FileText,
     FolderOpen,
     LayoutDashboard,
@@ -10,6 +11,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { useI18n } from '@/lib/i18n';
 import { dashboard } from '@/routes';
+import { index as calendarIndex } from '@/routes/calendar';
 import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
 import { index as leasesIndex } from '@/routes/leases';
@@ -25,6 +27,7 @@ export function MobileBottomNav() {
 
     const items = [
         { label: t('nav.home'), href: dashboard(currentTeam.slug), icon: LayoutDashboard },
+        { label: t('nav.calendar'), href: calendarIndex(currentTeam.slug), icon: CalendarDays },
         { label: t('nav.properties'), href: propertiesIndex(currentTeam.slug), icon: Building2 },
         { label: t('nav.leases'), href: leasesIndex(currentTeam.slug), icon: FileText },
         { label: t('nav.payments'), href: paymentsIndex(currentTeam.slug), icon: WalletCards },
@@ -37,7 +40,7 @@ export function MobileBottomNav() {
             className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-background/92 px-1.5 pb-[max(env(safe-area-inset-bottom),0.35rem)] pt-1.5 shadow-[0_-14px_36px_rgba(15,23,42,0.10)] backdrop-blur-xl md:hidden"
             aria-label={t('mobile.primaryNavigation')}
         >
-            <div className="mx-auto grid max-w-lg grid-cols-6">
+            <div className="mx-auto grid max-w-lg grid-cols-7">
                 {items.map(({ label, href, icon: Icon }) => {
                     const active = isCurrentUrl(href);
 
