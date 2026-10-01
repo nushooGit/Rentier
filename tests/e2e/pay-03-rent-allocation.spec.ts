@@ -246,7 +246,7 @@ test.describe('PAY-03 rent payment allocation', () => {
         const firstOverdueMonth = monthParts(-2);
         const secondOverdueMonth = monthParts(-1);
         const currentMonth = monthParts();
-        const dueDay = todayParts().day;
+        const dueDay = String(Number(todayParts().day));
         const currentMonthEnd = new Date(
             Number(currentMonth.year),
             Number(currentMonth.month),
