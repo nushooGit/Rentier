@@ -306,6 +306,15 @@ test.describe('authenticated landlord smoke', () => {
             ['documents', `/${teamSlug}/documents`],
         ] as const) {
             await page.goto(path);
+            await expect
+                .poll(() =>
+                    page.evaluate(
+                        () =>
+                            document.documentElement.scrollWidth <=
+                            window.innerWidth,
+                    ),
+                )
+                .toBe(true);
             await page.screenshot({
                 path: `test-results/ui-05-review/${name}-mobile.png`,
                 fullPage: true,
