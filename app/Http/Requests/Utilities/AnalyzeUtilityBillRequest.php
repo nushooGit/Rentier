@@ -5,7 +5,9 @@ namespace App\Http\Requests\Utilities;
 use App\Models\Team;
 use App\Models\UtilityBill;
 use Illuminate\Contracts\Validation\ValidationRule;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Gate;
 
 class AnalyzeUtilityBillRequest extends FormRequest
@@ -44,5 +46,13 @@ class AnalyzeUtilityBillRequest extends FormRequest
             'attachment.mimes' => __('validation.utility_invoice_reader.mimes'),
             'attachment.max' => __('validation.utility_invoice_reader.max'),
         ];
+    }
+
+    protected function failedValidation(Validator $validator): void
+    {
+        throw new HttpResponseException(response()->json([
+            'message' => $validator->errors()->first(),
+            'errors' => $validator->errors()->toArray(),
+        ], 422));
     }
 }
