@@ -257,6 +257,7 @@ export default function TwoFactorSetupModal({
 }: Props) {
     const [showVerificationStep, setShowVerificationStep] =
         useState<boolean>(false);
+    const { t } = useI18n();
 
     const modalConfig = useMemo<{
         title: string;
@@ -265,27 +266,24 @@ export default function TwoFactorSetupModal({
     }>(() => {
         if (twoFactorEnabled) {
             return {
-                title: 'Two-factor authentication enabled',
-                description:
-                    'Two-factor authentication is now enabled. Scan the QR code or enter the setup key in your authenticator app.',
-                buttonText: 'Close',
+                title: t('settings.twoFactor.enabledTitle'),
+                description: t('settings.twoFactor.enabledSetupDescription'),
+                buttonText: t('settings.twoFactor.close'),
             };
         }
 
         if (showVerificationStep) {
             return {
-                title: 'Verify authentication code',
-                description:
-                    'Enter the 6-digit code from your authenticator app',
-                buttonText: 'Continue',
+                title: t('settings.twoFactor.verifyTitle'),
+                description: t('settings.twoFactor.verifyDescription'),
+                buttonText: t('settings.twoFactor.continue'),
             };
         }
 
         return {
-            title: 'Enable two-factor authentication',
-            description:
-                'To finish enabling two-factor authentication, scan the QR code or enter the setup key in your authenticator app',
-            buttonText: 'Continue',
+            title: t('settings.twoFactor.enableTitle'),
+            description: t('settings.twoFactor.enableSetupDescription'),
+            buttonText: t('settings.twoFactor.continue'),
         };
     }, [showVerificationStep, t, twoFactorEnabled]);
 
