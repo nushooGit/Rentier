@@ -105,7 +105,9 @@ class UtilityBillController extends Controller
                 'utility_account_id' => $account->id,
                 'property_id' => $account->property_id,
                 'lease_id' => $account->lease_id,
-                'document_id' => $newDocument?->id ?? $utilityBill->document_id,
+                'document_id' => $newDocument !== null
+                    ? $newDocument->id
+                    : $utilityBill->document_id,
                 'invoice_number' => $request->validated('invoice_number'),
                 'billing_period_start' => $request->validated('billing_period_start'),
                 'billing_period_end' => $request->validated('billing_period_end'),
