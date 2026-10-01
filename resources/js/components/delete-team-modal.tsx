@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useI18n } from '@/lib/i18n';
 import { destroy } from '@/routes/teams';
 import type { Team } from '@/types';
 
@@ -24,6 +25,7 @@ type Props = {
 
 export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
     const [confirmationName, setConfirmationName] = useState('');
+    const { t } = useI18n();
 
     const canDeleteTeam = confirmationName === team.name;
 
@@ -47,7 +49,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                     {({ errors, processing }) => (
                         <>
                             <DialogHeader>
-                                <DialogTitle>Are you sure?</DialogTitle>
+                                <DialogTitle>{t('team.delete.confirmTitle')}</DialogTitle>
                                 <DialogDescription>
                                     This action cannot be undone. This will
                                     permanently delete the team{' '}
@@ -71,7 +73,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                                                 event.target.value,
                                             )
                                         }
-                                        placeholder="Enter team name"
+                                        placeholder={t('team.delete.placeholder')}
                                         autoComplete="off"
                                     />
                                     <InputError message={errors.name} />
@@ -80,7 +82,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
 
                             <DialogFooter className="gap-2">
                                 <DialogClose asChild>
-                                    <Button variant="secondary">Cancel</Button>
+                                    <Button variant="secondary">{t('common.cancel')}</Button>
                                 </DialogClose>
 
                                 <Button
@@ -89,7 +91,7 @@ export default function DeleteTeamModal({ team, open, onOpenChange }: Props) {
                                     data-test="delete-team-confirm"
                                     disabled={!canDeleteTeam || processing}
                                 >
-                                    Delete team
+                                    {t('team.delete.submit')}
                                 </Button>
                             </DialogFooter>
                         </>
