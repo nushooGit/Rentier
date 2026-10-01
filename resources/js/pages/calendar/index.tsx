@@ -1,22 +1,54 @@
-import { Head, Link, usePage } from '@inertiajs/react';
 import {
+    Head,
+    Link,
+    router,
+    useForm,
+    usePage,
+} from '@inertiajs/react';
+import {
+    BellRing,
     CalendarDays,
+    Check,
     ChevronLeft,
     ChevronRight,
     FileText,
+    Pencil,
+    Plus,
+    Trash2,
     WalletCards,
 } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { FormEvent } from 'react';
+import DateInput from '@/components/date-input';
 import Heading from '@/components/heading';
+import InputError from '@/components/input-error';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { currentIntlLocale } from '@/lib/locale';
 import { formatMoney } from '@/lib/money';
 import { translateKey, useI18n } from '@/lib/i18n';
 import { index as calendarIndex } from '@/routes/calendar';
 import { show as showLease } from '@/routes/leases';
+import {
+    destroy as destroyReminder,
+    store as storeReminder,
+    toggle as toggleReminder,
+    update as updateReminder,
+} from '@/routes/reminders';
 import type {
     CalendarEvent,
+    CalendarLeaseOption,
+    CalendarPropertyOption,
     CalendarRentStatusKey,
     CalendarSummary,
 } from '@/types';
@@ -28,8 +60,21 @@ type Props = {
     todayMonth: string;
     today: string;
     events: CalendarEvent[];
+    properties: CalendarPropertyOption[];
+    leases: CalendarLeaseOption[];
     summary: CalendarSummary;
 };
+
+type ReminderFormData = {
+    title: string;
+    remind_on: string;
+    property_id: string;
+    lease_id: string;
+    notes: string;
+};
+
+const selectClassName =
+    'border-input bg-background ring-offset-background focus-visible:ring-ring flex h-10 w-full rounded-xl border px-3 py-1 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50';
 
 const rentStatusClasses: Record<CalendarRentStatusKey, string> = {
     paid: 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200',
@@ -85,7 +130,14 @@ function weekdayLabels() {
     });
 }
 
-function eventTitle(event: CalendarEvent, t: ReturnType<typeof useI18n>['t']) {
+function eventTitle(
+    event: CalendarEvent,
+    t: ReturnType<typeof useI18n>['t'],
+) {
+    if (event.kind === 'reminder') {
+        return event.title ?? t('calendar.event.reminder');
+    }
+
     if (event.kind === 'lease_start') {
         return t('calendar.event.leaseStart');
     }
@@ -117,61 +169,72 @@ function CalendarEventCard({
     event,
     teamSlug,
     compact = false,
+    onEditReminder,
 }: {
     event: CalendarEvent;
     teamSlug: string;
     compact?: boolean;
+    onEditReminder: (event: CalendarEvent) => void;
 }) {
     const { t } = useI18n();
     const isRent = event.kind === 'rent_due';
+    const isReminder = event.kind === 'reminder';
+    const details = [event.property_name, event.renter_name]
+        .filter(Boolean)
+        .join(' · ');
 
-    return (
-        <Link
-            href={showLease([teamSlug, event.lease_id])}
-            className={
-                compact
-                    ? 'block min-w-0 rounded-lg border border-border/70 bg-background/80 px-2 py-1.5 text-left transition hover:border-primary/30 hover:bg-muted/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'block rounded-xl border border-border/70 bg-card/90 p-3 shadow-sm transition hover:border-primary/30 hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-            }
-            aria-label={t('calendar.viewLease', { name: event.renter_name })}
-            data-test="calendar-event"
-        >
-            <div className="flex min-w-0 items-start gap-2">
-                <span
-                    className={
-                        isRent
-                            ? 'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                            : 'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300'
-                    }
-                >
-                    {isRent ? (
-                        <WalletCards className="size-3.5" aria-hidden="true" />
-                    ) : (
-                        <FileText className="size-3.5" aria-hidden="true" />
-                    )}
-                </span>
+    const content = (
+        <div className="flex min-w-0 items-start gap-2">
+            <span
+                className={
+                    isReminder
+                        ? 'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-violet-500/10 text-violet-700 dark:text-violet-300'
+                        : isRent
+                          ? 'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+                          : 'mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-lg bg-sky-500/10 text-sky-700 dark:text-sky-300'
+                }
+            >
+                {isReminder ? (
+                    <BellRing className="size-3.5" aria-hidden="true" />
+                ) : isRent ? (
+                    <WalletCards className="size-3.5" aria-hidden="true" />
+                ) : (
+                    <FileText className="size-3.5" aria-hidden="true" />
+                )}
+            </span>
 
-                <div className="min-w-0 flex-1">
-                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-                        <p
-                            className={
-                                compact
-                                    ? 'truncate text-[11px] font-semibold'
-                                    : 'truncate text-sm font-semibold'
-                            }
+            <div className="min-w-0 flex-1">
+                <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                    <p
+                        className={
+                            compact
+                                ? 'truncate text-[11px] font-semibold'
+                                : 'truncate text-sm font-semibold'
+                        }
+                    >
+                        {eventTitle(event, t)}
+                    </p>
+
+                    {isRent && event.status_key ? (
+                        <Badge
+                            variant="outline"
+                            className={`h-5 px-1.5 text-[10px] ${rentStatusClasses[event.status_key]}`}
                         >
-                            {eventTitle(event, t)}
-                        </p>
-                        {isRent && event.status_key ? (
-                            <Badge
-                                variant="outline"
-                                className={`h-5 px-1.5 text-[10px] ${rentStatusClasses[event.status_key]}`}
-                            >
-                                {rentStatusLabel(event.status_key, t)}
-                            </Badge>
-                        ) : null}
-                    </div>
+                            {rentStatusLabel(event.status_key, t)}
+                        </Badge>
+                    ) : null}
 
+                    {isReminder && event.completed ? (
+                        <Badge
+                            variant="outline"
+                            className="h-5 border-emerald-200 bg-emerald-50 px-1.5 text-[10px] text-emerald-700 dark:border-emerald-400/20 dark:bg-emerald-400/10 dark:text-emerald-200"
+                        >
+                            {t('calendar.reminder.completed')}
+                        </Badge>
+                    ) : null}
+                </div>
+
+                {details !== '' ? (
                     <p
                         className={
                             compact
@@ -179,36 +242,403 @@ function CalendarEventCard({
                                 : 'mt-0.5 truncate text-xs text-muted-foreground'
                         }
                     >
-                        {event.property_name} · {event.renter_name}
+                        {details}
+                    </p>
+                ) : null}
+
+                {isReminder && event.notes && !compact ? (
+                    <p className="mt-2 line-clamp-2 text-xs text-muted-foreground">
+                        {event.notes}
+                    </p>
+                ) : null}
+
+                {isRent &&
+                event.amount !== null &&
+                event.currency !== null ? (
+                    <div
+                        className={
+                            compact
+                                ? 'mt-1 text-[10px] font-medium'
+                                : 'mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs'
+                        }
+                    >
+                        <span>
+                            {formatMoney(event.amount, event.currency)}
+                        </span>
+                        {event.remaining_amount !== null &&
+                        Number(event.remaining_amount) > 0 ? (
+                            <span className="text-muted-foreground">
+                                {t('calendar.remaining', {
+                                    amount: formatMoney(
+                                        event.remaining_amount,
+                                        event.currency,
+                                    ),
+                                })}
+                            </span>
+                        ) : null}
+                    </div>
+                ) : null}
+            </div>
+        </div>
+    );
+
+    const className = compact
+        ? 'block w-full min-w-0 rounded-lg border border-border/70 bg-background/80 px-2 py-1.5 text-left transition hover:border-primary/30 hover:bg-muted/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+        : 'block w-full rounded-xl border border-border/70 bg-card/90 p-3 text-left shadow-sm transition hover:border-primary/30 hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+
+    if (isReminder) {
+        return (
+            <button
+                type="button"
+                className={className}
+                onClick={() => onEditReminder(event)}
+                aria-label={t('calendar.reminder.edit')}
+                data-test="calendar-event"
+            >
+                {content}
+            </button>
+        );
+    }
+
+    if (event.lease_id === null) {
+        return <div className={className}>{content}</div>;
+    }
+
+    return (
+        <Link
+            href={showLease([teamSlug, event.lease_id])}
+            className={className}
+            aria-label={t('calendar.viewLease', {
+                name: event.renter_name ?? '',
+            })}
+            data-test="calendar-event"
+        >
+            {content}
+        </Link>
+    );
+}
+
+function ReminderDialog({
+    open,
+    onOpenChange,
+    reminder,
+    defaultDate,
+    teamSlug,
+    properties,
+    leases,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    reminder: CalendarEvent | null;
+    defaultDate: string;
+    teamSlug: string;
+    properties: CalendarPropertyOption[];
+    leases: CalendarLeaseOption[];
+}) {
+    const { locale, t } = useI18n();
+    const form = useForm<ReminderFormData>({
+        title: reminder?.title ?? '',
+        remind_on: reminder?.date ?? defaultDate,
+        property_id: reminder?.property_id?.toString() ?? '',
+        lease_id: reminder?.lease_id?.toString() ?? '',
+        notes: reminder?.notes ?? '',
+    });
+
+    const filteredLeases = useMemo(() => {
+        if (form.data.property_id === '') {
+            return leases;
+        }
+
+        return leases.filter(
+            (lease) =>
+                lease.property_id.toString() === form.data.property_id,
+        );
+    }, [form.data.property_id, leases]);
+
+    const closeDialog = () => {
+        form.clearErrors();
+        form.reset();
+        onOpenChange(false);
+    };
+
+    const submit = (event: FormEvent) => {
+        event.preventDefault();
+
+        const options = {
+            preserveScroll: true,
+            onSuccess: closeDialog,
+        };
+
+        if (reminder?.reminder_id) {
+            form.put(
+                updateReminder([teamSlug, reminder.reminder_id]).url,
+                options,
+            );
+
+            return;
+        }
+
+        form.post(storeReminder(teamSlug).url, options);
+    };
+
+    const toggleComplete = () => {
+        if (!reminder?.reminder_id) {
+            return;
+        }
+
+        router.patch(
+            toggleReminder([teamSlug, reminder.reminder_id]).url,
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: closeDialog,
+            },
+        );
+    };
+
+    const deleteReminder = () => {
+        if (
+            !reminder?.reminder_id ||
+            !window.confirm(t('calendar.reminder.deleteConfirm'))
+        ) {
+            return;
+        }
+
+        router.delete(
+            destroyReminder([teamSlug, reminder.reminder_id]).url,
+            {
+                preserveScroll: true,
+                onSuccess: closeDialog,
+            },
+        );
+    };
+
+    return (
+        <Dialog
+            open={open}
+            onOpenChange={(nextOpen) => {
+                if (!nextOpen) {
+                    closeDialog();
+
+                    return;
+                }
+
+                onOpenChange(true);
+            }}
+        >
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
+                <DialogHeader>
+                    <DialogTitle>
+                        {reminder
+                            ? t('calendar.reminder.edit')
+                            : t('calendar.reminder.add')}
+                    </DialogTitle>
+                    <DialogDescription>
+                        {t('calendar.reminder.formDescription')}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={submit} className="grid gap-4">
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-title">
+                            {t('calendar.reminder.title')}
+                        </Label>
+                        <Input
+                            id="reminder-title"
+                            value={form.data.title}
+                            onChange={(event) =>
+                                form.setData('title', event.target.value)
+                            }
+                            placeholder={t(
+                                'calendar.reminder.titlePlaceholder',
+                            )}
+                            maxLength={191}
+                            required
+                            autoFocus
+                            data-test="reminder-title-input"
+                        />
+                        <InputError message={form.errors.title} />
+                    </div>
+
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-date">
+                            {t('calendar.reminder.date')}
+                        </Label>
+                        <DateInput
+                            key={form.data.remind_on}
+                            id="reminder-date"
+                            name="remind_on"
+                            defaultValue={form.data.remind_on}
+                            locale={locale === 'ro' ? 'ro-RO' : 'en-US'}
+                            onValueChange={(value) =>
+                                form.setData('remind_on', value)
+                            }
+                            error={form.errors.remind_on}
+                            required
+                            data-test="reminder-date-input"
+                        />
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="reminder-property">
+                                {t('calendar.reminder.property')}
+                            </Label>
+                            <select
+                                id="reminder-property"
+                                className={selectClassName}
+                                value={form.data.property_id}
+                                onChange={(event) => {
+                                    const propertyId = event.target.value;
+                                    form.setData((data) => ({
+                                        ...data,
+                                        property_id: propertyId,
+                                        lease_id:
+                                            data.lease_id !== '' &&
+                                            leases.find(
+                                                (lease) =>
+                                                    lease.id.toString() ===
+                                                    data.lease_id,
+                                            )?.property_id.toString() !==
+                                                propertyId
+                                                ? ''
+                                                : data.lease_id,
+                                    }));
+                                }}
+                                data-test="reminder-property-select"
+                            >
+                                <option value="">
+                                    {t('calendar.reminder.none')}
+                                </option>
+                                {properties.map((property) => (
+                                    <option
+                                        key={property.id}
+                                        value={property.id}
+                                    >
+                                        {property.name}
+                                        {property.city
+                                            ? ` · ${property.city}`
+                                            : ''}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError message={form.errors.property_id} />
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="reminder-lease">
+                                {t('calendar.reminder.lease')}
+                            </Label>
+                            <select
+                                id="reminder-lease"
+                                className={selectClassName}
+                                value={form.data.lease_id}
+                                onChange={(event) => {
+                                    const leaseId = event.target.value;
+                                    const lease = leases.find(
+                                        (candidate) =>
+                                            candidate.id.toString() === leaseId,
+                                    );
+
+                                    form.setData((data) => ({
+                                        ...data,
+                                        lease_id: leaseId,
+                                        property_id: lease
+                                            ? lease.property_id.toString()
+                                            : data.property_id,
+                                    }));
+                                }}
+                                data-test="reminder-lease-select"
+                            >
+                                <option value="">
+                                    {t('calendar.reminder.none')}
+                                </option>
+                                {filteredLeases.map((lease) => (
+                                    <option key={lease.id} value={lease.id}>
+                                        {lease.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <InputError message={form.errors.lease_id} />
+                        </div>
+                    </div>
+
+                    <p className="-mt-1 text-xs text-muted-foreground">
+                        {t('calendar.reminder.associationHelp')}
                     </p>
 
-                    {isRent && event.amount !== null ? (
-                        <div
-                            className={
-                                compact
-                                    ? 'mt-1 text-[10px] font-medium'
-                                    : 'mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs'
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="reminder-notes">
+                            {t('calendar.reminder.notes')}
+                        </Label>
+                        <textarea
+                            id="reminder-notes"
+                            value={form.data.notes}
+                            onChange={(event) =>
+                                form.setData('notes', event.target.value)
                             }
-                        >
-                            <span>
-                                {formatMoney(event.amount, event.currency)}
-                            </span>
-                            {event.remaining_amount !== null &&
-                            Number(event.remaining_amount) > 0 ? (
-                                <span className="text-muted-foreground">
-                                    {t('calendar.remaining', {
-                                        amount: formatMoney(
-                                            event.remaining_amount,
-                                            event.currency,
-                                        ),
-                                    })}
-                                </span>
+                            placeholder={t(
+                                'calendar.reminder.notesPlaceholder',
+                            )}
+                            rows={4}
+                            maxLength={5000}
+                            className="border-input bg-background ring-offset-background focus-visible:ring-ring min-h-24 w-full resize-y rounded-xl border px-3 py-2 text-sm shadow-xs transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
+                            data-test="reminder-notes-input"
+                        />
+                        <InputError message={form.errors.notes} />
+                    </div>
+
+                    <DialogFooter className="gap-2 sm:justify-between">
+                        <div className="flex flex-wrap gap-2">
+                            {reminder?.reminder_id ? (
+                                <>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={toggleComplete}
+                                        data-test="reminder-toggle-button"
+                                    >
+                                        <Check />
+                                        {reminder.completed
+                                            ? t('calendar.reminder.reopen')
+                                            : t('calendar.reminder.done')}
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        onClick={deleteReminder}
+                                        data-test="reminder-delete-button"
+                                    >
+                                        <Trash2 />
+                                        {t('calendar.reminder.delete')}
+                                    </Button>
+                                </>
                             ) : null}
                         </div>
-                    ) : null}
-                </div>
-            </div>
-        </Link>
+
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={closeDialog}
+                            >
+                                {t('common.cancel')}
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={form.processing}
+                                data-test="reminder-save-button"
+                            >
+                                {reminder ? <Pencil /> : <Plus />}
+                                {reminder
+                                    ? t('calendar.reminder.update')
+                                    : t('calendar.reminder.create')}
+                            </Button>
+                        </div>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
     );
 }
 
@@ -219,11 +649,16 @@ export default function CalendarIndex({
     todayMonth,
     today,
     events,
+    properties,
+    leases,
     summary,
 }: Props) {
     const { currentTeam } = usePage().props;
     const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [editingReminder, setEditingReminder] =
+        useState<CalendarEvent | null>(null);
 
     const eventsByDate = useMemo(() => {
         const grouped = new Map<string, CalendarEvent[]>();
@@ -261,6 +696,18 @@ export default function CalendarIndex({
     const calendarBaseUrl = calendarIndex(currentTeamSlug).url;
     const monthHref = (month: string) =>
         `${calendarBaseUrl}?month=${encodeURIComponent(month)}`;
+    const defaultReminderDate =
+        selectedMonth === todayMonth ? today : `${selectedMonth}-01`;
+
+    const openNewReminder = () => {
+        setEditingReminder(null);
+        setDialogOpen(true);
+    };
+
+    const openReminder = (event: CalendarEvent) => {
+        setEditingReminder(event);
+        setDialogOpen(true);
+    };
 
     return (
         <>
@@ -275,6 +722,15 @@ export default function CalendarIndex({
                     />
 
                     <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                            type="button"
+                            size="sm"
+                            onClick={openNewReminder}
+                            data-test="add-reminder-button"
+                        >
+                            <Plus />
+                            {t('calendar.reminder.add')}
+                        </Button>
                         <Button variant="outline" size="sm" asChild>
                             <Link
                                 href={monthHref(previousMonth)}
@@ -321,18 +777,38 @@ export default function CalendarIndex({
                     </div>
                 </section>
 
-                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-5">
                     {[
-                        [t('calendar.summary.events'), summary.event_count],
-                        [t('calendar.summary.rentDue'), summary.rent_due_count],
-                        [t('calendar.summary.overdue'), summary.overdue_count],
-                        [
-                            t('calendar.summary.leaseChanges'),
-                            summary.lease_change_count,
-                        ],
-                    ].map(([label, value]) => (
+                        {
+                            label: t('calendar.summary.events'),
+                            value: summary.event_count,
+                            detail: null,
+                        },
+                        {
+                            label: t('calendar.summary.rentDue'),
+                            value: summary.rent_due_count,
+                            detail: null,
+                        },
+                        {
+                            label: t('calendar.summary.overdue'),
+                            value: summary.overdue_count,
+                            detail: null,
+                        },
+                        {
+                            label: t('calendar.summary.leaseChanges'),
+                            value: summary.lease_change_count,
+                            detail: null,
+                        },
+                        {
+                            label: t('calendar.summary.reminders'),
+                            value: summary.reminder_count,
+                            detail: t('calendar.summary.openReminders', {
+                                count: summary.open_reminder_count,
+                            }),
+                        },
+                    ].map(({ label, value, detail }) => (
                         <section
-                            key={String(label)}
+                            key={label}
                             className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
                         >
                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
@@ -341,6 +817,11 @@ export default function CalendarIndex({
                             <p className="mt-2 text-2xl font-semibold tracking-tight">
                                 {value}
                             </p>
+                            {detail ? (
+                                <p className="mt-1 text-xs text-muted-foreground">
+                                    {detail}
+                                </p>
+                            ) : null}
                         </section>
                     ))}
                 </div>
@@ -396,6 +877,7 @@ export default function CalendarIndex({
                                                 event={event}
                                                 teamSlug={currentTeamSlug}
                                                 compact
+                                                onEditReminder={openReminder}
                                             />
                                         ))}
                                     </div>
@@ -429,6 +911,7 @@ export default function CalendarIndex({
                                                 key={event.id}
                                                 event={event}
                                                 teamSlug={currentTeamSlug}
+                                                onEditReminder={openReminder}
                                             />
                                         ),
                                     )}
@@ -445,6 +928,21 @@ export default function CalendarIndex({
                     )}
                 </section>
             </div>
+
+            <ReminderDialog
+                key={
+                    editingReminder?.reminder_id
+                        ? `reminder-${editingReminder.reminder_id}`
+                        : `new-${defaultReminderDate}-${dialogOpen ? 'open' : 'closed'}`
+                }
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                reminder={editingReminder}
+                defaultDate={defaultReminderDate}
+                teamSlug={currentTeamSlug}
+                properties={properties}
+                leases={leases}
+            />
         </>
     );
 }
