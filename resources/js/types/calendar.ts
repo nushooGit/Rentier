@@ -1,4 +1,8 @@
-export type CalendarEventKind = 'rent_due' | 'lease_start' | 'lease_end';
+export type CalendarEventKind =
+    | 'rent_due'
+    | 'lease_start'
+    | 'lease_end'
+    | 'reminder';
 
 export type CalendarRentStatusKey =
     | 'paid'
@@ -12,13 +16,17 @@ export type CalendarEvent = {
     id: string;
     kind: CalendarEventKind;
     date: string;
-    lease_id: number;
-    property_id: number;
-    property_name: string;
-    property_city: string;
-    renter_name: string;
+    reminder_id: number | null;
+    lease_id: number | null;
+    property_id: number | null;
+    property_name: string | null;
+    property_city: string | null;
+    renter_name: string | null;
+    title: string | null;
+    notes: string | null;
+    completed: boolean;
     amount: string | null;
-    currency: string;
+    currency: string | null;
     remaining_amount: string | null;
     status_key: CalendarRentStatusKey | null;
 };
@@ -28,4 +36,18 @@ export type CalendarSummary = {
     rent_due_count: number;
     overdue_count: number;
     lease_change_count: number;
+    reminder_count: number;
+    open_reminder_count: number;
+};
+
+export type CalendarPropertyOption = {
+    id: number;
+    name: string;
+    city: string | null;
+};
+
+export type CalendarLeaseOption = {
+    id: number;
+    property_id: number;
+    label: string;
 };

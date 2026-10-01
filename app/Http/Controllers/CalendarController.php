@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lease;
+use App\Models\Property;
+use App\Models\Reminder;
 use App\Models\Team;
 use App\Services\RentPaymentAllocationCalculator;
 use Carbon\CarbonInterface;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -18,6 +21,8 @@ class CalendarController extends Controller
         Team $currentTeam,
         RentPaymentAllocationCalculator $allocationCalculator,
     ): Response {
+        Gate::authorize('viewAny', [Reminder::class, $currentTeam]);
+
         $validated = $request->validate([
             'month' => ['nullable', 'date_format:Y-m'],
         ]);
@@ -72,11 +77,15 @@ class CalendarController extends Controller
                         'id' => "rent-due-{$lease->id}-{$periodKey}",
                         'kind' => 'rent_due',
                         'date' => $month['due_date'],
+                        'reminder_id' => null,
                         'lease_id' => $lease->id,
                         'property_id' => $lease->property_id,
                         'property_name' => $lease->property->name,
                         'property_city' => $lease->property->city,
                         'renter_name' => $lease->renter->name,
+                        'title' => null,
+                        'notes' => null,
+                        'completed' => false,
                         'amount' => $month['expected_amount'],
                         'currency' => $lease->currency,
                         'remaining_amount' => $month['remaining_amount'],
@@ -98,10 +107,49 @@ class CalendarController extends Controller
             }
         }
 
+        $reminders = Reminder::query()
+            ->whereBelongsTo($currentTeam)
+            ->whereBetween('remind_on', [
+                $selectedMonth->toDateString(),
+                $monthEnd->toDateString(),
+            ])
+            ->with([
+                'property:id,team_id,name,city',
+                'lease.property:id,team_id,name,city',
+                'lease.renter:id,team_id,name',
+            ])
+            ->orderBy('remind_on')
+            ->orderBy('id')
+            ->get();
+
+        foreach ($reminders as $reminder) {
+            $property = $reminder->property ?? $reminder->lease?->property;
+
+            $events->push([
+                'id' => "reminder-{$reminder->id}",
+                'kind' => 'reminder',
+                'date' => $reminder->remind_on->toDateString(),
+                'reminder_id' => $reminder->id,
+                'lease_id' => $reminder->lease_id,
+                'property_id' => $property?->id,
+                'property_name' => $property?->name,
+                'property_city' => $property?->city,
+                'renter_name' => $reminder->lease?->renter?->name,
+                'title' => $reminder->title,
+                'notes' => $reminder->notes,
+                'completed' => $reminder->completed_at !== null,
+                'amount' => null,
+                'currency' => null,
+                'remaining_amount' => null,
+                'status_key' => null,
+            ]);
+        }
+
         $priority = [
             'lease_start' => 0,
             'rent_due' => 1,
-            'lease_end' => 2,
+            'reminder' => 2,
+            'lease_end' => 3,
         ];
 
         $events = $events
@@ -109,7 +157,7 @@ class CalendarController extends Controller
                 '%s-%02d-%010d',
                 $event['date'],
                 $priority[$event['kind']] ?? 9,
-                $event['lease_id'],
+                $event['lease_id'] ?? $event['reminder_id'] ?? 0,
             ))
             ->values();
 
@@ -120,6 +168,20 @@ class CalendarController extends Controller
             'todayMonth' => $today->format('Y-m'),
             'today' => $today->toDateString(),
             'events' => $events,
+            'properties' => Property::query()
+                ->whereBelongsTo($currentTeam)
+                ->orderBy('name')
+                ->get(['id', 'name', 'city']),
+            'leases' => Lease::query()
+                ->whereBelongsTo($currentTeam)
+                ->with(['property:id,name', 'renter:id,name'])
+                ->latest('start_date')
+                ->get()
+                ->map(fn (Lease $lease): array => [
+                    'id' => $lease->id,
+                    'property_id' => $lease->property_id,
+                    'label' => $lease->property->name.' · '.$lease->renter->name,
+                ]),
             'summary' => [
                 'event_count' => $events->count(),
                 'rent_due_count' => $events->where('kind', 'rent_due')->count(),
@@ -138,25 +200,17 @@ class CalendarController extends Controller
                         true,
                     ))
                     ->count(),
+                'reminder_count' => $events->where('kind', 'reminder')->count(),
+                'open_reminder_count' => $events
+                    ->where('kind', 'reminder')
+                    ->where('completed', false)
+                    ->count(),
             ],
         ]);
     }
 
     /**
-     * @return array{
-     *     id: string,
-     *     kind: string,
-     *     date: string,
-     *     lease_id: int,
-     *     property_id: int,
-     *     property_name: string,
-     *     property_city: string,
-     *     renter_name: string,
-     *     amount: null,
-     *     currency: string,
-     *     remaining_amount: null,
-     *     status_key: null
-     * }
+     * @return array<string, mixed>
      */
     private function leaseEvent(string $kind, Lease $lease, CarbonInterface $date): array
     {
@@ -164,11 +218,15 @@ class CalendarController extends Controller
             'id' => "{$kind}-{$lease->id}",
             'kind' => $kind,
             'date' => $date->toDateString(),
+            'reminder_id' => null,
             'lease_id' => $lease->id,
             'property_id' => $lease->property_id,
             'property_name' => $lease->property->name,
             'property_city' => $lease->property->city,
             'renter_name' => $lease->renter->name,
+            'title' => null,
+            'notes' => null,
+            'completed' => false,
             'amount' => null,
             'currency' => $lease->currency,
             'remaining_amount' => null,
