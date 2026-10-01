@@ -132,7 +132,7 @@ test('calendar is available from desktop and mobile navigation', function () {
     expect($mobile)
         ->toContain("t('nav.calendar')")
         ->toContain('calendarIndex')
-        ->toContain('grid-cols-7');
+        ->toContain('grid-cols-6');
 
     expect($calendar)
         ->toContain('data-test="calendar-event"')
