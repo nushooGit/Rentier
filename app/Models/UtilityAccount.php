@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property UtilityResponsibleParty $responsible_party
  * @property UtilityAccountStatus $status
  * @property string|null $notes
+ * @property int $bills_count
  * @property-read Team $team
  * @property-read Property $property
  * @property-read Lease|null $lease
@@ -38,21 +39,25 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 ])]
 class UtilityAccount extends Model
 {
+    /** @return BelongsTo<Team, $this> */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
 
+    /** @return BelongsTo<Property, $this> */
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
     }
 
+    /** @return BelongsTo<Lease, $this> */
     public function lease(): BelongsTo
     {
         return $this->belongsTo(Lease::class);
     }
 
+    /** @return HasMany<UtilityBill, $this> */
     public function bills(): HasMany
     {
         return $this->hasMany(UtilityBill::class);
