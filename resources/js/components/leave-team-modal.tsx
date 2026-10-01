@@ -10,6 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import { leave as leaveTeamAction } from '@/routes/teams';
 import type { Team } from '@/types';
 
@@ -20,6 +21,7 @@ type Props = {
 };
 
 export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
+    const { t } = useI18n();
     const [processing, setProcessing] = useState(false);
 
     const leaveTeam = () => {
@@ -38,16 +40,19 @@ export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Leave team</DialogTitle>
+                    <DialogTitle>{t('workspaces.leave.title')}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to leave{' '}
-                        <strong>{team?.name}</strong>?
+                        {t('workspaces.leave.description', {
+                            name: team?.name ?? '',
+                        })}
                     </DialogDescription>
                 </DialogHeader>
 
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="secondary">
+                            {t('common.cancel')}
+                        </Button>
                     </DialogClose>
 
                     <Button
@@ -56,7 +61,7 @@ export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
                         disabled={processing}
                         onClick={leaveTeam}
                     >
-                        Leave team
+                        {t('workspaces.leave.confirm')}
                     </Button>
                 </DialogFooter>
             </DialogContent>
