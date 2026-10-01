@@ -31,14 +31,16 @@ test('workspace member can create a reminder linked to a property', function () 
         ])
         ->assertRedirect();
 
-    $this->assertDatabaseHas('reminders', [
-        'team_id' => $team->id,
-        'property_id' => $property->id,
-        'created_by_user_id' => $user->id,
-        'title' => 'Verifică asigurarea',
-        'remind_on' => '2026-10-18',
-        'notes' => 'Verifică data expirării.',
-    ]);
+    $reminder = Reminder::query()->firstOrFail();
+
+    expect($reminder)
+        ->team_id->toBe($team->id)
+        ->property_id->toBe($property->id)
+        ->created_by_user_id->toBe($user->id)
+        ->title->toBe('Verifică asigurarea')
+        ->notes->toBe('Verifică data expirării.');
+
+    expect($reminder->remind_on->toDateString())->toBe('2026-10-18');
 });
 
 test('lease-linked reminder always uses the lease property', function () {
@@ -95,14 +97,14 @@ test('workspace member can update toggle and delete a reminder', function () {
 
     $this
         ->actingAs($user)
-        ->patch(route('reminders.toggle', [$team, $reminder]))
+        ->patch(route('reminders.toggle-complete', [$team, $reminder]))
         ->assertRedirect();
 
     expect($reminder->fresh()->completed_at)->not->toBeNull();
 
     $this
         ->actingAs($user)
-        ->patch(route('reminders.toggle', [$team, $reminder]))
+        ->patch(route('reminders.toggle-complete', [$team, $reminder]))
         ->assertRedirect();
 
     expect($reminder->fresh()->completed_at)->toBeNull();
