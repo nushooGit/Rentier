@@ -720,43 +720,51 @@ export default function CalendarIndex({
                         description={t('calendar.description')}
                     />
 
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
                         <Button
                             type="button"
                             size="sm"
+                            className="w-full sm:w-auto"
                             onClick={openNewReminder}
                             data-test="add-reminder-button"
                         >
                             <Plus />
                             {t('calendar.reminder.add')}
                         </Button>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link
-                                href={monthHref(previousMonth)}
-                                aria-label={t('calendar.previousMonth')}
+                        <div className="grid grid-cols-[auto_1fr_auto] gap-2 sm:flex sm:items-center">
+                            <Button variant="outline" size="sm" asChild>
+                                <Link
+                                    href={monthHref(previousMonth)}
+                                    aria-label={t('calendar.previousMonth')}
+                                >
+                                    <ChevronLeft />
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('calendar.previousMonth')}
+                                    </span>
+                                </Link>
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="w-full sm:w-auto"
+                                asChild
                             >
-                                <ChevronLeft />
-                                <span className="sr-only sm:not-sr-only">
-                                    {t('calendar.previousMonth')}
-                                </span>
-                            </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link href={monthHref(todayMonth)}>
-                                {t('calendar.today')}
-                            </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" asChild>
-                            <Link
-                                href={monthHref(nextMonth)}
-                                aria-label={t('calendar.nextMonth')}
-                            >
-                                <span className="sr-only sm:not-sr-only">
-                                    {t('calendar.nextMonth')}
-                                </span>
-                                <ChevronRight />
-                            </Link>
-                        </Button>
+                                <Link href={monthHref(todayMonth)}>
+                                    {t('calendar.today')}
+                                </Link>
+                            </Button>
+                            <Button variant="outline" size="sm" asChild>
+                                <Link
+                                    href={monthHref(nextMonth)}
+                                    aria-label={t('calendar.nextMonth')}
+                                >
+                                    <span className="sr-only sm:not-sr-only">
+                                        {t('calendar.nextMonth')}
+                                    </span>
+                                    <ChevronRight />
+                                </Link>
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -805,10 +813,14 @@ export default function CalendarIndex({
                                 count: summary.open_reminder_count,
                             }),
                         },
-                    ].map(({ label, value, detail }) => (
+                    ].map(({ label, value, detail }, index) => (
                         <section
                             key={label}
-                            className="rounded-2xl border border-border/70 bg-card p-4 shadow-sm"
+                            className={
+                                index === 4
+                                    ? 'col-span-2 rounded-2xl border border-border/70 bg-card p-4 shadow-sm lg:col-span-1'
+                                    : 'rounded-2xl border border-border/70 bg-card p-4 shadow-sm'
+                            }
                         >
                             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                                 {label}
