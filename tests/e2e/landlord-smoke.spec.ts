@@ -282,6 +282,46 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByText('Detalii financiare')).toBeVisible();
         await expect(page.getByText(propertyName).first()).toBeVisible();
 
+        await page.setViewportSize({ width: 1440, height: 1000 });
+        for (const [name, path] of [
+            ['properties', `/${teamSlug}/properties`],
+            ['leases', `/${teamSlug}/leases`],
+            ['payments', `/${teamSlug}/payments`],
+            ['expenses', `/${teamSlug}/expenses`],
+            ['documents', `/${teamSlug}/documents`],
+        ] as const) {
+            await page.goto(path);
+            await page.screenshot({
+                path: `test-results/ui-05-review/${name}-desktop.png`,
+                fullPage: true,
+            });
+        }
+
+        await page.setViewportSize({ width: 390, height: 844 });
+        for (const [name, path] of [
+            ['properties', `/${teamSlug}/properties`],
+            ['leases', `/${teamSlug}/leases`],
+            ['payments', `/${teamSlug}/payments`],
+            ['expenses', `/${teamSlug}/expenses`],
+            ['documents', `/${teamSlug}/documents`],
+        ] as const) {
+            await page.goto(path);
+            await expect
+                .poll(() =>
+                    page.evaluate(
+                        () =>
+                            document.documentElement.scrollWidth <=
+                            window.innerWidth,
+                    ),
+                )
+                .toBe(true);
+            await page.screenshot({
+                path: `test-results/ui-05-review/${name}-mobile.png`,
+                fullPage: true,
+            });
+        }
+
+        await page.setViewportSize({ width: 1280, height: 720 });
         await page.getByTestId('locale-switcher').click();
         await page.getByRole('menuitem', { name: /English/ }).click();
         await page.goto(`/${teamSlug}/properties`);

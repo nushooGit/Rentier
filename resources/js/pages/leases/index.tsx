@@ -83,8 +83,8 @@ export default function LeasesIndex({ leases }: Props) {
                                     data-test="lease-card-link"
                                     aria-label={t('leases.index.view', { name: lease.renter.name })}
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
                                             <h2 className="truncate text-base font-medium">
                                                 {lease.renter.name}
                                             </h2>
