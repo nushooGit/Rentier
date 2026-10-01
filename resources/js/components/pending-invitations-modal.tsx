@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import type { DashboardInvitation } from '@/types';
 
 type Props = {
@@ -23,6 +24,7 @@ export default function PendingInvitationsModal({
     onOpenChange,
 }: Props) {
     const [processingCode, setProcessingCode] = useState<string | null>(null);
+    const { t } = useI18n();
 
     const acceptInvitation = (invitation: DashboardInvitation) => {
         router.visit(TeamInvitationController.accept(invitation), {
@@ -47,7 +49,7 @@ export default function PendingInvitationsModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent data-test="pending-invitations-modal">
                 <DialogHeader>
-                    <DialogTitle>Pending team invitations</DialogTitle>
+                    <DialogTitle>{t('team.pending.title')}</DialogTitle>
                     <DialogDescription>
                         Accept or decline the teams you have been invited to
                         join.
@@ -59,7 +61,7 @@ export default function PendingInvitationsModal({
                         <div
                             key={invitation.code}
                             data-test="pending-invitation-row"
-                            className="rounded-lg border p-4"
+                            className="rounded-2xl border border-border/70 bg-card/70 p-4"
                         >
                             <div className="space-y-1">
                                 <p className="font-medium">
@@ -82,7 +84,7 @@ export default function PendingInvitationsModal({
                                         declineInvitation(invitation)
                                     }
                                 >
-                                    Decline
+                                    {t('team.pending.decline')}
                                 </Button>
 
                                 <Button
@@ -92,7 +94,7 @@ export default function PendingInvitationsModal({
                                     }
                                     onClick={() => acceptInvitation(invitation)}
                                 >
-                                    Accept
+                                    {t('team.pending.accept')}
                                 </Button>
                             </div>
                         </div>
