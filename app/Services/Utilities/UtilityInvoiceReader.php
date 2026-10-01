@@ -8,6 +8,7 @@ class UtilityInvoiceReader
 {
     public function __construct(
         private readonly PdfTextExtractor $extractor,
+        private readonly PdfOcrTextExtractor $ocrExtractor,
         private readonly UtilityInvoiceTextParser $parser,
     ) {
     }
@@ -22,8 +23,17 @@ class UtilityInvoiceReader
      */
     public function read(UploadedFile $file): array
     {
-        return $this->parser->parse(
-            $this->extractor->extract($file),
-        );
+        try {
+            return $this->parser->parse(
+                $this->extractor->extract($file),
+                'embedded_pdf_text',
+            );
+        } catch (\App\Exceptions\Utilities\InvoiceTextExtractionException) {
+            return $this->parser->parse(
+                $this->ocrExtractor->extract($file),
+                'pdf_ocr',
+                0.80,
+            );
+        }
     }
 }
