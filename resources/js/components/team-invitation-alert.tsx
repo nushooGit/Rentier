@@ -18,8 +18,12 @@ export default function TeamInvitationAlert({ invitation, action }: Props) {
         >
             <InfoIcon />
             <AlertDescription className="text-blue-900 dark:text-blue-100">
-                {action === 'Log in' ? 'Autentifică-te' : 'Înregistrează-te'} pentru
-                a te alătura workspace-ului "{invitation.teamName}".
+                {t(
+                    action === 'Log in'
+                        ? 'team.invitation.login'
+                        : 'team.invitation.register',
+                    { name: invitation.teamName },
+                )}
             </AlertDescription>
         </Alert>
     );
