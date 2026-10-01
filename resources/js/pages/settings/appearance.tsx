@@ -1,7 +1,7 @@
 import { Head } from '@inertiajs/react';
 import AppearanceTabs from '@/components/appearance-tabs';
 import Heading from '@/components/heading';
-import { useI18n } from '@/lib/i18n';
+import { translateKey, useI18n } from '@/lib/i18n';
 import { edit as editAppearance } from '@/routes/appearance';
 
 export default function Appearance() {
@@ -28,7 +28,7 @@ export default function Appearance() {
 Appearance.layout = {
     breadcrumbs: [
         {
-            title: 'Aspect',
+            title: translateKey('settings.appearance.title'),
             href: editAppearance(),
         },
     ],
