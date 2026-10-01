@@ -48,8 +48,9 @@ export default function CancelInvitationModal({
                 <DialogHeader>
                     <DialogTitle>{t('team.cancelInvitation.title')}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to cancel the invitation for{' '}
-                        <strong>{invitation?.email}</strong>?
+                        {t('team.cancelInvitation.description', {
+                            email: invitation?.email ?? '',
+                        })}
                     </DialogDescription>
                 </DialogHeader>
 
