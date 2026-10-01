@@ -29,13 +29,15 @@ class UtilityBillController extends Controller
         $document = null;
 
         try {
-            if ($request->hasFile('attachment')) {
+            $attachment = $request->file('attachment');
+
+            if ($attachment instanceof UploadedFile) {
                 $document = $this->storeAttachment(
-                    $request->file('attachment'),
+                    $attachment,
                     $currentTeam,
                     $account,
                     $request->user()->id,
-                    $request->validated('issue_date'),
+                    (string) $request->validated('issue_date'),
                 );
             }
 
@@ -85,13 +87,15 @@ class UtilityBillController extends Controller
         $newDocument = null;
 
         try {
-            if ($request->hasFile('attachment')) {
+            $attachment = $request->file('attachment');
+
+            if ($attachment instanceof UploadedFile) {
                 $newDocument = $this->storeAttachment(
-                    $request->file('attachment'),
+                    $attachment,
                     $currentTeam,
                     $account,
                     $request->user()->id,
-                    $request->validated('issue_date'),
+                    (string) $request->validated('issue_date'),
                 );
             }
 
