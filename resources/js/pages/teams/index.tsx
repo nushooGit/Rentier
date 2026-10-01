@@ -12,6 +12,8 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { teamRoleLabel } from '@/pages/teams/labels';
 import { edit, index } from '@/routes/teams';
 import type { Team } from '@/types';
 
@@ -20,6 +22,7 @@ type Props = {
 };
 
 export default function TeamsIndex({ teams }: Props) {
+    const { t } = useI18n();
     const [leaveTeamDialogOpen, setLeaveTeamDialogOpen] = useState(false);
     const [teamLeaving, setTeamLeaving] = useState<Team | null>(null);
 
@@ -30,21 +33,21 @@ export default function TeamsIndex({ teams }: Props) {
 
     return (
         <>
-            <Head title="Teams" />
+            <Head title={t('team.index.title')} />
 
-            <h1 className="sr-only">Teams</h1>
+            <h1 className="sr-only">{t('team.index.title')}</h1>
 
             <div className="flex flex-col space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col gap-4 rounded-2xl border border-border/70 bg-card/75 p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
                     <Heading
                         variant="small"
-                        title="Teams"
-                        description="Manage your teams and team memberships"
+                        title={t('team.index.title')}
+                        description={t('team.index.description')}
                     />
 
                     <CreateTeamModal>
                         <Button data-test="teams-new-team-button">
-                            <Plus /> New team
+                            <Plus /> {t('team.index.new')}
                         </Button>
                     </CreateTeamModal>
                 </div>
@@ -58,24 +61,24 @@ export default function TeamsIndex({ teams }: Props) {
                             <div
                                 key={team.id}
                                 data-test="team-row"
-                                className="flex items-center justify-between gap-4 rounded-lg border p-4"
+                                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm"
                             >
-                                <div className="flex items-center gap-4">
-                                    <div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="font-medium">
-                                                {team.name}
-                                            </span>
-                                            {team.isPersonal ? (
-                                                <Badge variant="secondary">
-                                                    Personal
-                                                </Badge>
-                                            ) : null}
-                                        </div>
-                                        <span className="text-sm text-muted-foreground">
-                                            {team.roleLabel}
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <span className="truncate font-medium">
+                                            {team.name}
                                         </span>
+                                        {team.isPersonal ? (
+                                            <Badge variant="secondary">
+                                                {t('team.index.personal')}
+                                            </Badge>
+                                        ) : null}
                                     </div>
+                                    <span className="text-sm text-muted-foreground">
+                                        {team.role
+                                            ? teamRoleLabel(team.role)
+                                            : team.roleLabel}
+                                    </span>
                                 </div>
 
                                 <TooltipProvider>
@@ -97,7 +100,7 @@ export default function TeamsIndex({ teams }: Props) {
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Leave team</p>
+                                                    <p>{t('team.index.leave')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : null}
@@ -111,17 +114,13 @@ export default function TeamsIndex({ teams }: Props) {
                                                         data-test="team-view-button"
                                                         asChild
                                                     >
-                                                        <Link
-                                                            href={edit(
-                                                                team.slug,
-                                                            )}
-                                                        >
+                                                        <Link href={edit(team.slug)}>
                                                             <Eye className="h-4 w-4" />
                                                         </Link>
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>View team</p>
+                                                    <p>{t('team.index.view')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         ) : (
@@ -133,17 +132,13 @@ export default function TeamsIndex({ teams }: Props) {
                                                         data-test="team-edit-button"
                                                         asChild
                                                     >
-                                                        <Link
-                                                            href={edit(
-                                                                team.slug,
-                                                            )}
-                                                        >
+                                                        <Link href={edit(team.slug)}>
                                                             <Pencil className="h-4 w-4" />
                                                         </Link>
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Edit team</p>
+                                                    <p>{t('team.index.edit')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         )}
@@ -154,9 +149,9 @@ export default function TeamsIndex({ teams }: Props) {
                     })}
 
                     {teams.length === 0 ? (
-                        <p className="py-8 text-center text-muted-foreground">
-                            You don't belong to any teams yet.
-                        </p>
+                        <div className="rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center text-sm text-muted-foreground shadow-sm">
+                            {t('team.index.empty')}
+                        </div>
                     ) : null}
                 </div>
             </div>
@@ -173,7 +168,7 @@ export default function TeamsIndex({ teams }: Props) {
 TeamsIndex.layout = {
     breadcrumbs: [
         {
-            title: 'Teams',
+            title: translateKey('team.index.title'),
             href: index(),
         },
     ],
