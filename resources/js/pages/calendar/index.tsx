@@ -418,7 +418,7 @@ export default function CalendarIndex({
                                     </h2>
                                     {date === today ? (
                                         <Badge variant="secondary">
-                                            {t('calendar.status.dueToday')}
+                                            {t('calendar.todayDate')}
                                         </Badge>
                                     ) : null}
                                 </div>
