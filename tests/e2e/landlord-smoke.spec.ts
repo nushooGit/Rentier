@@ -106,7 +106,11 @@ test.describe('authenticated landlord smoke', () => {
 
         await page.goto(`/${teamSlug}/leases`);
         await expect(
-            page.getByRole('heading', { name: 'Leases' }),
+            page.getByRole('heading', {
+                name: 'Leases',
+                level: 2,
+                exact: true,
+            }),
         ).toBeVisible();
         await expect(page.getByText('Contracte', { exact: true })).toHaveCount(0);
         await expect(page.getByText('Editează contractul')).toHaveCount(0);
