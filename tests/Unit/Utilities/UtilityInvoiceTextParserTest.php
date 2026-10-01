@@ -104,6 +104,6 @@ TEXT,
         ->and($result['fields']['amount']['value'])->toBe('208.85')
         ->and($result['fields']['currency']['value'])->toBe('RON')
         ->and($result['metadata']['account_identifier']['value'])->toBe('10332409')
-        ->and($result['billing_period_start'] ?? null)->toBeNull()
+        ->and($result['fields']['billing_period_start']['value'])->toBeNull()
         ->and($result['found_fields'])->toBe(5);
 });
