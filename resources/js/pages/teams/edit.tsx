@@ -1,6 +1,6 @@
 import { Form, Head, router } from '@inertiajs/react';
 import { ChevronDown, Mail, UserPlus, X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import CancelInvitationModal from '@/components/cancel-invitation-modal';
 import DeleteTeamModal from '@/components/delete-team-modal';
 import Heading from '@/components/heading';
@@ -25,6 +25,8 @@ import {
     TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { useInitials } from '@/hooks/use-initials';
+import { translateKey, useI18n } from '@/lib/i18n';
+import { teamRoleLabel } from '@/pages/teams/labels';
 import { edit, index, update } from '@/routes/teams';
 import { update as updateMember } from '@/routes/teams/members';
 import type {
@@ -51,6 +53,7 @@ export default function TeamEdit({
     availableRoles,
 }: Props) {
     const getInitials = useInitials();
+    const { t } = useI18n();
 
     const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -63,13 +66,9 @@ export default function TeamEdit({
     const [invitationToCancel, setInvitationToCancel] =
         useState<TeamInvitation | null>(null);
 
-    const pageTitle = useMemo(
-        () =>
-            permissions.canUpdateTeam
-                ? `Edit ${team.name}`
-                : `View ${team.name}`,
-        [permissions.canUpdateTeam, team.name],
-    );
+    const pageTitle = permissions.canUpdateTeam
+        ? t('team.edit.editTitle', { name: team.name })
+        : t('team.edit.viewTitle', { name: team.name });
 
     const updateMemberRole = (member: TeamMember, newRole: string) => {
         router.visit(updateMember([team.slug, member.id]), {
@@ -100,8 +99,8 @@ export default function TeamEdit({
                         <>
                             <Heading
                                 variant="small"
-                                title="Team settings"
-                                description="Update your team name and settings"
+                                title={t('team.settings.title')}
+                                description={t('team.settings.description')}
                             />
 
                             <Form
@@ -112,7 +111,7 @@ export default function TeamEdit({
                                     <>
                                         <div className="grid gap-2">
                                             <Label htmlFor="name">
-                                                Team name
+                                                {t('team.field.name')}
                                             </Label>
                                             <Input
                                                 id="name"
@@ -130,7 +129,7 @@ export default function TeamEdit({
                                                 data-test="team-save-button"
                                                 disabled={processing}
                                             >
-                                                Save
+                                                {t('common.save')}
                                             </Button>
                                         </div>
                                     </>
@@ -148,10 +147,10 @@ export default function TeamEdit({
                     <div className="flex items-center justify-between">
                         <Heading
                             variant="small"
-                            title="Team members"
+                            title={t('team.members.title')}
                             description={
                                 permissions.canCreateInvitation
-                                    ? 'Manage who belongs to this team'
+                                    ? t('team.members.description')
                                     : ''
                             }
                         />
@@ -161,7 +160,7 @@ export default function TeamEdit({
                                 data-test="invite-member-button"
                                 onClick={() => setInviteDialogOpen(true)}
                             >
-                                <UserPlus /> Invite member
+                                <UserPlus /> {t('team.members.invite')}
                             </Button>
                         ) : null}
                     </div>
@@ -171,7 +170,7 @@ export default function TeamEdit({
                             <div
                                 key={member.id}
                                 data-test="member-row"
-                                className="flex items-center justify-between rounded-lg border p-4"
+                                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm"
                             >
                                 <div className="flex items-center gap-4">
                                     <Avatar className="h-10 w-10">
@@ -205,7 +204,7 @@ export default function TeamEdit({
                                                     size="sm"
                                                     data-test="member-role-trigger"
                                                 >
-                                                    {member.role_label}
+                                                    {teamRoleLabel(member.role)}
                                                     <ChevronDown className="ml-2 h-4 w-4 opacity-50" />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -221,14 +220,14 @@ export default function TeamEdit({
                                                             )
                                                         }
                                                     >
-                                                        {role.label}
+                                                        {teamRoleLabel(role.value)}
                                                     </DropdownMenuItem>
                                                 ))}
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     ) : (
                                         <Badge variant="secondary">
-                                            {member.role_label}
+                                            {teamRoleLabel(member.role)}
                                         </Badge>
                                     )}
 
@@ -251,7 +250,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Remove member</p>
+                                                    <p>{t('team.members.remove')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -266,8 +265,8 @@ export default function TeamEdit({
                     <div className="space-y-6">
                         <Heading
                             variant="small"
-                            title="Pending invitations"
-                            description="Invitations that haven't been accepted yet"
+                            title={t('team.invitations.title')}
+                            description={t('team.invitations.description')}
                         />
 
                         <div className="space-y-3">
@@ -275,7 +274,7 @@ export default function TeamEdit({
                                 <div
                                     key={invitation.code}
                                     data-test="invitation-row"
-                                    className="flex items-center justify-between rounded-lg border p-4"
+                                    className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/70 bg-card/80 p-4 shadow-sm"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted">
@@ -286,7 +285,7 @@ export default function TeamEdit({
                                                 {invitation.email}
                                             </div>
                                             <div className="text-sm text-muted-foreground">
-                                                {invitation.role_label}
+                                                {teamRoleLabel(invitation.role)}
                                             </div>
                                         </div>
                                     </div>
@@ -309,7 +308,7 @@ export default function TeamEdit({
                                                     </Button>
                                                 </TooltipTrigger>
                                                 <TooltipContent>
-                                                    <p>Cancel invitation</p>
+                                                    <p>{t('team.invitations.cancel')}</p>
                                                 </TooltipContent>
                                             </Tooltip>
                                         </TooltipProvider>
@@ -324,15 +323,14 @@ export default function TeamEdit({
                     <div className="space-y-6">
                         <Heading
                             variant="small"
-                            title="Delete team"
-                            description="Permanently delete your team"
+                            title={t('team.delete.title')}
+                            description={t('team.delete.description')}
                         />
                         <div className="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10">
                             <div className="relative space-y-0.5 text-red-600 dark:text-red-100">
-                                <p className="font-medium">Warning</p>
+                                <p className="font-medium">{t('team.delete.warning')}</p>
                                 <p className="text-sm">
-                                    Please proceed with caution, this cannot be
-                                    undone.
+                                    {t('team.delete.warningDescription')}
                                 </p>
                             </div>
                             <Button
@@ -340,7 +338,7 @@ export default function TeamEdit({
                                 data-test="delete-team-button"
                                 onClick={() => setDeleteDialogOpen(true)}
                             >
-                                Delete team
+                                {t('team.delete.title')}
                             </Button>
                         </div>
                     </div>
@@ -384,7 +382,7 @@ export default function TeamEdit({
 TeamEdit.layout = (props: { team: { name: string; slug: string } }) => ({
     breadcrumbs: [
         {
-            title: 'Teams',
+            title: translateKey('team.index.title'),
             href: index(),
         },
         {
