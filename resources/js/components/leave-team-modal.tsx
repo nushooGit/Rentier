@@ -42,8 +42,9 @@ export default function LeaveTeamModal({ team, open, onOpenChange }: Props) {
                 <DialogHeader>
                     <DialogTitle>{t('team.leave.title')}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to leave{' '}
-                        <strong>{team?.name}</strong>?
+                        {t('team.leave.description', {
+                            name: team?.name ?? '',
+                        })}
                     </DialogDescription>
                 </DialogHeader>
 
