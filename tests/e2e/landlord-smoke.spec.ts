@@ -339,6 +339,9 @@ test.describe('authenticated landlord smoke', () => {
         await page
             .getByTestId('utility-service-select')
             .selectOption('electricity');
+        await page
+            .getByTestId('utility-account-identifier-input')
+            .fill(`CLIENT-${suffix}`);
         await page.getByTestId('utility-account-save-button').click();
         await expect(page.getByText(utilityProvider).first()).toBeVisible();
 
@@ -354,6 +357,9 @@ test.describe('authenticated landlord smoke', () => {
         await page
             .getByTestId('utility-service-select')
             .selectOption('water');
+        await page
+            .getByTestId('utility-account-identifier-input')
+            .fill(`WATER-${suffix}`);
         await page.getByTestId('utility-account-save-button').click();
         await expect(page.getByText(secondUtilityProvider).first()).toBeVisible();
 
@@ -441,6 +447,12 @@ test.describe('authenticated landlord smoke', () => {
                                 confidence: 0.92,
                             },
                         },
+                        metadata: {
+                            account_identifier: {
+                                value: `OTHER-${suffix}`,
+                                confidence: 0.96,
+                            },
+                        },
                     }),
                 });
             },
@@ -459,6 +471,9 @@ test.describe('authenticated landlord smoke', () => {
         await expect(page.getByTestId('utility-bill-amount-input')).toHaveValue(
             '150.50',
         );
+        await expect(
+            page.getByTestId('utility-invoice-account-warning'),
+        ).toContainText(`Cod client detectat: OTHER-${suffix}`);
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
         await expect(utilityAccountSection).toContainText(utilityInvoice);
