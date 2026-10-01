@@ -22,3 +22,12 @@ test('money input rejects unsupported formats', function (string $value) {
     ['1 234,50'],
     ['abc'],
 ]);
+
+test('money input formats stored minor units without floating point math', function (int $minor, string $expected) {
+    expect(MoneyInput::fromMinorUnits($minor))->toBe($expected);
+})->with([
+    [1, '0.01'],
+    [1230, '12.30'],
+    [12345, '123.45'],
+]);
+
