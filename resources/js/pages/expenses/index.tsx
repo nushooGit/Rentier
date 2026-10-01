@@ -185,8 +185,8 @@ export default function ExpensesIndex({
                                     data-test="expense-card-link"
                                     aria-label={t('expenses.index.view', { name: expense.title })}
                                 >
-                                    <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
+                                        <div className="min-w-0 flex-1">
                                             <h2 className="truncate text-base font-medium">
                                                 {expense.title}
                                             </h2>
