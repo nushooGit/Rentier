@@ -48,8 +48,9 @@ export default function RemoveMemberModal({
                 <DialogHeader>
                     <DialogTitle>{t('team.remove.title')}</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to remove{' '}
-                        <strong>{member?.name}</strong> from this team?
+                        {t('team.remove.description', {
+                            name: member?.name ?? '',
+                        })}
                     </DialogDescription>
                 </DialogHeader>
 
