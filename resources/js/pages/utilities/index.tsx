@@ -528,7 +528,8 @@ function BillDialog({
             form.transform((data) => ({
                 ...data,
                 _method: 'put',
-            })).post(updateUtilityBill([teamSlug, bill.id]).url, {
+            }));
+            form.post(updateUtilityBill([teamSlug, bill.id]).url, {
                 ...options,
                 forceFormData: true,
                 onFinish: () => form.transform((data) => data),
