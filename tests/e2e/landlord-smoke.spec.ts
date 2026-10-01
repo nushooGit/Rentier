@@ -401,12 +401,64 @@ test.describe('authenticated landlord smoke', () => {
             page.getByText('Factura trebuie să fie PDF, JPG, PNG sau WebP.'),
         ).toBeVisible();
 
-        await page.getByTestId('utility-bill-amount-input').fill('150.50');
+        await page.route(
+            `**/${teamSlug}/utility-bills/analyze`,
+            async (route) => {
+                await route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: JSON.stringify({
+                        source: 'embedded_pdf_text',
+                        overall_confidence: 0.94,
+                        found_fields: 7,
+                        fields: {
+                            invoice_number: {
+                                value: utilityInvoice,
+                                confidence: 0.95,
+                            },
+                            billing_period_start: {
+                                value: date,
+                                confidence: 0.94,
+                            },
+                            billing_period_end: {
+                                value: date,
+                                confidence: 0.94,
+                            },
+                            issue_date: {
+                                value: date,
+                                confidence: 0.95,
+                            },
+                            due_date: {
+                                value: date,
+                                confidence: 0.95,
+                            },
+                            amount: {
+                                value: '150.50',
+                                confidence: 0.94,
+                            },
+                            currency: {
+                                value: 'RON',
+                                confidence: 0.92,
+                            },
+                        },
+                    }),
+                });
+            },
+        );
         await page.getByTestId('utility-attachment-input').setInputFiles({
             name: 'e2e-utility-invoice.pdf',
             mimeType: 'application/pdf',
             buffer: Buffer.from('%PDF-1.4\n% E2E utility invoice\n'),
         });
+        await expect(
+            page.getByTestId('utility-invoice-reader-status'),
+        ).toContainText('Am completat automat 7 câmpuri din PDF');
+        await expect(page.getByTestId('utility-bill-number-input')).toHaveValue(
+            utilityInvoice,
+        );
+        await expect(page.getByTestId('utility-bill-amount-input')).toHaveValue(
+            '150.50',
+        );
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
         await expect(utilityAccountSection).toContainText(utilityInvoice);
