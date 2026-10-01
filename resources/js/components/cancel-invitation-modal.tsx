@@ -10,6 +10,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import { destroy as destroyInvitation } from '@/routes/teams/invitations';
 import type { Team, TeamInvitation } from '@/types';
 
@@ -27,6 +28,7 @@ export default function CancelInvitationModal({
     onOpenChange,
 }: Props) {
     const [processing, setProcessing] = useState(false);
+    const { t } = useI18n();
 
     const cancelInvitation = () => {
         if (!invitation) {
@@ -44,7 +46,7 @@ export default function CancelInvitationModal({
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Cancel invitation</DialogTitle>
+                    <DialogTitle>{t('team.cancelInvitation.title')}</DialogTitle>
                     <DialogDescription>
                         Are you sure you want to cancel the invitation for{' '}
                         <strong>{invitation?.email}</strong>?
@@ -53,7 +55,7 @@ export default function CancelInvitationModal({
 
                 <DialogFooter className="gap-2">
                     <DialogClose asChild>
-                        <Button variant="secondary">Keep invitation</Button>
+                        <Button variant="secondary">{t('team.cancelInvitation.keep')}</Button>
                     </DialogClose>
 
                     <Button
@@ -62,7 +64,7 @@ export default function CancelInvitationModal({
                         disabled={processing}
                         onClick={cancelInvitation}
                     >
-                        Cancel invitation
+                        {t('team.cancelInvitation.submit')}
                     </Button>
                 </DialogFooter>
             </DialogContent>
