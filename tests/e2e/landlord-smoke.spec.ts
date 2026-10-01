@@ -366,12 +366,21 @@ test.describe('authenticated landlord smoke', () => {
             .getByTestId('utility-property-group')
             .filter({ hasText: propertyName });
         await expect(utilityGroup).toBeVisible();
-        await expect(utilityGroup.getByText(utilityProvider)).toBeVisible();
-        await expect(utilityGroup.getByText(utilityInvoice)).toBeVisible();
+        await expect(
+            utilityGroup.getByRole('heading', {
+                name: utilityProvider,
+                exact: true,
+            }),
+        ).toBeVisible();
+
+        const utilityBillCard = utilityGroup
+            .getByTestId('utility-bill-card')
+            .filter({ hasText: utilityInvoice });
+        await expect(utilityBillCard).toBeVisible();
 
         const [utilityDownload] = await Promise.all([
             page.waitForEvent('download'),
-            page.getByTestId('utility-bill-download-link').click(),
+            utilityBillCard.getByTestId('utility-bill-download-link').click(),
         ]);
         expect(utilityDownload.suggestedFilename()).toBe(
             'e2e-utility-invoice.pdf',
