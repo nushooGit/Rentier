@@ -2,8 +2,6 @@
 
 namespace App\Services\Utilities;
 
-use Carbon\CarbonImmutable;
-
 class UtilityInvoiceTextParser
 {
     /**
@@ -198,19 +196,31 @@ class UtilityInvoiceTextParser
     {
         $value = trim($value);
 
-        foreach (['Y-m-d', 'd.m.Y', 'd/m/Y', 'd-m-Y', 'd.m.y', 'd/m/y', 'd-m-y'] as $format) {
-            try {
-                $date = CarbonImmutable::createFromFormat('!'.$format, $value);
+        if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2})$/', $value, $matches) === 1) {
+            $year = (int) $matches[1];
+            $month = (int) $matches[2];
+            $day = (int) $matches[3];
 
-                if ($date !== false && $date->format($format) === $value) {
-                    return $date->format('Y-m-d');
-                }
-            } catch (\Throwable) {
-                continue;
-            }
+            return checkdate($month, $day, $year)
+                ? sprintf('%04d-%02d-%02d', $year, $month, $day)
+                : null;
         }
 
-        return null;
+        if (preg_match('/^(\d{1,2})[.\/-](\d{1,2})[.\/-](\d{2,4})$/', $value, $matches) !== 1) {
+            return null;
+        }
+
+        $day = (int) $matches[1];
+        $month = (int) $matches[2];
+        $year = (int) $matches[3];
+
+        if ($year < 100) {
+            $year += 2000;
+        }
+
+        return checkdate($month, $day, $year)
+            ? sprintf('%04d-%02d-%02d', $year, $month, $day)
+            : null;
     }
 
     private function normalizeAmount(string $value): ?string
