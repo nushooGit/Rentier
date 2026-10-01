@@ -1288,7 +1288,7 @@ export default function UtilitiesIndex({
                                     }
                                     data-test="utility-property-group"
                                 >
-                                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-4 sm:px-5">
+                                    <summary className="flex cursor-pointer list-none flex-col items-stretch gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                                         <div className="flex min-w-0 items-center gap-3">
                                             <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                                                 <Building2 className="size-5" />
@@ -1305,7 +1305,7 @@ export default function UtilitiesIndex({
                                             </div>
                                         </div>
 
-                                        <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
+                                        <div className="flex flex-wrap gap-1.5 sm:shrink-0 sm:justify-end">
                                             <Badge variant="secondary">
                                                 {t('utilities.group.accounts', {
                                                     count: group.accounts.length,
@@ -1339,20 +1339,9 @@ export default function UtilitiesIndex({
                                     <div className="border-t border-border/70 p-4 sm:p-5">
                                         <div className="grid gap-6 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]">
                                             <div>
-                                                <div className="mb-3 flex items-center justify-between gap-3">
-                                                    <h4 className="text-sm font-semibold">
-                                                        {t('utilities.accounts.title')}
-                                                    </h4>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        variant="outline"
-                                                        onClick={openNewAccount}
-                                                    >
-                                                        <Plus />
-                                                        {t('utilities.accounts.new')}
-                                                    </Button>
-                                                </div>
+                                                <h4 className="mb-3 text-sm font-semibold">
+                                                    {t('utilities.accounts.title')}
+                                                </h4>
 
                                                 {group.accounts.length > 0 ? (
                                                     <div className="space-y-3">
@@ -1375,23 +1364,9 @@ export default function UtilitiesIndex({
                                             </div>
 
                                             <div>
-                                                <div className="mb-3 flex items-center justify-between gap-3">
-                                                    <h4 className="text-sm font-semibold">
-                                                        {t('utilities.bills.title')}
-                                                    </h4>
-                                                    <Button
-                                                        type="button"
-                                                        size="sm"
-                                                        onClick={openNewBill}
-                                                        disabled={
-                                                            group.accounts.length ===
-                                                            0
-                                                        }
-                                                    >
-                                                        <Plus />
-                                                        {t('utilities.bills.new')}
-                                                    </Button>
-                                                </div>
+                                                <h4 className="mb-3 text-sm font-semibold">
+                                                    {t('utilities.bills.title')}
+                                                </h4>
 
                                                 {group.bills.length > 0 ? (
                                                     <div className="space-y-3">
