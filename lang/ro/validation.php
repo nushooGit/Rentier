@@ -79,6 +79,6 @@ return [
         'file' => 'Factura trebuie să fie un fișier valid.',
         'mimes' => 'Citirea automată v1 acceptă momentan doar facturi PDF.',
         'max' => 'Factura nu poate depăși 20 MB.',
-        'unreadable' => 'Nu am putut extrage text suficient din acest PDF. Poți completa factura manual; scanările și pozele vor fi tratate într-un pas OCR separat.',
+        'unreadable' => 'Nu am putut citi automat textul din acest PDF, nici prin OCR. Poți completa factura manual.',
     ],
 ];
