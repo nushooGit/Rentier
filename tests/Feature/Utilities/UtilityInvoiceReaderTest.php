@@ -29,6 +29,7 @@ TEXT;
 
     $response = $this
         ->actingAs($user)
+        ->withHeaders(['Accept' => 'application/json'])
         ->post(
             route('utility-bills.analyze', $team),
             [
@@ -38,7 +39,6 @@ TEXT;
                     'application/pdf',
                 ),
             ],
-            ['Accept' => 'application/json'],
         );
 
     $response
@@ -60,6 +60,7 @@ test('invoice reader rejects non PDF files before extraction', function () {
 
     $this
         ->actingAs($user)
+        ->withHeaders(['Accept' => 'application/json'])
         ->post(
             route('utility-bills.analyze', $team),
             [
@@ -69,7 +70,6 @@ test('invoice reader rejects non PDF files before extraction', function () {
                     'image/png',
                 ),
             ],
-            ['Accept' => 'application/json'],
         )
         ->assertStatus(422)
         ->assertJsonPath(
@@ -94,6 +94,7 @@ test('invoice reader returns a safe localized error when embedded text cannot be
 
     $this
         ->actingAs($user)
+        ->withHeaders(['Accept' => 'application/json'])
         ->post(
             route('utility-bills.analyze', $team),
             [
@@ -103,7 +104,6 @@ test('invoice reader returns a safe localized error when embedded text cannot be
                     'application/pdf',
                 ),
             ],
-            ['Accept' => 'application/json'],
         )
         ->assertStatus(422)
         ->assertJsonPath(
@@ -118,6 +118,7 @@ test('invoice reader is unavailable outside the requested workspace', function (
 
     $response = $this
         ->actingAs($user)
+        ->withHeaders(['Accept' => 'application/json'])
         ->post(
             route('utility-bills.analyze', $otherTeam),
             [
@@ -127,7 +128,6 @@ test('invoice reader is unavailable outside the requested workspace', function (
                     'application/pdf',
                 ),
             ],
-            ['Accept' => 'application/json'],
         );
 
     expect($response->status())->toBeIn([403, 404]);
