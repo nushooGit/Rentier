@@ -525,7 +525,14 @@ function BillDialog({
         };
 
         if (bill) {
-            form.put(updateUtilityBill([teamSlug, bill.id]).url, options);
+            form.transform((data) => ({
+                ...data,
+                _method: 'put',
+            })).post(updateUtilityBill([teamSlug, bill.id]).url, {
+                ...options,
+                forceFormData: true,
+                onFinish: () => form.transform((data) => data),
+            });
 
             return;
         }
@@ -800,48 +807,45 @@ function BillDialog({
                         <InputError message={form.errors.notes} />
                     </div>
 
-                    {!bill ? (
-                        <div className="grid gap-1.5">
-                            <Label htmlFor="utility-attachment">
-                                {t('utilities.attachment')}
-                            </Label>
-                            <label
-                                htmlFor="utility-attachment"
-                                className="flex cursor-pointer items-center gap-3 rounded-2xl border border-dashed border-border bg-muted/20 px-4 py-4 transition hover:bg-muted/35"
-                            >
-                                <span className="flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                                    <Upload className="size-5" />
+                    <div className="grid gap-1.5">
+                        <Label htmlFor="utility-attachment">
+                            {t('utilities.attachment')}
+                        </Label>
+                        <label
+                            htmlFor="utility-attachment"
+                            className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-dashed border-border bg-muted/20 px-3 py-2.5 transition hover:bg-muted/35"
+                        >
+                            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                                <Upload className="size-4" />
+                            </span>
+                            <span className="min-w-0">
+                                <span className="block truncate text-sm font-medium">
+                                    {fileName ??
+                                        bill?.document?.original_name ??
+                                        t('utilities.attachment')}
                                 </span>
-                                <span className="min-w-0">
-                                    <span className="block truncate text-sm font-medium">
-                                        {fileName ??
-                                            t('utilities.attachment')}
-                                    </span>
-                                    <span className="block text-xs text-muted-foreground">
-                                        {t('utilities.attachmentHelp')}
-                                    </span>
+                                <span className="block text-xs text-muted-foreground">
+                                    {bill?.document
+                                        ? t('utilities.replaceAttachmentHelp')
+                                        : t('utilities.attachmentHelp')}
                                 </span>
-                            </label>
-                            <input
-                                id="utility-attachment"
-                                type="file"
-                                accept=".pdf,.jpg,.jpeg,.png,.webp"
-                                className="sr-only"
-                                onChange={(event) => {
-                                    const file =
-                                        event.currentTarget.files?.[0] ?? null;
-                                    form.setData('attachment', file);
-                                    setFileName(file?.name ?? null);
-                                }}
-                                data-test="utility-attachment-input"
-                            />
-                            <InputError message={form.errors.attachment} />
-                        </div>
-                    ) : bill.document ? (
-                        <p className="text-xs text-muted-foreground">
-                            {t('utilities.replaceAttachmentHelp')}
-                        </p>
-                    ) : null}
+                            </span>
+                        </label>
+                        <input
+                            id="utility-attachment"
+                            type="file"
+                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                            className="sr-only"
+                            onChange={(event) => {
+                                const file =
+                                    event.currentTarget.files?.[0] ?? null;
+                                form.setData('attachment', file);
+                                setFileName(file?.name ?? null);
+                            }}
+                            data-test="utility-attachment-input"
+                        />
+                        <InputError message={form.errors.attachment} />
+                    </div>
 
                     <DialogFooter>
                         <Button
@@ -879,12 +883,12 @@ function UtilityAccountCard({
 
     return (
         <article
-            className="rounded-2xl border border-border/70 bg-background/55 p-4"
+            className="self-start rounded-xl border border-border/70 bg-background/55 p-3"
             data-test="utility-account-card"
         >
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                         <h3 className="truncate font-semibold">
                             {account.provider_name}
                         </h3>
@@ -901,7 +905,7 @@ function UtilityAccountCard({
                                 : t('utilities.inactive')}
                         </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                         {serviceLabel(account.service_type, t)}
                     </p>
                 </div>
@@ -928,7 +932,7 @@ function UtilityAccountCard({
                 </div>
             </div>
 
-            <dl className="mt-3 grid gap-2 text-sm sm:grid-cols-2">
+            <dl className="mt-2.5 grid gap-x-3 gap-y-1.5 text-sm sm:grid-cols-2">
                 <div>
                     <dt className="text-xs text-muted-foreground">
                         {t('utilities.accountIdentifier')}
@@ -950,7 +954,7 @@ function UtilityAccountCard({
             </dl>
 
             {account.notes ? (
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                     {account.notes}
                 </p>
             ) : null}
@@ -973,10 +977,10 @@ function UtilityBillCard({
 
     return (
         <article
-            className="rounded-2xl border border-border/70 bg-background/55 p-4"
+            className="rounded-xl border border-border/70 bg-background/55 p-3"
             data-test="utility-bill-card"
         >
-            <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:justify-between">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                         <h3 className="font-semibold">
@@ -999,13 +1003,13 @@ function UtilityBillCard({
                                   : t('utilities.unpaid')}
                         </Badge>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                         {serviceLabel(bill.account.service_type, t)}
                         {bill.renter_name ? ` · ${bill.renter_name}` : ''}
                     </p>
                 </div>
 
-                <div className="flex shrink-0 flex-wrap items-center gap-2">
+                <div className="flex shrink-0 flex-wrap items-center gap-1">
                     {bill.document ? (
                         <Button variant="outline" size="sm" asChild>
                             <a
@@ -1044,7 +1048,7 @@ function UtilityBillCard({
                 </div>
             </div>
 
-            <div className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-3 grid gap-x-4 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <p className="text-xs text-muted-foreground">
                         {t('utilities.billingPeriod')}
@@ -1082,7 +1086,7 @@ function UtilityBillCard({
             </div>
 
             {bill.notes ? (
-                <p className="mt-3 text-xs text-muted-foreground">
+                <p className="mt-2 text-xs text-muted-foreground">
                     {bill.notes}
                 </p>
             ) : null}
@@ -1119,17 +1123,17 @@ function UtilityAccountBills({
 
     return (
         <section
-            className="rounded-2xl border border-border/70 bg-background/35 p-4"
+            className="rounded-xl border border-border/70 bg-background/35 p-3"
             data-test="utility-account-bills"
         >
-            <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="flex flex-wrap items-start justify-between gap-2">
                 <div>
                     <h4 className="text-sm font-semibold">
                         {t('utilities.bills.forAccount', {
                             provider: account.provider_name,
                         })}
                     </h4>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                         {serviceLabel(account.service_type, t)}
                     </p>
                 </div>
@@ -1139,7 +1143,7 @@ function UtilityAccountBills({
             </div>
 
             {bills.length > 0 ? (
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 space-y-2">
                     {bills.map((bill) => (
                         <UtilityBillCard
                             key={bill.id}
@@ -1151,12 +1155,12 @@ function UtilityAccountBills({
                     ))}
                 </div>
             ) : (
-                <p className="mt-4 rounded-xl border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
+                <p className="mt-3 rounded-lg border border-dashed border-border px-3 py-3 text-sm text-muted-foreground">
                     {t('utilities.bills.emptyTitle')}
                 </p>
             )}
 
-            <div className="mt-4 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
+            <div className="mt-3 grid gap-2 sm:grid-cols-[auto_minmax(0,1fr)]">
                 <Button
                     type="button"
                     variant="outline"
@@ -1169,7 +1173,7 @@ function UtilityAccountBills({
 
                 <label
                     htmlFor={inputId}
-                    className={`flex min-h-11 cursor-pointer items-center gap-3 rounded-xl border border-dashed px-3 py-2 transition ${
+                    className={`flex min-h-9 cursor-pointer items-center gap-2 rounded-lg border border-dashed px-3 py-1.5 transition ${
                         dragActive
                             ? 'border-primary bg-primary/5'
                             : 'border-border bg-muted/15 hover:bg-muted/30'
@@ -1498,13 +1502,13 @@ export default function UtilitiesIndex({
                                         </div>
                                     </summary>
 
-                                    <div className="border-t border-border/70 p-4 sm:p-5">
+                                    <div className="border-t border-border/70 p-3 sm:p-4">
                                         {group.accounts.length > 0 ? (
-                                            <div className="space-y-4">
+                                            <div className="space-y-3">
                                                 {group.accounts.map((account) => (
                                                     <div
                                                         key={account.id}
-                                                        className="grid gap-3 xl:grid-cols-[minmax(0,0.9fr)_minmax(0,1.4fr)]"
+                                                        className="grid items-start gap-2.5 xl:grid-cols-[minmax(0,0.85fr)_minmax(0,1.5fr)]"
                                                         data-test="utility-account-section"
                                                     >
                                                         <UtilityAccountCard
