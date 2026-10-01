@@ -52,26 +52,31 @@ use Illuminate\Support\Carbon;
 ])]
 class UtilityBill extends Model
 {
+    /** @return BelongsTo<Team, $this> */
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
     }
 
+    /** @return BelongsTo<UtilityAccount, $this> */
     public function utilityAccount(): BelongsTo
     {
         return $this->belongsTo(UtilityAccount::class);
     }
 
+    /** @return BelongsTo<Property, $this> */
     public function property(): BelongsTo
     {
         return $this->belongsTo(Property::class);
     }
 
+    /** @return BelongsTo<Lease, $this> */
     public function lease(): BelongsTo
     {
         return $this->belongsTo(Lease::class);
     }
 
+    /** @return BelongsTo<Document, $this> */
     public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
