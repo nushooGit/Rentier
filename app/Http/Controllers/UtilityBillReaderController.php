@@ -27,7 +27,7 @@ class UtilityBillReaderController extends Controller
             $result = $reader->read($attachment);
         } catch (InvoiceTextExtractionException) {
             throw ValidationException::withMessages([
-                'attachment' => __('validation.custom.utility_bill.reader.unreadable'),
+                'attachment' => __('validation.utility_invoice_reader.unreadable'),
             ]);
         }
 
