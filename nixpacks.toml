@@ -8,7 +8,7 @@ PORT = "80"
 [phases.setup]
 # Coolify's current Nixpacks image pins nixos-24.11, where this package attribute is poppler_utils.
 # The hyphenated poppler-utils form is emitted as an unquoted Nix identifier and fails evaluation.
-nixPkgs = ["...", "python311Packages.supervisor", "poppler_utils"]
+nixPkgs = ["...", "python311Packages.supervisor", "poppler_utils", "tesseract"]
 
 [phases.install]
 cmds = [
