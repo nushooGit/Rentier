@@ -177,7 +177,7 @@ export default function PropertyShow({ property }: Props) {
                         />
                     </dl>
                     {property.active_contract_guarantee_notice ? (
-                        <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-2.5 text-sm text-amber-900">
+                        <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50/90 p-3 text-sm text-amber-900 shadow-sm dark:border-amber-300/20 dark:bg-amber-300/10 dark:text-amber-100">
                             <p className="font-medium">
                                 {
                                     t('properties.guarantee.notice')
