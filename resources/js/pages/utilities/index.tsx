@@ -1033,6 +1033,7 @@ function UtilityBillCard({
                         variant="ghost"
                         onClick={() => onEdit(bill)}
                         aria-label={t('utilities.bills.edit')}
+                        data-test="utility-bill-edit-button"
                     >
                         <Pencil />
                     </Button>
