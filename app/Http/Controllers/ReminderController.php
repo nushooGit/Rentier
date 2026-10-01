@@ -23,9 +23,10 @@ class ReminderController extends Controller
 
         Reminder::query()->create([
             'team_id' => $currentTeam->id,
-            'property_id' => $request->filled('property_id')
-                ? $request->integer('property_id')
-                : $lease?->property_id,
+            'property_id' => $lease?->property_id
+                ?? ($request->filled('property_id')
+                    ? $request->integer('property_id')
+                    : null),
             'lease_id' => $lease?->id,
             'created_by_user_id' => $request->user()->id,
             'title' => $request->validated('title'),
@@ -51,9 +52,10 @@ class ReminderController extends Controller
             : null;
 
         $reminder->update([
-            'property_id' => $request->filled('property_id')
-                ? $request->integer('property_id')
-                : $lease?->property_id,
+            'property_id' => $lease?->property_id
+                ?? ($request->filled('property_id')
+                    ? $request->integer('property_id')
+                    : null),
             'lease_id' => $lease?->id,
             'title' => $request->validated('title'),
             'remind_on' => $request->validated('remind_on'),
