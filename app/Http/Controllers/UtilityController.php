@@ -28,6 +28,7 @@ class UtilityController extends Controller
                 'property:id,team_id,name,city',
                 'lease.renter:id,team_id,name',
             ])
+            ->withCount('bills')
             ->orderBy('provider_name')
             ->orderBy('id')
             ->get()
@@ -41,6 +42,7 @@ class UtilityController extends Controller
                 'responsible_party' => $account->responsible_party->value,
                 'status' => $account->status->value,
                 'notes' => $account->notes,
+                'bill_count' => $account->bills_count,
                 'property' => [
                     'id' => $account->property->id,
                     'name' => $account->property->name,
