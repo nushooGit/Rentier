@@ -3,6 +3,7 @@
 use App\Exceptions\Utilities\InvoiceTextExtractionException;
 use App\Models\Team;
 use App\Models\User;
+use App\Services\Utilities\PdfOcrTextExtractor;
 use App\Services\Utilities\PdfTextExtractor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -53,6 +54,57 @@ TEXT;
     $this->assertDatabaseCount('documents', 0);
 });
 
+test('invoice reader falls back to OCR when a PDF has no embedded text', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    app()->bind(PdfTextExtractor::class, fn () => new class implements PdfTextExtractor
+    {
+        public function extract(UploadedFile $file): string
+        {
+            throw new InvoiceTextExtractionException('no embedded text');
+        }
+    });
+
+    app()->bind(PdfOcrTextExtractor::class, fn () => new class implements PdfOcrTextExtractor
+    {
+        public function extract(UploadedFile $file): string
+        {
+            return <<<'TEXT'
+DIGI ROMANIA
+FACTURA NR. OCR-2026-77
+Data emiterii: 02.10.2026
+Scadenta: 20.10.2026
+Perioada de facturare: 01.09.2026 - 30.09.2026
+Total de plata: 99,50 RON
+TEXT;
+        }
+    });
+
+    $response = $this
+        ->actingAs($user)
+        ->postJson(
+            route('utility-bills.analyze', $team),
+            [
+                'attachment' => UploadedFile::fake()->create(
+                    'scan.pdf',
+                    100,
+                    'application/pdf',
+                ),
+            ],
+        );
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('source', 'pdf_ocr')
+        ->assertJsonPath('found_fields', 7)
+        ->assertJsonPath('fields.invoice_number.value', 'OCR-2026-77')
+        ->assertJsonPath('fields.amount.value', '99.50')
+        ->assertJsonPath('fields.currency.value', 'RON');
+
+    expect((float) $response->json('overall_confidence'))->toBeLessThan(0.9);
+});
+
 test('invoice reader rejects non PDF files before extraction', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
@@ -90,6 +142,14 @@ test('invoice reader returns a safe localized error when embedded text cannot be
         }
     });
 
+    app()->bind(PdfOcrTextExtractor::class, fn () => new class implements PdfOcrTextExtractor
+    {
+        public function extract(UploadedFile $file): string
+        {
+            throw new InvoiceTextExtractionException('fixture OCR failure');
+        }
+    });
+
     $this
         ->actingAs($user)
         ->postJson(
@@ -105,7 +165,7 @@ test('invoice reader returns a safe localized error when embedded text cannot be
         ->assertUnprocessable()
         ->assertJsonPath(
             'errors.attachment.0',
-            'Nu am putut extrage text suficient din acest PDF. Poți completa factura manual; scanările și pozele vor fi tratate într-un pas OCR separat.',
+            'Nu am putut citi automat textul din acest PDF, nici prin OCR. Poți completa factura manual.',
         );
 });
 
