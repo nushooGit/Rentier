@@ -56,6 +56,16 @@ class UtilityInvoiceTextParser
             '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])[^\n]{0,100}?\b(?:RON|LEI|LEU|EUR)\s+([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.92,
             '/\b(?:amount\s+due|total\s+due|balance\s+due)\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.90,
         ]);
+
+        if (
+            $previousBalance === null
+            && $amount !== null
+            && $totalDue !== null
+            && $amount['value'] === $totalDue['value']
+        ) {
+            $totalDue = null;
+        }
+
         $accountIdentifier = $this->matchFirst($text, [
             '/\b(?:cod\s+(?:de\s+)?(?:client|abonat|consumator|contract)|num[aă]r\s+(?:de\s+)?(?:client|abonat|consumator)|nr\.?\s+(?:de\s+)?(?:client|abonat|consumator)|id\s+client|cont\s+client)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
             '/\bcustomer\s+(?:code|id|number|no\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
