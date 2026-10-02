@@ -67,6 +67,10 @@ return [
             'currency' => [
                 'regex' => 'Moneda trebuie să fie un cod valid din 3 litere, de exemplu RON.',
             ],
+            'paid_by' => [
+                'required_if' => 'Alege cine a plătit factura.',
+                'enum' => 'Plătitorul facturii trebuie să fie proprietarul sau chiriașul.',
+            ],
             'attachment' => [
                 'file' => 'Atașamentul trebuie să fie un fișier valid.',
                 'mimes' => 'Factura trebuie să fie PDF, JPG, PNG sau WebP.',
