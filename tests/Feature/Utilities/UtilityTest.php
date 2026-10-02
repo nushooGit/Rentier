@@ -520,3 +520,389 @@ test('updating a utility bill keeps its attachment metadata aligned with the sel
     expect($freshDocument->document_date->toDateString())->toBe('2026-10-02');
 });
 
+test('unpaid owner utility bill creates a pending expense that affects profit but not cash', function () {
+    Carbon::setTestNow('2026-10-10 12:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'OWNER-UNPAID-1',
+            'amount' => '208.85',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'OWNER-UNPAID-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($expense)
+        ->category->toBe('utilities')
+        ->amount->toBe('208.85')
+        ->expense_date->toDateString()->toBe('2026-10-01')
+        ->paid_by->toBe('owner')
+        ->responsible_party->toBe('owner')
+        ->settlement_type->toBe('none')
+        ->status->toBe('pending');
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_expenses', '208.85')
+            ->where('summary.current_month_profit', '-208.85')
+            ->where('summary.operational_cash_result', '0.00')
+        );
+});
+
+test('owner utility payment changes cash in the payment month without moving the expense month', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'OWNER-CASH-1',
+            'amount' => '208.85',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'OWNER-CASH-1')->firstOrFail();
+
+    $this
+        ->actingAs($user)
+        ->put(route('utility-bills.update', [$team, $bill]), utilityBillPayload($account, [
+            'invoice_number' => 'OWNER-CASH-1',
+            'amount' => '208.85',
+            'status' => 'paid',
+            'paid_by' => 'owner',
+            'paid_on' => '2026-11-05',
+        ]))
+        ->assertRedirect();
+
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($bill->fresh())
+        ->paid_by->value->toBe('owner')
+        ->paid_on->toDateString()->toBe('2026-11-05');
+
+    expect($expense)
+        ->expense_date->toDateString()->toBe('2026-10-01')
+        ->status->toBe('paid');
+
+    Carbon::setTestNow('2026-11-10 12:00:00');
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_expenses', '0.00')
+            ->where('summary.operational_cash_result', '-208.85')
+        );
+});
+
+test('owner paid renter utility bill is recoverable and does not reduce owner profit', function () {
+    Carbon::setTestNow('2026-10-10 12:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-10-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+        'rent_due_day' => 15,
+    ]);
+    $account = createUtilityAccountFor($team, $property, $lease);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'RENTER-OWNER-PAID-1',
+            'status' => 'paid',
+            'paid_by' => 'owner',
+            'paid_on' => '2026-10-05',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'RENTER-OWNER-PAID-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($expense)
+        ->paid_by->toBe('owner')
+        ->responsible_party->toBe('tenant')
+        ->settlement_type->toBe('reimburse')
+        ->status->toBe('reimbursable');
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_expenses', '0.00')
+            ->where('summary.current_month_profit', '0.00')
+            ->where('summary.recoverable_expenses', '208.85')
+            ->where('summary.operational_cash_result', '-208.85')
+        );
+});
+
+test('renter paid renter utility bill stays outside owner profit cash and recoveries', function () {
+    Carbon::setTestNow('2026-10-10 12:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $lease = Lease::factory()->for($team)->create([
+        'property_id' => $property->id,
+        'start_date' => '2026-10-01',
+        'end_date' => '2026-12-31',
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+        'rent_due_day' => 15,
+    ]);
+    $account = createUtilityAccountFor($team, $property, $lease);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'RENTER-PAID-1',
+            'status' => 'paid',
+            'paid_by' => 'renter',
+            'paid_on' => '2026-10-05',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'RENTER-PAID-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($expense)
+        ->paid_by->toBe('tenant')
+        ->responsible_party->toBe('tenant')
+        ->settlement_type->toBe('none')
+        ->status->toBe('paid');
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_expenses', '0.00')
+            ->where('summary.current_month_profit', '0.00')
+            ->where('summary.recoverable_expenses', '0.00')
+            ->where('summary.operational_cash_result', '0.00')
+        );
+});
+
+test('renter paid owner utility bill becomes an owner reimbursement without immediate owner cash outflow', function () {
+    Carbon::setTestNow('2026-10-10 12:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create([
+        'monthly_rent_amount' => 0,
+        'deposit_amount' => 0,
+    ]);
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'OWNER-RENTER-PAID-1',
+            'status' => 'paid',
+            'paid_by' => 'renter',
+            'paid_on' => '2026-10-05',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'OWNER-RENTER-PAID-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($expense)
+        ->paid_by->toBe('tenant')
+        ->responsible_party->toBe('owner')
+        ->settlement_type->toBe('reimburse')
+        ->status->toBe('reimbursable');
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.current_month_expenses', '208.85')
+            ->where('summary.current_month_profit', '-208.85')
+            ->where('summary.tenant_reimbursement_expenses', '208.85')
+            ->where('summary.operational_cash_result', '0.00')
+        );
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.mark-reimbursed', [$team, $expense]))
+        ->assertRedirect();
+
+    $this
+        ->actingAs($user)
+        ->get(route('dashboard', $team))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('summary.tenant_reimbursement_expenses', '0.00')
+            ->where('summary.operational_cash_result', '-208.85')
+        );
+});
+
+test('utility bill edits update one linked expense and deleting the bill removes it', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'SYNC-1',
+            'amount' => '100.00',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'SYNC-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+    $expenseId = $expense->id;
+
+    $this
+        ->actingAs($user)
+        ->put(route('utility-bills.update', [$team, $bill]), utilityBillPayload($account, [
+            'invoice_number' => 'SYNC-1-EDITED',
+            'issue_date' => '2026-10-02',
+            'amount' => '150.25',
+            'status' => 'paid',
+            'paid_by' => 'owner',
+            'paid_on' => '2026-10-08',
+        ]))
+        ->assertRedirect();
+
+    $freshExpense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($freshExpense)
+        ->id->toBe($expenseId)
+        ->title->toContain('SYNC-1-EDITED')
+        ->amount->toBe('150.25')
+        ->expense_date->toDateString()->toBe('2026-10-02')
+        ->status->toBe('paid');
+
+    $this
+        ->actingAs($user)
+        ->delete(route('utility-bills.destroy', [$team, $bill]))
+        ->assertRedirect();
+
+    $this->assertDatabaseMissing('expenses', ['id' => $expenseId]);
+});
+
+test('utility managed expenses cannot be edited or deleted outside the utility bill flow', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'MANAGED-1',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'MANAGED-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    $this
+        ->actingAs($user)
+        ->get(route('expenses.edit', [$team, $expense]))
+        ->assertStatus(409);
+
+    $this
+        ->actingAs($user)
+        ->delete(route('expenses.destroy', [$team, $expense]))
+        ->assertStatus(409);
+
+    $this->assertDatabaseHas('expenses', ['id' => $expense->id]);
+});
+
+test('settled cross party utility expense stays settled on non financial bill edits and reopens on amount change', function () {
+    Carbon::setTestNow('2026-10-10 12:00:00');
+
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'SETTLED-SYNC-1',
+            'status' => 'paid',
+            'paid_by' => 'renter',
+            'paid_on' => '2026-10-05',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'SETTLED-SYNC-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    $this
+        ->actingAs($user)
+        ->patch(route('expenses.mark-reimbursed', [$team, $expense]))
+        ->assertRedirect();
+
+    $settledAt = $expense->fresh()->settled_at;
+
+    $this
+        ->actingAs($user)
+        ->put(route('utility-bills.update', [$team, $bill]), utilityBillPayload($account, [
+            'invoice_number' => 'SETTLED-SYNC-1',
+            'status' => 'paid',
+            'paid_by' => 'renter',
+            'paid_on' => '2026-10-05',
+            'notes' => 'Notă actualizată',
+        ]))
+        ->assertRedirect();
+
+    expect($expense->fresh())
+        ->status->toBe('paid')
+        ->settled_at->not->toBeNull()
+        ->settled_at->toDateTimeString()->toBe($settledAt?->toDateTimeString());
+
+    $this
+        ->actingAs($user)
+        ->put(route('utility-bills.update', [$team, $bill]), utilityBillPayload($account, [
+            'invoice_number' => 'SETTLED-SYNC-1',
+            'amount' => '250.00',
+            'status' => 'paid',
+            'paid_by' => 'renter',
+            'paid_on' => '2026-10-05',
+        ]))
+        ->assertRedirect();
+
+    expect($expense->fresh())
+        ->status->toBe('reimbursable')
+        ->settled_at->toBeNull();
+});
+
