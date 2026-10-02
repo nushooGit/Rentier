@@ -77,6 +77,8 @@ type AccountFormData = {
 type BillFormData = {
     utility_account_id: string;
     invoice_number: string;
+    provider_invoice_id: string;
+    payment_code: string;
     billing_period_start: string;
     billing_period_end: string;
     issue_date: string;
@@ -110,6 +112,8 @@ type InvoiceReaderResult = {
     };
     metadata: {
         account_identifier: InvoiceReaderField;
+        provider_invoice_id: InvoiceReaderField;
+        payment_code: InvoiceReaderField;
     };
 };
 
@@ -542,6 +546,8 @@ function BillDialog({
     const form = useForm<BillFormData>({
         utility_account_id: selectedInitialAccountId?.toString() ?? '',
         invoice_number: bill?.invoice_number ?? '',
+        provider_invoice_id: bill?.provider_invoice_id ?? '',
+        payment_code: bill?.payment_code ?? '',
         billing_period_start:
             bill?.billing_period_start ?? localMonthStart(),
         billing_period_end: bill?.billing_period_end ?? today,
@@ -617,6 +623,14 @@ function BillDialog({
                 form.setData(
                     'invoice_number',
                     result.fields.invoice_number.value ?? '',
+                );
+                form.setData(
+                    'provider_invoice_id',
+                    result.metadata.provider_invoice_id.value ?? '',
+                );
+                form.setData(
+                    'payment_code',
+                    result.metadata.payment_code.value ?? '',
                 );
                 form.setData(
                     'billing_period_start',
@@ -857,6 +871,48 @@ function BillDialog({
                             </div>
                             <InputError message={form.errors.amount} />
                             <InputError message={form.errors.currency} />
+                        </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="utility-provider-invoice-id">
+                                {t('utilities.providerInvoiceId')}
+                            </Label>
+                            <Input
+                                id="utility-provider-invoice-id"
+                                value={form.data.provider_invoice_id}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'provider_invoice_id',
+                                        event.target.value,
+                                    )
+                                }
+                                maxLength={191}
+                                data-test="utility-provider-invoice-id-input"
+                            />
+                            <InputError
+                                message={form.errors.provider_invoice_id}
+                            />
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="utility-payment-code">
+                                {t('utilities.paymentCode')}
+                            </Label>
+                            <Input
+                                id="utility-payment-code"
+                                value={form.data.payment_code}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'payment_code',
+                                        event.target.value,
+                                    )
+                                }
+                                maxLength={191}
+                                data-test="utility-payment-code-input"
+                            />
+                            <InputError message={form.errors.payment_code} />
                         </div>
                     </div>
 
@@ -1291,6 +1347,19 @@ function UtilityBillCard({
                               )}`
                             : ''}
                     </p>
+                    {bill.provider_invoice_id || bill.payment_code ? (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                            {bill.provider_invoice_id
+                                ? `${t('utilities.providerInvoiceId')}: ${bill.provider_invoice_id}`
+                                : ''}
+                            {bill.provider_invoice_id && bill.payment_code
+                                ? ' · '
+                                : ''}
+                            {bill.payment_code
+                                ? `${t('utilities.paymentCode')}: ${bill.payment_code}`
+                                : ''}
+                        </p>
+                    ) : null}
                 </div>
 
                 <div className="flex shrink-0 flex-wrap items-center gap-1">

@@ -67,6 +67,8 @@ class UtilityController extends Controller
                 'id' => $bill->id,
                 'utility_account_id' => $bill->utility_account_id,
                 'invoice_number' => $bill->invoice_number,
+                'provider_invoice_id' => $bill->provider_invoice_id,
+                'payment_code' => $bill->payment_code,
                 'billing_period_start' => $bill->billing_period_start->toDateString(),
                 'billing_period_end' => $bill->billing_period_end->toDateString(),
                 'issue_date' => $bill->issue_date->toDateString(),

@@ -210,3 +210,58 @@ TEXT);
     expect($result['fields']['amount']['value'])->toBe('420.50')
         ->and($result['fields']['amount']['confidence'])->toBe(0.82);
 });
+
+test('invoice text parser handles PPC-style embedded text without mistaking meter series for invoice number', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Valoare factură curentă
+
+263,82 lei
+
+Cod plată
+100200300
+
+Dată scadentă
+24.09.2026
+
+ID factură
+90000123456
+
+Perioadă facturare
+26.06.2026 - 25.08.2026
+
+Factură fiscală seria 26AB nr. 12345678 din data de 09.09.2026
+
+Cod de client:C12345678
+
+Serie contor: 001000697120315
+TEXT);
+
+    expect($result['fields']['invoice_number']['value'])->toBe('26AB12345678')
+        ->and($result['metadata']['provider_invoice_id']['value'])->toBe('90000123456')
+        ->and($result['metadata']['payment_code']['value'])->toBe('100200300')
+        ->and($result['metadata']['account_identifier']['value'])->toBe('C12345678')
+        ->and($result['fields']['billing_period_start']['value'])->toBe('2026-06-26')
+        ->and($result['fields']['billing_period_end']['value'])->toBe('2026-08-25')
+        ->and($result['fields']['issue_date']['value'])->toBe('2026-09-09')
+        ->and($result['fields']['due_date']['value'])->toBe('2026-09-24')
+        ->and($result['fields']['amount']['value'])->toBe('263.82')
+        ->and($result['fields']['currency']['value'])->toBe('RON')
+        ->and($result['found_fields'])->toBe(7);
+});
+
+test('invoice text parser can fall back to provider invoice id when no fiscal invoice number exists', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+ID factură: PROVIDER-7788
+Cod plată: PAY-4455
+Serie contor: METER-999
+TEXT);
+
+    expect($result['fields']['invoice_number']['value'])->toBe('PROVIDER-7788')
+        ->and($result['metadata']['provider_invoice_id']['value'])->toBe('PROVIDER-7788')
+        ->and($result['metadata']['payment_code']['value'])->toBe('PAY-4455');
+});
+

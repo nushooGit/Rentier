@@ -20,6 +20,8 @@ use Illuminate\Support\Carbon;
  * @property int|null $document_id
  * @property int|null $created_by_user_id
  * @property string $invoice_number
+ * @property string|null $provider_invoice_id
+ * @property string|null $payment_code
  * @property Carbon $billing_period_start
  * @property Carbon $billing_period_end
  * @property Carbon $issue_date
@@ -46,6 +48,8 @@ use Illuminate\Support\Carbon;
     'document_id',
     'created_by_user_id',
     'invoice_number',
+    'provider_invoice_id',
+    'payment_code',
     'billing_period_start',
     'billing_period_end',
     'issue_date',
