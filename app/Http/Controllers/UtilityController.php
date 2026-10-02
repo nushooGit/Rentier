@@ -75,6 +75,7 @@ class UtilityController extends Controller
                 'amount_minor' => $bill->amount_minor,
                 'currency' => $bill->currency,
                 'status' => $bill->status->value,
+                'paid_by' => $bill->paid_by?->value,
                 'paid_on' => $bill->paid_on?->toDateString(),
                 'notes' => $bill->notes,
                 'overdue' => $bill->status->value === 'unpaid'
