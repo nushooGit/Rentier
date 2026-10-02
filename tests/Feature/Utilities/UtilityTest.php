@@ -49,6 +49,8 @@ function utilityBillPayload(UtilityAccount $account, array $overrides = []): arr
         'issue_date' => '2026-10-01',
         'due_date' => '2026-10-15',
         'amount' => '208.85',
+        'previous_balance' => null,
+        'total_due' => null,
         'currency' => 'RON',
         'status' => 'unpaid',
         'paid_by' => null,
@@ -157,6 +159,8 @@ test('workspace member can create a utility bill with private invoice attachment
             'issue_date' => '2026-10-01',
             'due_date' => '2026-10-15',
             'amount' => '123,45',
+            'previous_balance' => '439,38',
+            'total_due' => '562,83',
             'currency' => 'RON',
             'status' => 'unpaid',
             'paid_on' => null,
@@ -179,10 +183,39 @@ test('workspace member can create a utility bill with private invoice attachment
         ->provider_invoice_id->toBe('PROVIDER-INV-9001')
         ->payment_code->toBe('PAY-100200')
         ->amount_minor->toBe(12345)
+        ->previous_balance_minor->toBe(43938)
+        ->total_due_minor->toBe(56283)
         ->document_id->toBe($document->id);
 
     expect($document->category)->toBe(DocumentCategory::InvoiceReceipt);
     Storage::disk('local')->assertExists($document->path);
+});
+
+test('utility bill arrears do not increase the synchronized expense amount', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+    $property = Property::factory()->for($team)->create();
+    $account = createUtilityAccountFor($team, $property);
+
+    $this
+        ->actingAs($user)
+        ->post(route('utility-bills.store', $team), utilityBillPayload($account, [
+            'invoice_number' => 'ARREARS-1',
+            'amount' => '263.82',
+            'previous_balance' => '439.38',
+            'total_due' => '703.20',
+        ]))
+        ->assertRedirect();
+
+    $bill = UtilityBill::query()->where('invoice_number', 'ARREARS-1')->firstOrFail();
+    $expense = Expense::query()->where('utility_bill_id', $bill->id)->firstOrFail();
+
+    expect($bill)
+        ->amount_minor->toBe(26382)
+        ->previous_balance_minor->toBe(43938)
+        ->total_due_minor->toBe(70320);
+
+    expect($expense->amount)->toBe('263.82');
 });
 
 test('utility bill validation errors are localized for invalid amount and attachment', function () {

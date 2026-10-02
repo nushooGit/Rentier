@@ -120,6 +120,10 @@ test('invoice reader returns PPC provider identifiers and fiscal invoice data se
             return <<<'TEXT'
 Valoare factură curentă
 263,82 lei
+Sold anterior neachitat
+439,38 lei
+Total de plată
+703,20 lei
 Cod plată
 100200300
 Dată scadentă
@@ -154,6 +158,8 @@ TEXT;
         ->assertJsonPath('fields.issue_date.value', '2026-09-09')
         ->assertJsonPath('fields.due_date.value', '2026-09-24')
         ->assertJsonPath('fields.amount.value', '263.82')
+        ->assertJsonPath('fields.previous_balance.value', '439.38')
+        ->assertJsonPath('fields.total_due.value', '703.20')
         ->assertJsonPath('metadata.account_identifier.value', 'C12345678')
         ->assertJsonPath('metadata.provider_invoice_id.value', '90000123456')
         ->assertJsonPath('metadata.payment_code.value', '100200300');

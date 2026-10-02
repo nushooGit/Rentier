@@ -65,6 +65,8 @@ class SaveUtilityBillRequest extends FormRequest
             'issue_date' => ['required', 'date'],
             'due_date' => ['required', 'date', 'after_or_equal:issue_date'],
             'amount' => ['required', 'regex:/^\d{1,12}(?:[\.,]\d{1,2})?$/'],
+            'previous_balance' => ['nullable', 'regex:/^-?\d{1,12}(?:[\.,]\d{1,2})?$/'],
+            'total_due' => ['nullable', 'regex:/^-?\d{1,12}(?:[\.,]\d{1,2})?$/'],
             'currency' => ['required', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
             'status' => ['required', Rule::enum(UtilityBillStatus::class)],
             'paid_by' => [
@@ -95,6 +97,8 @@ class SaveUtilityBillRequest extends FormRequest
     {
         return [
             'amount.regex' => __('validation.custom.utility_bill.amount.regex'),
+            'previous_balance.regex' => __('validation.custom.utility_bill.previous_balance.regex'),
+            'total_due.regex' => __('validation.custom.utility_bill.total_due.regex'),
             'currency.regex' => __('validation.custom.utility_bill.currency.regex'),
             'paid_by.required_if' => __('validation.custom.utility_bill.paid_by.required_if'),
             'paid_by.enum' => __('validation.custom.utility_bill.paid_by.enum'),

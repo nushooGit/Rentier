@@ -196,6 +196,7 @@ TEXT);
 
     expect($result['fields']['amount']['value'])->toBe('120.50')
         ->and($result['fields']['amount']['confidence'])->toBe(0.96)
+        ->and($result['fields']['total_due']['value'])->toBe('420.50')
         ->and($result['fields']['currency']['value'])->toBe('RON');
 });
 
@@ -218,6 +219,12 @@ test('invoice text parser handles PPC-style embedded text without mistaking mete
 Valoare factură curentă
 
 263,82 lei
+
+Sold anterior neachitat
+439,38 lei
+
+Total de plată
+703,20 lei
 
 Cod plată
 100200300
@@ -247,8 +254,10 @@ TEXT);
         ->and($result['fields']['issue_date']['value'])->toBe('2026-09-09')
         ->and($result['fields']['due_date']['value'])->toBe('2026-09-24')
         ->and($result['fields']['amount']['value'])->toBe('263.82')
+        ->and($result['fields']['previous_balance']['value'])->toBe('439.38')
+        ->and($result['fields']['total_due']['value'])->toBe('703.20')
         ->and($result['fields']['currency']['value'])->toBe('RON')
-        ->and($result['found_fields'])->toBe(7);
+        ->and($result['found_fields'])->toBe(9);
 });
 
 test('invoice text parser can fall back to provider invoice id when no fiscal invoice number exists', function () {
@@ -273,6 +282,12 @@ Valoare factură curentă
 
 263,82 lei
 
+Sold anterior neachitat
+439,38 lei
+
+Total de plată
+703,20 lei
+
 Cod plată
 100200300
 
@@ -296,7 +311,10 @@ TEXT);
         ->and($result['fields']['billing_period_end']['value'])->toBe('2026-08-25')
         ->and($result['fields']['issue_date']['value'])->toBe('2026-09-09')
         ->and($result['fields']['due_date']['value'])->toBe('2026-09-24')
-        ->and($result['fields']['amount']['value'])->toBe('263.82');
+        ->and($result['fields']['amount']['value'])->toBe('263.82')
+        ->and($result['fields']['previous_balance']['value'])->toBe('439.38')
+        ->and($result['fields']['total_due']['value'])->toBe('703.20')
+        ->and($result['found_fields'])->toBe(9);
 });
 
 test('invoice text parser does not accept neighbouring column labels as provider identifiers', function () {
@@ -312,5 +330,34 @@ TEXT);
 
     expect($result['metadata']['payment_code']['value'])->toBeNull()
         ->and($result['metadata']['provider_invoice_id']['value'])->toBeNull();
+});
+
+test('invoice text parser keeps a negative previous balance as provider credit', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Factură nr. CREDIT-1
+Valoarea facturii: 100,00 RON
+Sold anterior: -25,50 RON
+Total de plată: 74,50 RON
+TEXT);
+
+    expect($result['fields']['amount']['value'])->toBe('100.00')
+        ->and($result['fields']['previous_balance']['value'])->toBe('-25.50')
+        ->and($result['fields']['total_due']['value'])->toBe('74.50');
+});
+
+test('invoice text parser omits redundant total due when it only repeats the current invoice amount', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Factură nr. SAME-1
+Valoarea facturii: 100,00 RON
+Total de plată: 100,00 RON
+TEXT);
+
+    expect($result['fields']['amount']['value'])->toBe('100.00')
+        ->and($result['fields']['previous_balance']['value'])->toBeNull()
+        ->and($result['fields']['total_due']['value'])->toBeNull();
 });
 

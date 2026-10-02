@@ -41,6 +41,12 @@ return [
             'amount' => [
                 'regex' => 'The amount must be a valid number with at most 2 decimal places.',
             ],
+            'previous_balance' => [
+                'regex' => 'The previous balance must be a valid number with at most 2 decimal places.',
+            ],
+            'total_due' => [
+                'regex' => 'The total due must be a valid number with at most 2 decimal places.',
+            ],
             'currency' => [
                 'regex' => 'The currency must be a valid 3-letter code, for example RON.',
             ],

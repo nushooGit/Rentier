@@ -64,6 +64,12 @@ return [
             'amount' => [
                 'regex' => 'Suma trebuie să fie un număr valid, cu maximum 2 zecimale.',
             ],
+            'previous_balance' => [
+                'regex' => 'Soldul anterior trebuie să fie un număr valid, cu maximum 2 zecimale.',
+            ],
+            'total_due' => [
+                'regex' => 'Totalul de plată trebuie să fie un număr valid, cu maximum 2 zecimale.',
+            ],
             'currency' => [
                 'regex' => 'Moneda trebuie să fie un cod valid din 3 litere, de exemplu RON.',
             ],

@@ -31,3 +31,21 @@ test('money input formats stored minor units without floating point math', funct
     [12345, '123.45'],
 ]);
 
+test('money input converts signed decimal amounts for utility balances', function (string $value, int $expected) {
+    expect(MoneyInput::toSignedMinorUnits($value))->toBe($expected);
+})->with([
+    ['439.38', 43938],
+    ['-12.34', -1234],
+    ['-0.50', -50],
+    ['0', 0],
+]);
+
+test('money input formats signed stored minor units without losing subunit signs', function (int $minor, string $expected) {
+    expect(MoneyInput::fromSignedMinorUnits($minor))->toBe($expected);
+})->with([
+    [43938, '439.38'],
+    [-1234, '-12.34'],
+    [-50, '-0.50'],
+    [0, '0.00'],
+]);
+

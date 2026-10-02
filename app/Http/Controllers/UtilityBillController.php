@@ -66,6 +66,12 @@ class UtilityBillController extends Controller
                     'issue_date' => $request->validated('issue_date'),
                     'due_date' => $request->validated('due_date'),
                     'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
+                    'previous_balance_minor' => $request->filled('previous_balance')
+                        ? MoneyInput::toSignedMinorUnits((string) $request->validated('previous_balance'))
+                        : null,
+                    'total_due_minor' => $request->filled('total_due')
+                        ? MoneyInput::toSignedMinorUnits((string) $request->validated('total_due'))
+                        : null,
                     'currency' => strtoupper((string) $request->validated('currency')),
                     'status' => $request->validated('status'),
                     'responsible_party' => $account->responsible_party->value,
@@ -146,6 +152,12 @@ class UtilityBillController extends Controller
                     'issue_date' => $request->validated('issue_date'),
                     'due_date' => $request->validated('due_date'),
                     'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
+                    'previous_balance_minor' => $request->filled('previous_balance')
+                        ? MoneyInput::toSignedMinorUnits((string) $request->validated('previous_balance'))
+                        : null,
+                    'total_due_minor' => $request->filled('total_due')
+                        ? MoneyInput::toSignedMinorUnits((string) $request->validated('total_due'))
+                        : null,
                     'currency' => strtoupper((string) $request->validated('currency')),
                     'status' => $request->validated('status'),
                     'responsible_party' => $account->responsible_party->value,
