@@ -25,12 +25,12 @@ class UtilityInvoiceTextParser
         $text = $this->normalizeText($text);
         $confidenceMultiplier = max(0.0, min(1.0, $confidenceMultiplier));
 
-        $providerInvoiceId = $this->matchFirst($text, [
+        $providerInvoiceId = $this->matchIdentifier($text, [
             '/\bid\s+factur[ăa]\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.99,
             '/\binvoice\s+id\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
         ]);
 
-        $paymentCode = $this->matchFirst($text, [
+        $paymentCode = $this->matchIdentifier($text, [
             '/\bcod(?:ul)?\s+(?:de\s+)?plat[ăa]\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.99,
             '/\bpayment\s+(?:code|reference|ref\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.94,
         ]);
@@ -131,6 +131,39 @@ class UtilityInvoiceTextParser
         ]);
 
         return $invoiceNumber ?? $providerInvoiceId;
+    }
+
+    /**
+     * Match provider/payment identifiers conservatively.
+     *
+     * Text extracted with preserved PDF columns can place an adjacent label
+     * after the requested label (for example "ID factură  Consum energie").
+     * Requiring at least one digit prevents those neighbouring words from
+     * becoming identifiers.
+     *
+     * @param  array<string, float>  $patterns
+     * @return array{value: string, confidence: float}|null
+     */
+    private function matchIdentifier(string $text, array $patterns): ?array
+    {
+        foreach ($patterns as $pattern => $confidence) {
+            if (preg_match_all($pattern, $text, $matches) < 1) {
+                continue;
+            }
+
+            foreach ($matches[1] ?? [] as $candidate) {
+                $value = trim((string) $candidate);
+
+                if ($value !== '' && preg_match('/\d/u', $value) === 1) {
+                    return [
+                        'value' => $value,
+                        'confidence' => $confidence,
+                    ];
+                }
+            }
+        }
+
+        return null;
     }
 
     /**

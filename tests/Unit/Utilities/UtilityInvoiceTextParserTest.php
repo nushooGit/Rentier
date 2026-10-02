@@ -265,3 +265,52 @@ TEXT);
         ->and($result['metadata']['payment_code']['value'])->toBe('PAY-4455');
 });
 
+test('invoice text parser handles PPC logical reading order from Poppler', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Valoare factură curentă
+
+263,82 lei
+
+Cod plată
+100200300
+
+Dată scadentă
+24.09.2026
+
+ID factură
+90000123456
+
+Perioadă facturare
+26.06.2026 - 25.08.2026
+
+Factură fiscală seria 26AB nr. 12345678 din data de 09.09.2026
+Cod de client:C12345678
+TEXT);
+
+    expect($result['fields']['invoice_number']['value'])->toBe('26AB12345678')
+        ->and($result['metadata']['provider_invoice_id']['value'])->toBe('90000123456')
+        ->and($result['metadata']['payment_code']['value'])->toBe('100200300')
+        ->and($result['fields']['billing_period_start']['value'])->toBe('2026-06-26')
+        ->and($result['fields']['billing_period_end']['value'])->toBe('2026-08-25')
+        ->and($result['fields']['issue_date']['value'])->toBe('2026-09-09')
+        ->and($result['fields']['due_date']['value'])->toBe('2026-09-24')
+        ->and($result['fields']['amount']['value'])->toBe('263.82');
+});
+
+test('invoice text parser does not accept neighbouring column labels as provider identifiers', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Cod plată                                                          Dată scadentă
+105079990                                                          24.09.2026
+
+ID factură                                                         Consum energie
+93000961394                                                        285 kWh
+TEXT);
+
+    expect($result['metadata']['payment_code']['value'])->toBeNull()
+        ->and($result['metadata']['provider_invoice_id']['value'])->toBeNull();
+});
+
