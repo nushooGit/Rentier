@@ -23,8 +23,6 @@ return new class extends Migration
                 ->constrained('utility_bills')
                 ->cascadeOnDelete();
         });
-
-
     }
 
     public function down(): void
