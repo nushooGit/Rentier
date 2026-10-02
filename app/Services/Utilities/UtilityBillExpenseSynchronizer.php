@@ -14,14 +14,15 @@ class UtilityBillExpenseSynchronizer
     {
         $bill->loadMissing('utilityAccount');
 
-        $responsibleParty = $this->expenseParty(
-            $bill->utilityAccount->responsible_party,
-        );
+        $billResponsibility = $bill->responsible_party
+            ?? $bill->utilityAccount->responsible_party;
+
+        $responsibleParty = $this->expenseParty($billResponsibility);
 
         $paidBy = $bill->status === UtilityBillStatus::Paid
             ? $this->expenseParty(
                 $bill->paid_by
-                    ?? UtilityPaidBy::from($bill->utilityAccount->responsible_party->value),
+                    ?? UtilityPaidBy::from($billResponsibility->value),
             )
             : $responsibleParty;
 
