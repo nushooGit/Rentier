@@ -105,6 +105,7 @@ class UtilityBillController extends Controller
 
         $oldDocument = $utilityBill->document;
         $newDocument = null;
+        $shouldSyncExpense = $utilityBill->expense()->exists();
 
         try {
             $attachment = $request->file('attachment');
@@ -126,6 +127,7 @@ class UtilityBillController extends Controller
                 $newDocument,
                 $oldDocument,
                 $expenseSynchronizer,
+                $shouldSyncExpense,
             ): void {
                 $utilityBill->update([
                     'utility_account_id' => $account->id,
@@ -152,7 +154,9 @@ class UtilityBillController extends Controller
                     'notes' => $request->validated('notes'),
                 ]);
 
-                $expenseSynchronizer->sync($utilityBill->refresh());
+                if ($shouldSyncExpense) {
+                    $expenseSynchronizer->sync($utilityBill->refresh());
+                }
 
                 if ($newDocument === null && $oldDocument) {
                     $oldDocument->update([
