@@ -66,6 +66,7 @@ class UtilityBillController extends Controller
                     'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
                     'currency' => strtoupper((string) $request->validated('currency')),
                     'status' => $request->validated('status'),
+                    'responsible_party' => $account->responsible_party->value,
                     'paid_by' => $request->validated('status') === 'paid'
                         ? $request->validated('paid_by')
                         : null,
@@ -141,6 +142,7 @@ class UtilityBillController extends Controller
                     'amount_minor' => MoneyInput::toMinorUnits((string) $request->validated('amount')),
                     'currency' => strtoupper((string) $request->validated('currency')),
                     'status' => $request->validated('status'),
+                    'responsible_party' => $account->responsible_party->value,
                     'paid_by' => $request->validated('status') === 'paid'
                         ? $request->validated('paid_by')
                         : null,
