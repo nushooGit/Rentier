@@ -48,6 +48,14 @@ class UtilityInvoiceTextParser
 
         [$billingStart, $billingEnd] = $this->matchBillingPeriod($text);
         [$amount, $currency] = $this->matchAmountAndCurrency($text);
+        $previousBalance = $this->matchSignedAmount($text, [
+            '/\b(?:sold\s+anterior\s+neachitat|sold\s+anterior|sold\s+la\s+data\s+emiterii\s+facturii|facturi\s+restante|sold\s+restant|restan[țt][ăa]|previous\s+balance|past\s+due\s+balance|arrears)\b[^\d+\-\n]{0,80}([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.95,
+        ]);
+        $totalDue = $this->matchSignedAmount($text, [
+            '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(?:RON|LEI|LEU|EUR)?\b/iu' => 0.96,
+            '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])[^\n]{0,100}?\b(?:RON|LEI|LEU|EUR)\s+([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.92,
+            '/\b(?:amount\s+due|total\s+due|balance\s+due)\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.90,
+        ]);
         $accountIdentifier = $this->matchFirst($text, [
             '/\b(?:cod\s+(?:de\s+)?(?:client|abonat|consumator|contract)|num[aă]r\s+(?:de\s+)?(?:client|abonat|consumator)|nr\.?\s+(?:de\s+)?(?:client|abonat|consumator)|id\s+client|cont\s+client)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
             '/\bcustomer\s+(?:code|id|number|no\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
@@ -60,6 +68,8 @@ class UtilityInvoiceTextParser
             'issue_date' => $this->field($issueDate),
             'due_date' => $this->field($dueDate),
             'amount' => $this->field($amount),
+            'previous_balance' => $this->field($previousBalance),
+            'total_due' => $this->field($totalDue),
             'currency' => $this->field($currency),
         ];
 
@@ -182,6 +192,30 @@ class UtilityInvoiceTextParser
                         'confidence' => $confidence,
                     ];
                 }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param  array<string, float>  $patterns
+     * @return array{value: string, confidence: float}|null
+     */
+    private function matchSignedAmount(string $text, array $patterns): ?array
+    {
+        foreach ($patterns as $pattern => $confidence) {
+            if (preg_match($pattern, $text, $matches) !== 1) {
+                continue;
+            }
+
+            $value = $this->normalizeSignedAmount((string) ($matches[1] ?? ''));
+
+            if ($value !== null) {
+                return [
+                    'value' => $value,
+                    'confidence' => $confidence,
+                ];
             }
         }
 
@@ -334,6 +368,22 @@ class UtilityInvoiceTextParser
         return checkdate($month, $day, $year)
             ? sprintf('%04d-%02d-%02d', $year, $month, $day)
             : null;
+    }
+
+    private function normalizeSignedAmount(string $value): ?string
+    {
+        $value = trim($value);
+        $negative = str_starts_with($value, '-');
+        $unsigned = ltrim($value, '+-');
+        $amount = $this->normalizeAmount($unsigned);
+
+        if ($amount === null) {
+            return null;
+        }
+
+        return $negative && $amount !== '0' && $amount !== '0.0' && $amount !== '0.00'
+            ? '-'.$amount
+            : $amount;
     }
 
     private function normalizeAmount(string $value): ?string
