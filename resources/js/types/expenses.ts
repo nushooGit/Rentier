@@ -32,6 +32,8 @@ export type Expense = {
     team_id: number;
     property_id: number;
     lease_id: number | null;
+    utility_bill_id: number | null;
+    managed_by_utility_bill: boolean;
     title: string;
     category: ExpenseCategory;
     amount: string;

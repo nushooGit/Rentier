@@ -10,6 +10,7 @@ export type UtilityServiceType =
 export type UtilityResponsibleParty = 'owner' | 'renter';
 export type UtilityAccountStatus = 'active' | 'inactive';
 export type UtilityBillStatus = 'unpaid' | 'paid';
+export type UtilityPaidBy = 'owner' | 'renter';
 
 export type UtilityPropertyOption = {
     id: number;
@@ -50,6 +51,8 @@ export type UtilityBillItem = {
     amount_minor: number;
     currency: string;
     status: UtilityBillStatus;
+    responsible_party: UtilityResponsibleParty;
+    paid_by: UtilityPaidBy | null;
     paid_on: string | null;
     notes: string | null;
     overdue: boolean;

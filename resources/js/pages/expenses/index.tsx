@@ -197,12 +197,19 @@ export default function ExpensesIndex({
                                                 )}
                                             </p>
                                         </div>
-                                        <Badge variant="secondary">
-                                            {expenseSettlementStateLabel(
-                                                expense.settlement_state.kind,
-                                            ) ??
-                                                expenseStatusLabel(expense.status)}
-                                        </Badge>
+                                        <div className="flex flex-wrap items-center gap-1.5">
+                                            {expense.managed_by_utility_bill ? (
+                                                <Badge variant="outline">
+                                                    {t('expenses.source.utility')}
+                                                </Badge>
+                                            ) : null}
+                                            <Badge variant="secondary">
+                                                {expenseSettlementStateLabel(
+                                                    expense.settlement_state.kind,
+                                                ) ??
+                                                    expenseStatusLabel(expense.status)}
+                                            </Badge>
+                                        </div>
                                     </div>
                                     <div className="grid gap-0.5 text-sm">
                                         <span className="font-medium">
@@ -214,20 +221,33 @@ export default function ExpensesIndex({
                                         <span className="text-muted-foreground">
                                             {formatDateLong(
                                                 expense.expense_date,
-                                            )}{' '}
-                                            ·{' '}
-                                            {expensePaidByLabel(
-                                                expense.paid_by,
                                             )}
+                                            {!(
+                                                expense.managed_by_utility_bill &&
+                                                expense.status === 'pending'
+                                            ) ? (
+                                                <>
+                                                    {' '}
+                                                    ·{' '}
+                                                    {expensePaidByLabel(
+                                                        expense.paid_by,
+                                                    )}
+                                                </>
+                                            ) : null}
                                         </span>
                                     </div>
                                     <div className="flex flex-wrap gap-1.5 text-xs">
-                                        <Badge variant="outline">
-                                            {t('expenses.field.paidByPrefix')}:{' '}
-                                            {expensePaidByLabel(
-                                                expense.paid_by,
-                                            )}
-                                        </Badge>
+                                        {!(
+                                            expense.managed_by_utility_bill &&
+                                            expense.status === 'pending'
+                                        ) ? (
+                                            <Badge variant="outline">
+                                                {t('expenses.field.paidByPrefix')}:{' '}
+                                                {expensePaidByLabel(
+                                                    expense.paid_by,
+                                                )}
+                                            </Badge>
+                                        ) : null}
                                         <Badge variant="outline">
                                             {t('expenses.field.responsiblePrefix')}:{' '}
                                             {expenseResponsiblePartyLabel(
@@ -315,31 +335,39 @@ export default function ExpensesIndex({
                                             <Eye className="h-4 w-4" />
                                         </Link>
                                     </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        asChild
-                                        data-test="expense-edit-link"
-                                    >
-                                        <Link
-                                            href={edit([
-                                                currentTeamSlug,
-                                                expense.id,
-                                            ])}
-                                        >
-                                            <Pencil className="h-4 w-4" />
-                                        </Link>
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        type="button"
-                                        onClick={() => deleteExpense(expense)}
-                                        aria-label={t('expenses.index.delete')}
-                                        data-test="expense-delete-button"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
+                                    {!expense.managed_by_utility_bill ? (
+                                        <>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                asChild
+                                                data-test="expense-edit-link"
+                                            >
+                                                <Link
+                                                    href={edit([
+                                                        currentTeamSlug,
+                                                        expense.id,
+                                                    ])}
+                                                >
+                                                    <Pencil className="h-4 w-4" />
+                                                </Link>
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="sm"
+                                                type="button"
+                                                onClick={() =>
+                                                    deleteExpense(expense)
+                                                }
+                                                aria-label={t(
+                                                    'expenses.index.delete',
+                                                )}
+                                                data-test="expense-delete-button"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </>
+                                    ) : null}
                                 </div>
                             </article>
                         ))}

@@ -15,6 +15,7 @@ import {
     expenseStatusLabel,
 } from '@/pages/expenses/labels';
 import { destroy, edit, index, show } from '@/routes/expenses';
+import { index as utilitiesIndex } from '@/routes/utilities';
 import type { Expense } from '@/types';
 
 type Props = {
@@ -109,16 +110,42 @@ export default function ExpenseShow({ expense }: Props) {
                                 )}
                             </Button>
                         ) : null}
-                        <Button asChild>
-                            <Link href={edit([currentTeamSlug, expense.id])}>
-                                <Pencil /> {t('common.edit')}
-                            </Link>
-                        </Button>
-                        <Button variant="destructive" onClick={deleteExpense}>
-                            <Trash2 /> {t('common.delete')}
-                        </Button>
+                        {expense.managed_by_utility_bill ? (
+                            <Button asChild>
+                                <Link href={utilitiesIndex(currentTeamSlug)}>
+                                    {t('expenses.source.openUtilities')}
+                                </Link>
+                            </Button>
+                        ) : (
+                            <>
+                                <Button asChild>
+                                    <Link href={edit([currentTeamSlug, expense.id])}>
+                                        <Pencil /> {t('common.edit')}
+                                    </Link>
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    onClick={deleteExpense}
+                                >
+                                    <Trash2 /> {t('common.delete')}
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
+
+                {expense.managed_by_utility_bill ? (
+                    <section className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-2">
+                            <Badge variant="outline">
+                                {t('expenses.source.utility')}
+                            </Badge>
+                            <p className="text-muted-foreground">
+                                {t('expenses.source.utilityHint')}
+                            </p>
+                        </div>
+                    </section>
+                ) : null}
 
                 <section className="rounded-2xl border border-border/70 bg-card/85 p-4 shadow-sm sm:p-5">
                     <h2 className="text-base font-medium">
@@ -141,10 +168,15 @@ export default function ExpenseShow({ expense }: Props) {
                             label={t('expenses.field.category')}
                             value={expenseCategoryLabel(expense.category)}
                         />
-                        <Detail
-                            label={t('expenses.field.paidBy')}
-                            value={expensePaidByLabel(expense.paid_by)}
-                        />
+                        {!(
+                            expense.managed_by_utility_bill &&
+                            expense.status === 'pending'
+                        ) ? (
+                            <Detail
+                                label={t('expenses.field.paidBy')}
+                                value={expensePaidByLabel(expense.paid_by)}
+                            />
+                        ) : null}
                         <Detail
                             label={t('expenses.field.date')}
                             value={formatDateLong(expense.expense_date)}

@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property int $team_id
  * @property int $property_id
  * @property int|null $lease_id
+ * @property int|null $utility_bill_id
  * @property string $title
  * @property string $category
  * @property string $amount
@@ -31,11 +32,13 @@ use Illuminate\Support\Carbon;
  * @property-read Team $team
  * @property-read Property $property
  * @property-read Lease|null $lease
+ * @property-read UtilityBill|null $utilityBill
  */
 #[Fillable([
     'team_id',
     'property_id',
     'lease_id',
+    'utility_bill_id',
     'title',
     'category',
     'amount',
@@ -91,6 +94,16 @@ class Expense extends Model
     public function lease(): BelongsTo
     {
         return $this->belongsTo(Lease::class);
+    }
+
+    /**
+     * Get the source utility bill, if this expense is synchronized automatically.
+     *
+     * @return BelongsTo<UtilityBill, $this>
+     */
+    public function utilityBill(): BelongsTo
+    {
+        return $this->belongsTo(UtilityBill::class);
     }
 
     public function requiresOwnerReimbursement(): bool

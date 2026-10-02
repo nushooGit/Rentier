@@ -55,7 +55,7 @@ class UtilityController extends Controller
         $bills = UtilityBill::query()
             ->whereBelongsTo($currentTeam)
             ->with([
-                'utilityAccount:id,team_id,provider_name,service_type',
+                'utilityAccount:id,team_id,provider_name,service_type,responsible_party',
                 'property:id,team_id,name,city',
                 'lease.renter:id,team_id,name',
                 'document:id,team_id,original_name',
@@ -75,6 +75,10 @@ class UtilityController extends Controller
                 'amount_minor' => $bill->amount_minor,
                 'currency' => $bill->currency,
                 'status' => $bill->status->value,
+                'responsible_party' => $bill->getRawOriginal('responsible_party') !== null
+                    ? $bill->responsible_party->value
+                    : $bill->utilityAccount->responsible_party->value,
+                'paid_by' => $bill->paid_by?->value,
                 'paid_on' => $bill->paid_on?->toDateString(),
                 'notes' => $bill->notes,
                 'overdue' => $bill->status->value === 'unpaid'

@@ -132,6 +132,7 @@ class ExpenseController extends Controller
     {
         Gate::authorize('update', $expense);
         $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+        $this->abortIfManagedByUtilities($expense);
 
         return Inertia::render('expenses/edit', [
             'expense' => $this->serializeExpense($expense->load(['property', 'lease.renter']), $currentTeam),
@@ -151,6 +152,7 @@ class ExpenseController extends Controller
     public function update(SaveExpenseRequest $request, Team $currentTeam, Expense $expense): RedirectResponse
     {
         $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+        $this->abortIfManagedByUtilities($expense);
 
         $expense->update($request->validatedWithDefaults());
 
@@ -169,6 +171,7 @@ class ExpenseController extends Controller
     {
         Gate::authorize('delete', $expense);
         $this->abortIfExpenseIsOutsideWorkspace($currentTeam, $expense);
+        $this->abortIfManagedByUtilities($expense);
 
         $expense->delete();
 
@@ -393,6 +396,8 @@ class ExpenseController extends Controller
             'team_id' => $expense->team_id,
             'property_id' => $expense->property_id,
             'lease_id' => $expense->lease_id,
+            'utility_bill_id' => $expense->utility_bill_id,
+            'managed_by_utility_bill' => $expense->utility_bill_id !== null,
             'title' => $expense->title,
             'category' => $this->normalizeExpenseCategory($expense->category),
             'amount' => $expense->amount,
@@ -461,6 +466,15 @@ class ExpenseController extends Controller
         ];
     }
 
+    private function abortIfManagedByUtilities(Expense $expense): void
+    {
+        abort_if(
+            $expense->utility_bill_id !== null,
+            409,
+            __('expenses.managed_by_utilities'),
+        );
+    }
+
     private function abortIfExpenseIsOutsideWorkspace(Team $currentTeam, Expense $expense): void
     {
         abort_unless($expense->team_id === $currentTeam->id, 404);
@@ -509,6 +523,7 @@ class ExpenseController extends Controller
     private function expenseSummary(Collection $expenses): array
     {
         $activeExpenses = $expenses->reject(fn (Expense $expense) => $expense->status === 'cancelled');
+        $paidExpenses = $activeExpenses->reject(fn (Expense $expense) => $expense->status === 'pending');
         $categoryTotals = collect(array_keys(self::EXPENSE_CATEGORIES))
             ->mapWithKeys(fn (string $category) => [$category => 0.0])
             ->all();
@@ -526,10 +541,10 @@ class ExpenseController extends Controller
             'tenant_supported' => $this->decimalString($activeExpenses
                 ->where('responsible_party', 'tenant')
                 ->sum(fn (Expense $expense) => (float) $expense->amount)),
-            'owner_paid' => $this->decimalString($activeExpenses
+            'owner_paid' => $this->decimalString($paidExpenses
                 ->where('paid_by', 'owner')
                 ->sum(fn (Expense $expense) => (float) $expense->amount)),
-            'tenant_paid' => $this->decimalString($activeExpenses
+            'tenant_paid' => $this->decimalString($paidExpenses
                 ->where('paid_by', 'tenant')
                 ->sum(fn (Expense $expense) => (float) $expense->amount)),
             'by_category' => collect($categoryTotals)

@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use App\Enums\UtilityBillStatus;
+use App\Enums\UtilityPaidBy;
+use App\Enums\UtilityResponsibleParty;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 /**
@@ -24,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property int $amount_minor
  * @property string $currency
  * @property UtilityBillStatus $status
+ * @property UtilityResponsibleParty|null $responsible_party
+ * @property UtilityPaidBy|null $paid_by
  * @property Carbon|null $paid_on
  * @property string|null $notes
  * @property-read Team $team
@@ -31,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property-read Property $property
  * @property-read Lease|null $lease
  * @property-read Document|null $document
+ * @property-read Expense|null $expense
  */
 #[Fillable([
     'team_id',
@@ -47,6 +53,8 @@ use Illuminate\Support\Carbon;
     'amount_minor',
     'currency',
     'status',
+    'responsible_party',
+    'paid_by',
     'paid_on',
     'notes',
 ])]
@@ -82,6 +90,12 @@ class UtilityBill extends Model
         return $this->belongsTo(Document::class);
     }
 
+    /** @return HasOne<Expense, $this> */
+    public function expense(): HasOne
+    {
+        return $this->hasOne(Expense::class);
+    }
+
     protected function casts(): array
     {
         return [
@@ -91,6 +105,8 @@ class UtilityBill extends Model
             'due_date' => 'date',
             'amount_minor' => 'integer',
             'status' => UtilityBillStatus::class,
+            'responsible_party' => UtilityResponsibleParty::class,
+            'paid_by' => UtilityPaidBy::class,
             'paid_on' => 'date',
         ];
     }

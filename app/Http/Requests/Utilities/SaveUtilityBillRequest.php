@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Utilities;
 
 use App\Enums\UtilityBillStatus;
+use App\Enums\UtilityPaidBy;
 use App\Models\Team;
 use App\Models\UtilityAccount;
 use App\Models\UtilityBill;
@@ -64,6 +65,11 @@ class SaveUtilityBillRequest extends FormRequest
             'amount' => ['required', 'regex:/^\d{1,12}(?:[\.,]\d{1,2})?$/'],
             'currency' => ['required', 'string', 'size:3', 'regex:/^[A-Z]{3}$/'],
             'status' => ['required', Rule::enum(UtilityBillStatus::class)],
+            'paid_by' => [
+                'nullable',
+                Rule::enum(UtilityPaidBy::class),
+                'required_if:status,'.UtilityBillStatus::Paid->value,
+            ],
             'paid_on' => [
                 'nullable',
                 'date',
@@ -88,6 +94,8 @@ class SaveUtilityBillRequest extends FormRequest
         return [
             'amount.regex' => __('validation.custom.utility_bill.amount.regex'),
             'currency.regex' => __('validation.custom.utility_bill.currency.regex'),
+            'paid_by.required_if' => __('validation.custom.utility_bill.paid_by.required_if'),
+            'paid_by.enum' => __('validation.custom.utility_bill.paid_by.enum'),
             'attachment.file' => __('validation.custom.utility_bill.attachment.file'),
             'attachment.mimes' => __('validation.custom.utility_bill.attachment.mimes'),
             'attachment.max' => __('validation.custom.utility_bill.attachment.max'),
