@@ -75,8 +75,9 @@ class UtilityController extends Controller
                 'amount_minor' => $bill->amount_minor,
                 'currency' => $bill->currency,
                 'status' => $bill->status->value,
-                'responsible_party' => $bill->responsible_party?->value
-                    ?? $bill->utilityAccount->responsible_party->value,
+                'responsible_party' => $bill->getRawOriginal('responsible_party') !== null
+                    ? $bill->responsible_party->value
+                    : $bill->utilityAccount->responsible_party->value,
                 'paid_by' => $bill->paid_by?->value,
                 'paid_on' => $bill->paid_on?->toDateString(),
                 'notes' => $bill->notes,
