@@ -452,6 +452,14 @@ test.describe('authenticated landlord smoke', () => {
                                 value: `OTHER-${suffix}`,
                                 confidence: 0.96,
                             },
+                            provider_invoice_id: {
+                                value: `PROVIDER-${suffix}`,
+                                confidence: 0.99,
+                            },
+                            payment_code: {
+                                value: `PAY-${suffix}`,
+                                confidence: 0.99,
+                            },
                         },
                     }),
                 });
@@ -470,6 +478,12 @@ test.describe('authenticated landlord smoke', () => {
         );
         await expect(page.getByTestId('utility-bill-amount-input')).toHaveValue(
             '150.50',
+        );
+        await expect(
+            page.getByTestId('utility-provider-invoice-id-input'),
+        ).toHaveValue(`PROVIDER-${suffix}`);
+        await expect(page.getByTestId('utility-payment-code-input')).toHaveValue(
+            `PAY-${suffix}`,
         );
         await expect(
             page.getByTestId('utility-invoice-account-warning'),
