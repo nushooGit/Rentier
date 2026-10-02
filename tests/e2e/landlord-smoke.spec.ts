@@ -442,6 +442,14 @@ test.describe('authenticated landlord smoke', () => {
                                 value: '150.50',
                                 confidence: 0.94,
                             },
+                            previous_balance: {
+                                value: '40.00',
+                                confidence: 0.95,
+                            },
+                            total_due: {
+                                value: '190.50',
+                                confidence: 0.96,
+                            },
                             currency: {
                                 value: 'RON',
                                 confidence: 0.92,
@@ -480,6 +488,12 @@ test.describe('authenticated landlord smoke', () => {
             '150.50',
         );
         await expect(
+            page.getByTestId('utility-previous-balance-input'),
+        ).toHaveValue('40.00');
+        await expect(page.getByTestId('utility-total-due-input')).toHaveValue(
+            '190.50',
+        );
+        await expect(
             page.getByTestId('utility-provider-invoice-id-input'),
         ).toHaveValue(`PROVIDER-${suffix}`);
         await expect(page.getByTestId('utility-payment-code-input')).toHaveValue(
@@ -491,6 +505,8 @@ test.describe('authenticated landlord smoke', () => {
         await page.getByTestId('utility-bill-save-button').click();
         await expect(page.getByText(utilityInvoice).first()).toBeVisible();
         await expect(utilityAccountSection).toContainText(utilityInvoice);
+        await expect(utilityAccountSection).toContainText('Are restanțe');
+        await expect(utilityAccountSection).toContainText('190,5 RON');
         await expect(secondUtilityAccountSection).not.toContainText(
             utilityInvoice,
         );
