@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -28,6 +29,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        DB::table('expenses')
+            ->whereNotNull('utility_bill_id')
+            ->delete();
+
         Schema::table('expenses', function (Blueprint $table) {
             $table->dropConstrainedForeignId('utility_bill_id');
         });
