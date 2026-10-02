@@ -553,7 +553,9 @@ function BillDialog({
         paid_by:
             bill?.paid_by ??
             (bill?.status === 'paid'
-                ? (selectedInitialAccount?.responsible_party ?? '')
+                ? (bill?.responsible_party ??
+                  selectedInitialAccount?.responsible_party ??
+                  '')
                 : ''),
         paid_on: bill?.paid_on ?? '',
         notes: bill?.notes ?? '',
@@ -959,7 +961,8 @@ function BillDialog({
 
                                             form.setData(
                                                 'paid_by',
-                                                selectedAccount?.responsible_party ??
+                                                bill?.responsible_party ??
+                                                    selectedAccount?.responsible_party ??
                                                     '',
                                             );
                                         }
