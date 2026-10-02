@@ -8,6 +8,7 @@ use App\Models\Property;
 use App\Models\RentPayment;
 use App\Models\Team;
 use App\Models\TeamInvitation;
+use App\Models\UtilityBill;
 use App\Services\LeaseRentStatusCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -172,11 +173,23 @@ class DashboardController extends Controller
 
         $ownerCashExpenses = Expense::query()
             ->whereBelongsTo($currentTeam)
+            ->whereNull('utility_bill_id')
             ->where('status', '!=', 'cancelled')
             ->where('paid_by', 'owner')
             ->whereYear('expense_date', $currentYear)
             ->whereMonth('expense_date', $currentMonth)
             ->sum('amount');
+
+        $ownerUtilityCashExpenses = (int) UtilityBill::query()
+            ->whereBelongsTo($currentTeam)
+            ->where('status', 'paid')
+            ->where('paid_by', 'owner')
+            ->whereNotNull('paid_on')
+            ->whereYear('paid_on', $currentYear)
+            ->whereMonth('paid_on', $currentMonth)
+            ->sum('amount_minor');
+
+        $ownerUtilityCashExpenses /= 100;
 
         $settledOwnerReimbursements = Expense::query()
             ->whereBelongsTo($currentTeam)
@@ -297,7 +310,13 @@ class DashboardController extends Controller
                     : 0,
                 'current_month_expenses' => $this->decimalString($ownerSupportedExpenses),
                 'current_month_profit' => $this->decimalString($estimatedMonthlyRent - $ownerSupportedExpenses),
-                'operational_cash_result' => $this->decimalString($currentMonthPayments - $ownerCashExpenses - $settledOwnerReimbursements + $settledTenantRecoveries),
+                'operational_cash_result' => $this->decimalString(
+                    $currentMonthPayments
+                    - $ownerCashExpenses
+                    - $ownerUtilityCashExpenses
+                    - $settledOwnerReimbursements
+                    + $settledTenantRecoveries,
+                ),
                 'tenant_reimbursement_expenses' => $this->decimalString($tenantReimbursementExpenses),
                 'utility_deduction_expenses' => $this->decimalString($utilityDeductionExpenses),
                 'unsettled_tenant_paid_owner_expenses' => $this->decimalString($unsettledTenantPaidOwnerExpenses),
