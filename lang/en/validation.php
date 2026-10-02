@@ -44,6 +44,10 @@ return [
             'currency' => [
                 'regex' => 'The currency must be a valid 3-letter code, for example RON.',
             ],
+            'paid_by' => [
+                'required_if' => 'Choose who paid the invoice.',
+                'enum' => 'The invoice payer must be the owner or renter.',
+            ],
             'attachment' => [
                 'file' => 'The attachment must be a valid file.',
                 'mimes' => 'The invoice must be a PDF, JPG, PNG or WebP file.',
