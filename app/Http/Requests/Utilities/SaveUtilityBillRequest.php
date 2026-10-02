@@ -58,6 +58,8 @@ class SaveUtilityBillRequest extends FormRequest
                     ))
                     ->ignore($utilityBill instanceof UtilityBill ? $utilityBill->id : null),
             ],
+            'provider_invoice_id' => ['nullable', 'string', 'max:191'],
+            'payment_code' => ['nullable', 'string', 'max:191'],
             'billing_period_start' => ['required', 'date'],
             'billing_period_end' => ['required', 'date', 'after_or_equal:billing_period_start'],
             'issue_date' => ['required', 'date'],
