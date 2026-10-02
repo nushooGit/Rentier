@@ -84,6 +84,8 @@ type BillFormData = {
     issue_date: string;
     due_date: string;
     amount: string;
+    previous_balance: string;
+    total_due: string;
     currency: string;
     status: 'unpaid' | 'paid';
     paid_by: UtilityPaidBy | '';
@@ -108,6 +110,8 @@ type InvoiceReaderResult = {
         issue_date: InvoiceReaderField;
         due_date: InvoiceReaderField;
         amount: InvoiceReaderField;
+        previous_balance: InvoiceReaderField;
+        total_due: InvoiceReaderField;
         currency: InvoiceReaderField;
     };
     metadata: {
@@ -554,6 +558,8 @@ function BillDialog({
         issue_date: bill?.issue_date ?? today,
         due_date: bill?.due_date ?? today,
         amount: bill?.amount ?? '',
+        previous_balance: bill?.previous_balance ?? '',
+        total_due: bill?.total_due ?? '',
         currency: bill?.currency ?? 'RON',
         status: bill?.status ?? 'unpaid',
         paid_by:
@@ -643,6 +649,14 @@ function BillDialog({
                 form.setData('issue_date', result.fields.issue_date.value ?? '');
                 form.setData('due_date', result.fields.due_date.value ?? '');
                 form.setData('amount', result.fields.amount.value ?? '');
+                form.setData(
+                    'previous_balance',
+                    result.fields.previous_balance.value ?? '',
+                );
+                form.setData(
+                    'total_due',
+                    result.fields.total_due.value ?? '',
+                );
 
                 if (result.fields.currency.value) {
                     form.setData('currency', result.fields.currency.value);
@@ -873,6 +887,52 @@ function BillDialog({
                             <InputError message={form.errors.currency} />
                         </div>
                     </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="utility-previous-balance">
+                                {t('utilities.previousBalance')}
+                            </Label>
+                            <Input
+                                id="utility-previous-balance"
+                                inputMode="decimal"
+                                value={form.data.previous_balance}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'previous_balance',
+                                        event.target.value,
+                                    )
+                                }
+                                data-test="utility-previous-balance-input"
+                            />
+                            <InputError
+                                message={form.errors.previous_balance}
+                            />
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="utility-total-due">
+                                {t('utilities.totalDue')}
+                            </Label>
+                            <Input
+                                id="utility-total-due"
+                                inputMode="decimal"
+                                value={form.data.total_due}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'total_due',
+                                        event.target.value,
+                                    )
+                                }
+                                data-test="utility-total-due-input"
+                            />
+                            <InputError message={form.errors.total_due} />
+                        </div>
+                    </div>
+
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.balanceHint')}
+                    </p>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                         <div className="grid gap-1.5">
@@ -1335,6 +1395,15 @@ function UtilityBillCard({
                                   ? t('utilities.paid')
                                   : t('utilities.unpaid')}
                         </Badge>
+                        {bill.previous_balance_minor !== null &&
+                        bill.previous_balance_minor > 0 ? (
+                            <Badge
+                                variant="outline"
+                                className="border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-200"
+                            >
+                                {t('utilities.hasArrears')}
+                            </Badge>
+                        ) : null}
                     </div>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         {serviceLabel(bill.account.service_type, t)}
@@ -1429,6 +1498,29 @@ function UtilityBillCard({
                         {formatMoney(bill.amount, bill.currency)}
                     </p>
                 </div>
+                {bill.previous_balance !== null ? (
+                    <div>
+                        <p className="text-xs text-muted-foreground">
+                            {t('utilities.previousBalance')}
+                        </p>
+                        <p className="mt-0.5 font-medium">
+                            {formatMoney(
+                                bill.previous_balance,
+                                bill.currency,
+                            )}
+                        </p>
+                    </div>
+                ) : null}
+                {bill.total_due !== null ? (
+                    <div>
+                        <p className="text-xs text-muted-foreground">
+                            {t('utilities.totalDue')}
+                        </p>
+                        <p className="mt-0.5 font-semibold">
+                            {formatMoney(bill.total_due, bill.currency)}
+                        </p>
+                    </div>
+                ) : null}
                 <div>
                     <p className="text-xs text-muted-foreground">
                         {t('utilities.attachment')}
