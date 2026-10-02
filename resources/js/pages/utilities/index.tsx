@@ -1283,6 +1283,13 @@ function UtilityBillCard({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                         {serviceLabel(bill.account.service_type, t)}
                         {bill.renter_name ? ` · ${bill.renter_name}` : ''}
+                        {bill.status === 'paid' && bill.paid_by
+                            ? ` · ${t('utilities.paidBy')}: ${t(
+                                  bill.paid_by === 'owner'
+                                      ? 'utilities.owner'
+                                      : 'utilities.renter',
+                              )}`
+                            : ''}
                     </p>
                 </div>
 
