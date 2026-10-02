@@ -19,7 +19,11 @@ class UtilityInvoiceReader
      *     overall_confidence: float,
      *     found_fields: int,
      *     fields: array<string, array{value: string|null, confidence: float}>,
-     *     metadata: array{account_identifier: array{value: string|null, confidence: float}}
+     *     metadata: array{
+     *         account_identifier: array{value: string|null, confidence: float},
+     *         provider_invoice_id: array{value: string|null, confidence: float},
+     *         payment_code: array{value: string|null, confidence: float}
+     *     }
      * }
      */
     public function read(UploadedFile $file): array
