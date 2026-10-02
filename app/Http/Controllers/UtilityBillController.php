@@ -59,6 +59,8 @@ class UtilityBillController extends Controller
                     'document_id' => $document?->id,
                     'created_by_user_id' => $request->user()->id,
                     'invoice_number' => $request->validated('invoice_number'),
+                    'provider_invoice_id' => $request->validated('provider_invoice_id'),
+                    'payment_code' => $request->validated('payment_code'),
                     'billing_period_start' => $request->validated('billing_period_start'),
                     'billing_period_end' => $request->validated('billing_period_end'),
                     'issue_date' => $request->validated('issue_date'),
@@ -137,6 +139,8 @@ class UtilityBillController extends Controller
                         ? $newDocument->id
                         : $utilityBill->document_id,
                     'invoice_number' => $request->validated('invoice_number'),
+                    'provider_invoice_id' => $request->validated('provider_invoice_id'),
+                    'payment_code' => $request->validated('payment_code'),
                     'billing_period_start' => $request->validated('billing_period_start'),
                     'billing_period_end' => $request->validated('billing_period_end'),
                     'issue_date' => $request->validated('issue_date'),
