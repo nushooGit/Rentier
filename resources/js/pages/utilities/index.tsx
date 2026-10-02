@@ -49,6 +49,7 @@ import type {
     UtilityAccountItem,
     UtilityBillItem,
     UtilityLeaseOption,
+    UtilityPaidBy,
     UtilityPropertyOption,
     UtilityServiceType,
     UtilitySummary,
@@ -83,6 +84,7 @@ type BillFormData = {
     amount: string;
     currency: string;
     status: 'unpaid' | 'paid';
+    paid_by: UtilityPaidBy | '';
     paid_on: string;
     notes: string;
     attachment: File | null;
@@ -532,11 +534,13 @@ function BillDialog({
 }) {
     const { locale, t } = useI18n();
     const today = localToday();
+    const selectedInitialAccountId =
+        bill?.utility_account_id ?? initialAccountId ?? null;
+    const selectedInitialAccount = accounts.find(
+        (account) => account.id === selectedInitialAccountId,
+    );
     const form = useForm<BillFormData>({
-        utility_account_id:
-            bill?.utility_account_id.toString() ??
-            initialAccountId?.toString() ??
-            '',
+        utility_account_id: selectedInitialAccountId?.toString() ?? '',
         invoice_number: bill?.invoice_number ?? '',
         billing_period_start:
             bill?.billing_period_start ?? localMonthStart(),
@@ -546,6 +550,11 @@ function BillDialog({
         amount: bill?.amount ?? '',
         currency: bill?.currency ?? 'RON',
         status: bill?.status ?? 'unpaid',
+        paid_by:
+            bill?.paid_by ??
+            (bill?.status === 'paid'
+                ? (selectedInitialAccount?.responsible_party ?? '')
+                : ''),
         paid_on: bill?.paid_on ?? '',
         notes: bill?.notes ?? '',
         attachment: bill ? null : (initialAttachment ?? null),
@@ -920,7 +929,7 @@ function BillDialog({
                         </div>
                     </div>
 
-                    <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="grid gap-3 sm:grid-cols-3">
                         <div className="grid gap-1.5">
                             <Label htmlFor="utility-bill-status">
                                 {t('utilities.billStatus')}
@@ -934,14 +943,30 @@ function BillDialog({
                                         | 'paid';
                                     form.setData('status', status);
 
-                                    if (
-                                        status === 'paid' &&
-                                        form.data.paid_on === ''
-                                    ) {
-                                        form.setData('paid_on', today);
+                                    if (status === 'paid') {
+                                        if (form.data.paid_on === '') {
+                                            form.setData('paid_on', today);
+                                        }
+
+                                        if (form.data.paid_by === '') {
+                                            const selectedAccount =
+                                                accounts.find(
+                                                    (account) =>
+                                                        account.id.toString() ===
+                                                        form.data
+                                                            .utility_account_id,
+                                                );
+
+                                            form.setData(
+                                                'paid_by',
+                                                selectedAccount?.responsible_party ??
+                                                    '',
+                                            );
+                                        }
                                     }
 
                                     if (status === 'unpaid') {
+                                        form.setData('paid_by', '');
                                         form.setData('paid_on', '');
                                     }
                                 }}
@@ -956,6 +981,35 @@ function BillDialog({
                                 </option>
                             </select>
                             <InputError message={form.errors.status} />
+                        </div>
+
+                        <div className="grid gap-1.5">
+                            <Label htmlFor="utility-bill-paid-by">
+                                {t('utilities.paidBy')}
+                            </Label>
+                            <select
+                                id="utility-bill-paid-by"
+                                value={form.data.paid_by}
+                                onChange={(event) =>
+                                    form.setData(
+                                        'paid_by',
+                                        event.target.value as UtilityPaidBy | '',
+                                    )
+                                }
+                                className={selectClassName}
+                                disabled={form.data.status !== 'paid'}
+                                required={form.data.status === 'paid'}
+                                data-test="utility-bill-paid-by-select"
+                            >
+                                <option value="">—</option>
+                                <option value="owner">
+                                    {t('utilities.owner')}
+                                </option>
+                                <option value="renter">
+                                    {t('utilities.renter')}
+                                </option>
+                            </select>
+                            <InputError message={form.errors.paid_by} />
                         </div>
 
                         <div className="grid gap-1.5">
@@ -975,6 +1029,10 @@ function BillDialog({
                             />
                         </div>
                     </div>
+
+                    <p className="text-xs text-muted-foreground">
+                        {t('utilities.expenseSyncHint')}
+                    </p>
 
                     <div className="grid gap-1.5">
                         <Label htmlFor="utility-bill-notes">
