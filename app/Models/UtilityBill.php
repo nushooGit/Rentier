@@ -27,6 +27,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon $issue_date
  * @property Carbon $due_date
  * @property int $amount_minor
+ * @property int|null $previous_balance_minor
+ * @property int|null $total_due_minor
  * @property string $currency
  * @property UtilityBillStatus $status
  * @property UtilityResponsibleParty|null $responsible_party
@@ -55,6 +57,8 @@ use Illuminate\Support\Carbon;
     'issue_date',
     'due_date',
     'amount_minor',
+    'previous_balance_minor',
+    'total_due_minor',
     'currency',
     'status',
     'responsible_party',
