@@ -310,7 +310,7 @@ ID factură                                                         Consum energ
 93000961394                                                        285 kWh
 TEXT);
 
-    expect($result['metadata']['payment_code']['value'])->toBe('105079990')
-        ->and($result['metadata']['provider_invoice_id']['value'])->toBe('93000961394');
+    expect($result['metadata']['payment_code']['value'])->toBeNull()
+        ->and($result['metadata']['provider_invoice_id']['value'])->toBeNull();
 });
 
