@@ -43,6 +43,8 @@ export type UtilityBillItem = {
     id: number;
     utility_account_id: number;
     invoice_number: string;
+    provider_invoice_id: string | null;
+    payment_code: string | null;
     billing_period_start: string;
     billing_period_end: string;
     issue_date: string;
