@@ -107,3 +107,106 @@ TEXT,
         ->and($result['fields']['billing_period_start']['value'])->toBeNull()
         ->and($result['found_fields'])->toBe(5);
 });
+
+test('invoice text parser recognizes common issue date aliases', function (string $label) {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse("Factură nr. RO-123\n{$label}: 05.12.2026");
+
+    expect($result['fields']['issue_date']['value'])->toBe('2026-12-05');
+})->with([
+    'Data emiterii',
+    'Data emitere',
+    'Data facturii',
+    'Data facturare',
+    'Data documentului',
+    'Emisă la',
+    'Emis la',
+    'Issue date',
+    'Date of issue',
+    'Issued on',
+]);
+
+test('invoice text parser recognizes common due date aliases', function (string $label) {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse("Factură nr. RO-124\n{$label}: 20.12.2026");
+
+    expect($result['fields']['due_date']['value'])->toBe('2026-12-20');
+})->with([
+    'Data scadenței',
+    'Data scadenta',
+    'Scadență',
+    'Scadenta',
+    'Termen de plată',
+    'Termen plata',
+    'Plată până la',
+    'Plata pana la',
+    'De plată până la',
+    'Due date',
+    'Payment due',
+    'Pay by',
+]);
+
+test('invoice text parser recognizes common billing period aliases', function (string $label) {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse("Factură nr. RO-125\n{$label}: 01.11.2026 - 30.11.2026");
+
+    expect($result['fields']['billing_period_start']['value'])->toBe('2026-11-01')
+        ->and($result['fields']['billing_period_end']['value'])->toBe('2026-11-30');
+})->with([
+    'Perioada de facturare',
+    'Perioada facturată',
+    'Perioada de consum',
+    'Perioada consum',
+    'Interval de facturare',
+    'Billing period',
+    'Consumption period',
+]);
+
+test('invoice text parser recognizes common client identifier aliases', function (string $label) {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse("Factură nr. RO-126\n{$label}: CLIENT-998877");
+
+    expect($result['metadata']['account_identifier']['value'])->toBe('CLIENT-998877');
+})->with([
+    'Cod client',
+    'Cod abonat',
+    'Cod consumator',
+    'Cod contract',
+    'Număr client',
+    'Nr. client',
+    'ID client',
+    'Cont client',
+    'Customer code',
+    'Customer ID',
+    'Customer number',
+]);
+
+test('invoice text parser prefers current invoice amount over a larger balance due', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Factură nr. CURRENT-1
+Valoarea facturii: 120,50 RON
+Total de plată: 420,50 RON
+TEXT);
+
+    expect($result['fields']['amount']['value'])->toBe('120.50')
+        ->and($result['fields']['amount']['confidence'])->toBe(0.96)
+        ->and($result['fields']['currency']['value'])->toBe('RON');
+});
+
+test('invoice text parser keeps balance-due labels as a lower confidence fallback', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Factură nr. FALLBACK-1
+Sold de plată: 420,50 RON
+TEXT);
+
+    expect($result['fields']['amount']['value'])->toBe('420.50')
+        ->and($result['fields']['amount']['confidence'])->toBe(0.82);
+});

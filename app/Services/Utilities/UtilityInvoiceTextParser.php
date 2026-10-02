@@ -22,25 +22,27 @@ class UtilityInvoiceTextParser
         $confidenceMultiplier = max(0.0, min(1.0, $confidenceMultiplier));
 
         $invoiceNumber = $this->matchFirst($text, [
-            '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|seria)|nr\.?\s*factur(?:a|ă))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|serie(?:\s*(?:\/|și|si)\s*num[aă]r)?|no\.?))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\b(?:nr\.?|num[aă]r(?:ul)?)\s+(?:de\s+)?factur(?:a|ă|ii)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\bserie\s*(?:\/|și|si)?\s*(?:nr\.?|num[aă]r)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.88,
             '/\bfactur(?:a|ă)\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
-            '/\binvoice\s+(?:no\.?|number)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\binvoice\s+(?:no\.?|number|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
             '/\binvoice\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
         ]);
 
         $issueDate = $this->matchDate($text, [
-            '/\b(?:data\s+(?:emiterii|emitere|facturii)|emis[ăa]\s+la|issue\s+date)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\b(?:data\s+(?:emiterii|emitere|facturii|facturare|documentului)|emis[ăa]?\s+la|emis[ăa]?\s+în|issue\s+date|date\s+of\s+issue|issued\s+on)\s*[:#-]?\s*(%s)/iu' => 0.95,
         ]);
 
         $dueDate = $this->matchDate($text, [
-            '/\b(?:data\s+scaden[țt]ei|scaden[țt][ăa]|termen\s+de\s+plat[ăa]|due\s+date)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\b(?:data\s+scaden[țt]ei|data\s+scaden[țt][ăa]|scaden[țt][ăa]|termen(?:ul)?\s+(?:de\s+)?plat[ăa]|plat[ăa]\s+p[aâ]n[ăa]\s+la|de\s+plat[ăa]\s+p[aâ]n[ăa]\s+la|due\s+date|payment\s+due|pay\s+by)\s*[:#-]?\s*(%s)/iu' => 0.95,
         ]);
 
         [$billingStart, $billingEnd] = $this->matchBillingPeriod($text);
         [$amount, $currency] = $this->matchAmountAndCurrency($text);
         $accountIdentifier = $this->matchFirst($text, [
-            '/\bcod\s+client\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
-            '/\bcustomer\s+(?:code|id)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+            '/\b(?:cod\s+(?:client|abonat|consumator|contract)|num[aă]r\s+(?:client|abonat|consumator)|nr\.?\s+(?:client|abonat|consumator)|id\s+client|cont\s+client)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
+            '/\bcustomer\s+(?:code|id|number|no\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
         ]);
 
         $fields = [
@@ -143,7 +145,7 @@ class UtilityInvoiceTextParser
     {
         $date = $this->dateTokenPattern();
         $pattern = sprintf(
-            '/\b(?:perioada\s+(?:de\s+)?facturare|perioada\s+facturat[ăa]|billing\s+period)\s*[:#-]?\s*(%s)\s*(?:-|–|—|p[aâ]n[ăa]\s+la|to)\s*(%s)/iu',
+            '/\b(?:perioada\s+(?:de\s+)?facturare|perioada\s+facturat[ăa]|perioada\s+(?:de\s+)?consum|interval(?:ul)?\s+(?:de\s+)?facturare|billing\s+period|consumption\s+period)\s*[:#-]?\s*(%s)\s*(?:-|–|—|p[aâ]n[ăa]\s+la|pana\s+la|to)\s*(%s)/iu',
             $date,
             $date,
         );
@@ -169,43 +171,51 @@ class UtilityInvoiceTextParser
      */
     private function matchAmountAndCurrency(string $text): array
     {
-        $pattern = '/\b(?:total\s+(?:de\s+)?plat[ăa]|total\s+de\s+achitat|sum[ăa]\s+de\s+plat[ăa]|amount\s+due|total\s+due)\s*[:#-]?\s*((?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(RON|LEI|LEU|EUR)?\b/iu';
-
-        if (preg_match($pattern, $text, $matches) !== 1) {
-            return [null, null];
-        }
-
-        $amount = $this->normalizeAmount((string) $matches[1]);
-
-        if ($amount === null) {
-            return [null, null];
-        }
-
-        $currencyToken = strtoupper(trim((string) ($matches[2] ?? '')));
-        $currency = match ($currencyToken) {
-            'RON', 'LEI', 'LEU' => 'RON',
-            'EUR' => 'EUR',
-            default => null,
-        };
-
-        if ($currency === null && preg_match('/\b(RON|LEI|LEU|EUR)\b/iu', $text, $currencyMatch) === 1) {
-            $fallback = strtoupper((string) $currencyMatch[1]);
-            $currency = in_array($fallback, ['LEI', 'LEU'], true)
-                ? 'RON'
-                : $fallback;
-        }
-
-        return [
-            ['value' => $amount, 'confidence' => 0.94],
-            $currency === null
-                ? null
-                : ['value' => $currency, 'confidence' => $currencyToken === '' ? 0.70 : 0.92],
+        $patterns = [
+            '/\b(?:valoare(?:a)?\s+facturii|total\s+factur[ăa]|total\s+factur[ăa]\s+curent[ăa]|valoare\s+factur[ăa]\s+curent[ăa]|invoice\s+total|invoice\s+amount|current\s+invoice\s+amount|current\s+charges)\s*[:#-]?\s*((?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(RON|LEI|LEU|EUR)?\b/iu' => 0.96,
+            '/\b(?:total\s+(?:de\s+)?plat[ăa]|total\s+de\s+achitat|sum[ăa]\s+de\s+plat[ăa]|de\s+plat[ăa]|sold\s+de\s+plat[ăa]|amount\s+due|total\s+due|balance\s+due)\s*[:#-]?\s*((?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(RON|LEI|LEU|EUR)?\b/iu' => 0.82,
         ];
+
+        foreach ($patterns as $pattern => $confidence) {
+            if (preg_match($pattern, $text, $matches) !== 1) {
+                continue;
+            }
+
+            $amount = $this->normalizeAmount((string) $matches[1]);
+
+            if ($amount === null) {
+                continue;
+            }
+
+            $currencyToken = strtoupper(trim((string) ($matches[2] ?? '')));
+            $currency = match ($currencyToken) {
+                'RON', 'LEI', 'LEU' => 'RON',
+                'EUR' => 'EUR',
+                default => null,
+            };
+
+            if ($currency === null && preg_match('/\b(RON|LEI|LEU|EUR)\b/iu', $text, $currencyMatch) === 1) {
+                $fallback = strtoupper((string) $currencyMatch[1]);
+                $currency = in_array($fallback, ['LEI', 'LEU'], true)
+                    ? 'RON'
+                    : $fallback;
+            }
+
+            return [
+                ['value' => $amount, 'confidence' => $confidence],
+                $currency === null
+                    ? null
+                    : ['value' => $currency, 'confidence' => $currencyToken === '' ? 0.70 : 0.92],
+            ];
+        }
+
+        return [null, null];
     }
 
     private function normalizeText(string $text): string
     {
-        $text = str_replace(["\r\n", "\r"], "\n", $text);
+        $text = str_replace(["\r\n", "\r", "\u{00A0}", "\u{202F}"], ["\n", "\n", ' ', ' '], $text);
+        $text = str_replace(['：', '–', '—'], [':', '-', '-'], $text);
         $text = preg_replace('/[\t ]+/u', ' ', $text) ?? $text;
 
         return trim($text);
