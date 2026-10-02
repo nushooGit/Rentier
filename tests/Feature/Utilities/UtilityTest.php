@@ -2,6 +2,7 @@
 
 use App\Enums\DocumentCategory;
 use App\Models\Document;
+use App\Models\Expense;
 use App\Models\Lease;
 use App\Models\Property;
 use App\Models\Team;
@@ -32,6 +33,28 @@ function createUtilityAccountFor(Team $team, Property $property, ?Lease $lease =
         'responsible_party' => $lease ? 'renter' : 'owner',
         'status' => 'active',
     ]);
+}
+
+/**
+ * @param  array<string, mixed>  $overrides
+ * @return array<string, mixed>
+ */
+function utilityBillPayload(UtilityAccount $account, array $overrides = []): array
+{
+    return array_merge([
+        'utility_account_id' => $account->id,
+        'invoice_number' => 'INV-'.uniqid(),
+        'billing_period_start' => '2026-09-01',
+        'billing_period_end' => '2026-09-30',
+        'issue_date' => '2026-10-01',
+        'due_date' => '2026-10-15',
+        'amount' => '208.85',
+        'currency' => 'RON',
+        'status' => 'unpaid',
+        'paid_by' => null,
+        'paid_on' => null,
+        'notes' => null,
+    ], $overrides);
 }
 
 test('workspace member can create and update a utility account', function () {
@@ -280,13 +303,14 @@ test('utility bill invoice number is unique per account and paid state requires 
         'amount' => '100.00',
         'currency' => 'RON',
         'status' => 'paid',
+        'paid_by' => null,
         'paid_on' => null,
     ];
 
     $this
         ->actingAs($user)
         ->post(route('utility-bills.store', $team), $payload)
-        ->assertSessionHasErrors(['invoice_number', 'paid_on']);
+        ->assertSessionHasErrors(['invoice_number', 'paid_by', 'paid_on']);
 });
 
 test('utilities index is workspace scoped and calculates overdue summary', function () {
@@ -476,6 +500,7 @@ test('updating a utility bill keeps its attachment metadata aligned with the sel
             'amount' => '10.00',
             'currency' => 'RON',
             'status' => 'paid',
+            'paid_by' => 'owner',
             'paid_on' => '2026-10-10',
             'notes' => null,
         ])
