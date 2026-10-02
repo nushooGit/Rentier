@@ -10,7 +10,11 @@ class UtilityInvoiceTextParser
      *     overall_confidence: float,
      *     found_fields: int,
      *     fields: array<string, array{value: string|null, confidence: float}>,
-     *     metadata: array{account_identifier: array{value: string|null, confidence: float}}
+     *     metadata: array{
+     *         account_identifier: array{value: string|null, confidence: float},
+     *         provider_invoice_id: array{value: string|null, confidence: float},
+     *         payment_code: array{value: string|null, confidence: float}
+     *     }
      * }
      */
     public function parse(
@@ -21,27 +25,31 @@ class UtilityInvoiceTextParser
         $text = $this->normalizeText($text);
         $confidenceMultiplier = max(0.0, min(1.0, $confidenceMultiplier));
 
-        $invoiceNumber = $this->matchFirst($text, [
-            '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|serie(?:\s*(?:\/|și|si)\s*num[aă]r)?|no\.?))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
-            '/\b(?:nr\.?|num[aă]r(?:ul)?)\s+(?:de\s+)?factur(?:a|ă|ii)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
-            '/\bserie\s*(?:\/|și|si)?\s*(?:nr\.?|num[aă]r)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.88,
-            '/\bfactur(?:a|ă)\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
-            '/\binvoice\s+(?:no\.?|number|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
-            '/\binvoice\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+        $providerInvoiceId = $this->matchFirst($text, [
+            '/\bid\s+factur[ăa]\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.99,
+            '/\binvoice\s+id\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
         ]);
 
+        $paymentCode = $this->matchFirst($text, [
+            '/\bcod(?:ul)?\s+(?:de\s+)?plat[ăa]\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.99,
+            '/\bpayment\s+(?:code|reference|ref\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.94,
+        ]);
+
+        $invoiceNumber = $this->matchInvoiceNumber($text, $providerInvoiceId);
+
         $issueDate = $this->matchDate($text, [
-            '/\b(?:data\s+(?:emiterii|emitere|facturii|facturare|documentului)|emis[ăa]?\s+la|emis[ăa]?\s+în|issue\s+date|date\s+of\s+issue|issued\s+on)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\b(?:dat[ăa]\s+(?:emiterii|emitere|facturii|facturare|documentului)|emis[ăa]?\s+la|emis[ăa]?\s+în|issue\s+date|date\s+of\s+issue|issued\s+on)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\bfactur[ăa]\s+fiscal[ăa][^\n]{0,120}\bdin\s+data\s+de\s*(%s)/iu' => 0.99,
         ]);
 
         $dueDate = $this->matchDate($text, [
-            '/\b(?:data\s+scaden[țt]ei|data\s+scaden[țt][ăa]|scaden[țt][ăa]|termen(?:ul)?\s+(?:de\s+)?plat[ăa]|plat[ăa]\s+p[aâ]n[ăa]\s+la|de\s+plat[ăa]\s+p[aâ]n[ăa]\s+la|due\s+date|payment\s+due|pay\s+by)\s*[:#-]?\s*(%s)/iu' => 0.95,
+            '/\b(?:dat[ăa]\s+scaden[țt]ei|dat[ăa]\s+scaden[țt][ăa]|scaden[țt][ăa]|termen(?:ul)?\s+(?:de\s+)?plat[ăa]|plat[ăa]\s+p[aâ]n[ăa]\s+la|de\s+plat[ăa]\s+p[aâ]n[ăa]\s+la|due\s+date|payment\s+due|pay\s+by)\s*[:#-]?\s*(%s)/iu' => 0.95,
         ]);
 
         [$billingStart, $billingEnd] = $this->matchBillingPeriod($text);
         [$amount, $currency] = $this->matchAmountAndCurrency($text);
         $accountIdentifier = $this->matchFirst($text, [
-            '/\b(?:cod\s+(?:client|abonat|consumator|contract)|num[aă]r\s+(?:client|abonat|consumator)|nr\.?\s+(?:client|abonat|consumator)|id\s+client|cont\s+client)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
+            '/\b(?:cod\s+(?:de\s+)?(?:client|abonat|consumator|contract)|num[aă]r\s+(?:de\s+)?(?:client|abonat|consumator)|nr\.?\s+(?:de\s+)?(?:client|abonat|consumator)|id\s+client|cont\s+client)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.96,
             '/\bcustomer\s+(?:code|id|number|no\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
         ]);
 
@@ -70,21 +78,59 @@ class UtilityInvoiceTextParser
             }
         }
 
-        $accountIdentifierField = $this->field($accountIdentifier);
-        $accountIdentifierField['confidence'] = round(
-            $accountIdentifierField['confidence'] * $confidenceMultiplier,
-            2,
-        );
+        $metadata = [
+            'account_identifier' => $this->field($accountIdentifier),
+            'provider_invoice_id' => $this->field($providerInvoiceId),
+            'payment_code' => $this->field($paymentCode),
+        ];
+
+        foreach ($metadata as $name => $field) {
+            $metadata[$name]['confidence'] = round(
+                $field['confidence'] * $confidenceMultiplier,
+                2,
+            );
+        }
 
         return [
             'source' => $source,
             'overall_confidence' => round($confidenceTotal / count($fields), 2),
             'found_fields' => $foundFields,
             'fields' => $fields,
-            'metadata' => [
-                'account_identifier' => $accountIdentifierField,
-            ],
+            'metadata' => $metadata,
         ];
+    }
+
+    /**
+     * @param  array{value: string, confidence: float}|null  $providerInvoiceId
+     * @return array{value: string, confidence: float}|null
+     */
+    private function matchInvoiceNumber(
+        string $text,
+        ?array $providerInvoiceId,
+    ): ?array {
+        if (
+            preg_match(
+                '/\bfactur[ăa]\s+fiscal[ăa]\s+seria\s+([A-Z0-9][A-Z0-9._-]*)\s+(?:nr\.?|num[aă]r(?:ul)?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu',
+                $text,
+                $matches,
+            ) === 1
+        ) {
+            return [
+                'value' => trim((string) $matches[1]).trim((string) $matches[2]),
+                'confidence' => 0.99,
+            ];
+        }
+
+        $invoiceNumber = $this->matchFirst($text, [
+            '/\b(?:factur(?:a|ă)\s+(?:nr\.?|num[aă]r(?:ul)?|no\.?))\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\b(?:nr\.?|num[aă]r(?:ul)?)\s+(?:de\s+)?factur(?:a|ă|ii)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\bserie(?:a)?\s+(?:facturii|factur[ăa])\s*(?:\/|și|si)?\s*(?:nr\.?|num[aă]r)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+            '/\bfactur(?:a|ă)\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+            '/\binvoice\s+(?:no\.?|number|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.95,
+            '/\binvoice\s*[:#-]\s*([A-Z0-9][A-Z0-9\/._-]{2,})/iu' => 0.90,
+        ]);
+
+        return $invoiceNumber ?? $providerInvoiceId;
     }
 
     /**
@@ -145,7 +191,7 @@ class UtilityInvoiceTextParser
     {
         $date = $this->dateTokenPattern();
         $pattern = sprintf(
-            '/\b(?:perioada\s+(?:de\s+)?facturare|perioada\s+facturat[ăa]|perioada\s+(?:de\s+)?consum|interval(?:ul)?\s+(?:de\s+)?facturare|billing\s+period|consumption\s+period)\s*[:#-]?\s*(%s)\s*(?:-|–|—|p[aâ]n[ăa]\s+la|pana\s+la|to)\s*(%s)/iu',
+            '/\b(?:perioad[ăa]\s+(?:de\s+)?facturare|perioad[ăa]\s+facturat[ăa]|perioad[ăa]\s+(?:de\s+)?consum|interval(?:ul)?\s+(?:de\s+)?facturare|billing\s+period|consumption\s+period)\s*[:#-]?\s*(%s)\s*(?:-|–|—|p[aâ]n[ăa]\s+la|pana\s+la|to)\s*(%s)/iu',
             $date,
             $date,
         );
