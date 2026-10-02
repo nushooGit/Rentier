@@ -75,6 +75,14 @@ class UtilityController extends Controller
                 'due_date' => $bill->due_date->toDateString(),
                 'amount' => MoneyInput::fromMinorUnits($bill->amount_minor),
                 'amount_minor' => $bill->amount_minor,
+                'previous_balance' => $bill->previous_balance_minor === null
+                    ? null
+                    : MoneyInput::fromSignedMinorUnits($bill->previous_balance_minor),
+                'previous_balance_minor' => $bill->previous_balance_minor,
+                'total_due' => $bill->total_due_minor === null
+                    ? null
+                    : MoneyInput::fromSignedMinorUnits($bill->total_due_minor),
+                'total_due_minor' => $bill->total_due_minor,
                 'currency' => $bill->currency,
                 'status' => $bill->status->value,
                 'responsible_party' => $bill->getRawOriginal('responsible_party') !== null
