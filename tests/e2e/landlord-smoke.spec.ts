@@ -541,6 +541,25 @@ test.describe('authenticated landlord smoke', () => {
             'e2e-utility-invoice.pdf',
         );
 
+        await page.goto(`/${teamSlug}/expenses`);
+        const utilityExpenseCard = page
+            .getByTestId('expense-card')
+            .filter({ hasText: utilityInvoice });
+        await expect(utilityExpenseCard).toBeVisible();
+        await expect(utilityExpenseCard).toContainText('Din Utilități');
+        await expect(
+            utilityExpenseCard.getByTestId('expense-edit-link'),
+        ).toHaveCount(0);
+        await expect(
+            utilityExpenseCard.getByTestId('expense-delete-button'),
+        ).toHaveCount(0);
+
+        const secondUtilityExpenseCard = page
+            .getByTestId('expense-card')
+            .filter({ hasText: secondUtilityInvoice });
+        await expect(secondUtilityExpenseCard).toBeVisible();
+        await expect(secondUtilityExpenseCard).toContainText('Din Utilități');
+
         await page.goto(`/${teamSlug}/dashboard`);
         await expect(
             page.getByRole('heading', { name: 'Panou de control' }),
