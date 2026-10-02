@@ -51,6 +51,10 @@ export type UtilityBillItem = {
     due_date: string;
     amount: string;
     amount_minor: number;
+    previous_balance: string | null;
+    previous_balance_minor: number | null;
+    total_due: string | null;
+    total_due_minor: number | null;
     currency: string;
     status: UtilityBillStatus;
     responsible_party: UtilityResponsibleParty;
