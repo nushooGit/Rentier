@@ -102,9 +102,61 @@ TEXT;
         ->assertJsonPath('fields.invoice_number.value', 'OCR-2026-77')
         ->assertJsonPath('fields.amount.value', '99.50')
         ->assertJsonPath('fields.currency.value', 'RON')
-        ->assertJsonPath('metadata.account_identifier.value', '998877');
+        ->assertJsonPath('metadata.account_identifier.value', '998877')
+        ->assertJsonPath('metadata.provider_invoice_id.value', null)
+        ->assertJsonPath('metadata.payment_code.value', null);
 
     expect((float) $response->json('overall_confidence'))->toBeLessThan(0.9);
+});
+
+test('invoice reader returns PPC provider identifiers and fiscal invoice data separately', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    app()->bind(PdfTextExtractor::class, fn () => new class implements PdfTextExtractor
+    {
+        public function extract(UploadedFile $file): string
+        {
+            return <<<'TEXT'
+Valoare factură curentă
+263,82 lei
+Cod plată
+100200300
+Dată scadentă
+24.09.2026
+ID factură
+90000123456
+Perioadă facturare
+26.06.2026 - 25.08.2026
+Factură fiscală seria 26AB nr. 12345678 din data de 09.09.2026
+Cod de client:C12345678
+Serie contor: 001000697120315
+TEXT;
+        }
+    });
+
+    $this
+        ->actingAs($user)
+        ->postJson(
+            route('utility-bills.analyze', $team),
+            [
+                'attachment' => UploadedFile::fake()->create(
+                    'ppc.pdf',
+                    100,
+                    'application/pdf',
+                ),
+            ],
+        )
+        ->assertOk()
+        ->assertJsonPath('fields.invoice_number.value', '26AB12345678')
+        ->assertJsonPath('fields.billing_period_start.value', '2026-06-26')
+        ->assertJsonPath('fields.billing_period_end.value', '2026-08-25')
+        ->assertJsonPath('fields.issue_date.value', '2026-09-09')
+        ->assertJsonPath('fields.due_date.value', '2026-09-24')
+        ->assertJsonPath('fields.amount.value', '263.82')
+        ->assertJsonPath('metadata.account_identifier.value', 'C12345678')
+        ->assertJsonPath('metadata.provider_invoice_id.value', '90000123456')
+        ->assertJsonPath('metadata.payment_code.value', '100200300');
 });
 
 test('invoice reader rejects non PDF files before extraction', function () {
