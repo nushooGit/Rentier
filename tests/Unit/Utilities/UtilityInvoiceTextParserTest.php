@@ -254,8 +254,10 @@ TEXT);
         ->and($result['fields']['issue_date']['value'])->toBe('2026-09-09')
         ->and($result['fields']['due_date']['value'])->toBe('2026-09-24')
         ->and($result['fields']['amount']['value'])->toBe('263.82')
+        ->and($result['fields']['previous_balance']['value'])->toBe('439.38')
+        ->and($result['fields']['total_due']['value'])->toBe('703.20')
         ->and($result['fields']['currency']['value'])->toBe('RON')
-        ->and($result['found_fields'])->toBe(7);
+        ->and($result['found_fields'])->toBe(9);
 });
 
 test('invoice text parser can fall back to provider invoice id when no fiscal invoice number exists', function () {
@@ -279,6 +281,12 @@ test('invoice text parser handles PPC logical reading order from Poppler', funct
 Valoare factură curentă
 
 263,82 lei
+
+Sold anterior neachitat
+439,38 lei
+
+Total de plată
+703,20 lei
 
 Cod plată
 100200300
