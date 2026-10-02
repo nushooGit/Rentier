@@ -28,7 +28,9 @@ class PopplerPdfTextExtractor implements PdfTextExtractor
             '1',
             '-l',
             (string) $maxPages,
-            '-layout',
+            // Keep Poppler's logical reading order. "-layout" preserves visual
+            // columns and can put a neighbouring label immediately after the
+            // current label, which makes semantic invoice parsing ambiguous.
             '-enc',
             'UTF-8',
             $path,
