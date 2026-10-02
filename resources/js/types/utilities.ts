@@ -51,6 +51,7 @@ export type UtilityBillItem = {
     amount_minor: number;
     currency: string;
     status: UtilityBillStatus;
+    responsible_party: UtilityResponsibleParty;
     paid_by: UtilityPaidBy | null;
     paid_on: string | null;
     notes: string | null;
