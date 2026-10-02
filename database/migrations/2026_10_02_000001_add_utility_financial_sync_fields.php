@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('utility_bills', function (Blueprint $table) {
-            $table->string('paid_by', 16)->nullable()->after('status');
+            $table->string('responsible_party', 16)->nullable()->after('status');
+            $table->string('paid_by', 16)->nullable()->after('responsible_party');
         });
 
         Schema::table('expenses', function (Blueprint $table) {
@@ -32,7 +33,7 @@ return new class extends Migration
         });
 
         Schema::table('utility_bills', function (Blueprint $table) {
-            $table->dropColumn('paid_by');
+            $table->dropColumn(['responsible_party', 'paid_by']);
         });
     }
 };
