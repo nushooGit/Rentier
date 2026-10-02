@@ -115,7 +115,9 @@ class UtilityInvoiceTextParser
 
         return [
             'source' => $source,
-            'overall_confidence' => round($confidenceTotal / count($fields), 2),
+            'overall_confidence' => $foundFields === 0
+                ? 0.0
+                : round($confidenceTotal / $foundFields, 2),
             'found_fields' => $foundFields,
             'fields' => $fields,
             'metadata' => $metadata,
