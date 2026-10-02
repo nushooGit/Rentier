@@ -361,3 +361,22 @@ TEXT);
         ->and($result['fields']['total_due']['value'])->toBeNull();
 });
 
+test('invoice text parser prefers the explicit PPC total due row over the summary heading', function () {
+    $parser = app(UtilityInvoiceTextParser::class);
+
+    $result = $parser->parse(<<<'TEXT'
+Pe scurt, despre factura ta
+Valoare factură curentă Sold anterior neachitat Total de plată
+263,82 lei + 439,38 lei = 703,20 lei
+
+4. Valoare factură curentă ( 4= 1+ 3) lei 263,82
+5. Total de plata factura curenta ( 5= 4) lei 263,82
+6. Sold la data emiterii facturii (facturi restante sau credit) lei 439,38
+7. Total de plată ( 7= 5+ 6) lei 703,20
+TEXT);
+
+    expect($result['fields']['amount']['value'])->toBe('263.82')
+        ->and($result['fields']['previous_balance']['value'])->toBe('439.38')
+        ->and($result['fields']['total_due']['value'])->toBe('703.20');
+});
+

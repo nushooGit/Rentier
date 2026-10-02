@@ -54,9 +54,11 @@ class UtilityInvoiceTextParser
             '/\bfacturi\s+restante\b[^\n]{0,120}?([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.90,
         ]);
         $totalDue = $this->matchSignedAmount($text, [
-            '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(?:RON|LEI|LEU|EUR)?\b/iu' => 0.96,
+            '/\b\d+\.\s*total\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])[^\n]{0,100}?\b(?:RON|LEI|LEU|EUR)\s+([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.99,
+            '/^[ \t]*total\s+de\s+plat[ăa][ \t]*[:#-]?[ \t]*\n[ \t]*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)[ \t]*(?:RON|LEI|LEU|EUR)?\b/imu' => 0.98,
+            '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])[ \t]*[:#-]?[ \t]*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)[ \t]*(?:RON|LEI|LEU|EUR)?\b/iu' => 0.96,
             '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])[^\n]{0,100}?\b(?:RON|LEI|LEU|EUR)\s+([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.92,
-            '/\b(?:amount\s+due|total\s+due|balance\s+due)\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.90,
+            '/\b(?:amount\s+due|total\s+due|balance\s+due)[ \t]*[:#-]?[ \t]*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.90,
         ]);
 
         if (
