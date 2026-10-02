@@ -49,7 +49,9 @@ class UtilityInvoiceTextParser
         [$billingStart, $billingEnd] = $this->matchBillingPeriod($text);
         [$amount, $currency] = $this->matchAmountAndCurrency($text);
         $previousBalance = $this->matchSignedAmount($text, [
-            '/\b(?:sold\s+anterior\s+neachitat|sold\s+anterior|sold\s+la\s+data\s+emiterii\s+facturii|facturi\s+restante|sold\s+restant|restan[țt][ăa]|previous\s+balance|past\s+due\s+balance|arrears)\b[^\d+\-\n]{0,80}([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.95,
+            '/\b(?:sold\s+anterior\s+neachitat|sold\s+anterior|sold\s+restant|restan[țt][ăa]|previous\s+balance|past\s+due\s+balance|arrears)\b\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)/iu' => 0.97,
+            '/\bsold\s+la\s+data\s+emiterii\s+facturii\b[^\n]{0,120}?([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.94,
+            '/\bfacturi\s+restante\b[^\n]{0,120}?([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\b/iu' => 0.90,
         ]);
         $totalDue = $this->matchSignedAmount($text, [
             '/\btotal\s+de\s+plat[ăa]\b(?![^\n]{0,40}factur[ăa]\s+curent[ăa])\s*[:#-]?\s*([+\-]?(?:\d{1,3}(?:[.\s]\d{3})+|\d+)(?:[,.]\d{1,2})?)\s*(?:RON|LEI|LEU|EUR)?\b/iu' => 0.96,
