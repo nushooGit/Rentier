@@ -150,6 +150,8 @@ test('workspace member can create a utility bill with private invoice attachment
         ->post(route('utility-bills.store', $team), [
             'utility_account_id' => $account->id,
             'invoice_number' => 'INV-2026-10',
+            'provider_invoice_id' => 'PROVIDER-INV-9001',
+            'payment_code' => 'PAY-100200',
             'billing_period_start' => '2026-09-01',
             'billing_period_end' => '2026-09-30',
             'issue_date' => '2026-10-01',
@@ -174,6 +176,8 @@ test('workspace member can create a utility bill with private invoice attachment
         ->team_id->toBe($team->id)
         ->property_id->toBe($property->id)
         ->utility_account_id->toBe($account->id)
+        ->provider_invoice_id->toBe('PROVIDER-INV-9001')
+        ->payment_code->toBe('PAY-100200')
         ->amount_minor->toBe(12345)
         ->document_id->toBe($document->id);
 
