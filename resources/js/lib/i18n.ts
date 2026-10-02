@@ -555,6 +555,8 @@ const ro = {
     'expenses.index.renterSupported': 'Suportate de chiriaș',
     'expenses.index.ownerPaid': 'Plătite de proprietar',
     'expenses.index.renterPaid': 'Plătite de chiriaș',
+    'expenses.source.utility': 'Din Utilități',
+    'expenses.source.utilityHint': 'Acest cost este sincronizat automat din factura de utilități. Modifică sau șterge factura din pagina Utilități.',
 
     'documents.index.description': 'Păstrează documentele proprietăților și contractelor într-un singur loc',
     'documents.upload.title': 'Încarcă document',
@@ -1248,6 +1250,8 @@ const en: Record<TranslationKey, string> = {
     'expenses.index.renterSupported': 'Supported by renter',
     'expenses.index.ownerPaid': 'Paid by owner',
     'expenses.index.renterPaid': 'Paid by renter',
+    'expenses.source.utility': 'From Utilities',
+    'expenses.source.utilityHint': 'This cost is synchronized automatically from the utility invoice. Edit or delete the invoice from the Utilities page.',
 
     'documents.index.description': 'Keep property and lease documents in one place',
     'documents.upload.title': 'Upload document',
