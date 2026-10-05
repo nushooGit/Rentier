@@ -56,6 +56,9 @@ return [
         'paid_on' => 'Paid on',
     ],
     'values' => [
+        'country' => [
+            'Romania' => 'Romania',
+        ],
         'property_type' => [
             'studio' => 'Studio',
             'apartment' => 'Apartment',
