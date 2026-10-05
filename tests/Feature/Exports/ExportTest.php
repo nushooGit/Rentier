@@ -194,6 +194,7 @@ test('property export includes the active renter and localizes property values',
         ->toContain('Tip proprietate')
         ->toContain('Chiriaș')
         ->toContain('Apartament')
+        ->toContain('România')
         ->toContain('Ocupat')
         ->toContain('Ana Chiriaș')
         ->not->toContain(';apartment;')
