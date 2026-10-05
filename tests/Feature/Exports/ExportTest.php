@@ -196,7 +196,7 @@ test('property export includes the active renter and localizes property values',
         ->toContain('Chiriaș')
         ->toContain('Apartament')
         ->toContain('România')
-        ->toContain('Ocupat')
+        ->toContain('Ocupată')
         ->toContain('Ana Chiriaș')
         ->not->toContain(';apartment;')
         ->not->toContain(';occupied;');
@@ -300,8 +300,8 @@ test('all csv datasets localize stored domain values in Romanian', function () {
         ->toContain('Întreținere')
         ->toContain('Chiriaș')
         ->toContain('Proprietar')
-        ->toContain('Scădere din chirie')
-        ->toContain('De decontat')
+        ->toContain('Se scade din chirie')
+        ->toContain('De recuperat')
         ->not->toContain(';maintenance;')
         ->not->toContain(';deduct_from_rent;');
 
