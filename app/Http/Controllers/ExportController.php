@@ -231,7 +231,7 @@ class ExportController extends Controller
                 $expense->expense_date,
                 $this->exportLabel('expense_party', $expense->paid_by),
                 $this->exportLabel('expense_party', $expense->responsible_party),
-                $this->exportLabel('settlement_type', $expense->settlement_type),
+                $this->expenseSettlementLabel($expense),
                 $this->exportLabel('expense_status', $expense->status),
                 $expense->settled_at,
                 $expense->notes,
@@ -386,6 +386,21 @@ class ExportController extends Controller
         }
 
         return $cell;
+    }
+
+    private function expenseSettlementLabel(Expense $expense): ?string
+    {
+        if ($expense->settlement_type === 'reimburse') {
+            if ($expense->paid_by === 'owner' && $expense->responsible_party === 'tenant') {
+                return __('exports.values.settlement_context.recover_from_renter');
+            }
+
+            if ($expense->paid_by === 'tenant' && $expense->responsible_party === 'owner') {
+                return __('exports.values.settlement_context.reimburse_renter');
+            }
+        }
+
+        return $this->exportLabel('settlement_type', $expense->settlement_type);
     }
 
     private function exportLabel(string $group, ?string $value): ?string
