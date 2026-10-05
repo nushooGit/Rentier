@@ -329,7 +329,7 @@ test('csv value labels follow the active English locale', function () {
 
     $content = $this
         ->actingAs($user)
-        ->withCookie('rentier_locale', 'en')
+        ->withUnencryptedCookie('rentier_locale', 'en')
         ->get(route('exports.download', [$team, 'properties']))
         ->assertOk()
         ->streamedContent();
