@@ -65,11 +65,11 @@ return [
             'house' => 'Casă',
             'commercial_space' => 'Spațiu comercial',
             'office' => 'Birou',
-            'other' => 'Alt tip',
+            'other' => 'Altul',
         ],
         'occupancy_status' => [
-            'occupied' => 'Ocupat',
-            'available' => 'Disponibil',
+            'occupied' => 'Ocupată',
+            'available' => 'Liberă',
         ],
         'lease_status' => [
             'upcoming' => 'Viitor',
@@ -99,8 +99,8 @@ return [
             'utilities' => 'Utilități',
             'renovation' => 'Zugrăvit / renovări',
             'taxes' => 'Taxe',
-            'insurance' => 'Asigurare',
-            'admin' => 'Administrare',
+            'insurance' => 'Altele',
+            'admin' => 'Altele',
             'other' => 'Altele',
         ],
         'expense_party' => [
@@ -109,15 +109,19 @@ return [
             'renter' => 'Chiriaș',
         ],
         'settlement_type' => [
-            'none' => 'Fără decontare',
-            'deduct_from_rent' => 'Scădere din chirie',
-            'deduct_from_utilities' => 'Scădere din utilități',
-            'reimburse' => 'Rambursare',
+            'none' => 'Nu se decontează',
+            'deduct_from_rent' => 'Se scade din chirie',
+            'deduct_from_utilities' => 'Se scade din utilități',
+            'reimburse' => 'Se rambursează separat',
+        ],
+        'settlement_context' => [
+            'recover_from_renter' => 'Se recuperează de la chiriaș',
+            'reimburse_renter' => 'Se rambursează către chiriaș',
         ],
         'expense_status' => [
-            'paid' => 'Achitat',
+            'paid' => 'Plătită',
             'pending' => 'În așteptare',
-            'reimbursable' => 'De decontat',
+            'reimbursable' => 'De recuperat',
             'cancelled' => 'Anulat',
         ],
         'utility_service_type' => [
