@@ -56,6 +56,9 @@ return [
         'paid_on' => 'Plătit la',
     ],
     'values' => [
+        'country' => [
+            'Romania' => 'România',
+        ],
         'property_type' => [
             'studio' => 'Garsonieră',
             'apartment' => 'Apartament',
