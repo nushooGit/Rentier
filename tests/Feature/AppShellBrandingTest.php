@@ -19,6 +19,7 @@ test('authenticated app shell uses Rentier branding and localized product naviga
         ->toContain("t('nav.expenses')")
         ->toContain("t('nav.utilities')")
         ->toContain("t('nav.documents')")
+        ->toContain("t('nav.exports')")
         ->not->toContain('laravel/react-starter-kit')
         ->not->toContain('laravel.com/docs');
 
@@ -46,9 +47,11 @@ test('authenticated app shell uses Rentier branding and localized product naviga
         ->toContain("'nav.payments': 'Încasări'")
         ->toContain("'nav.expenses': 'Costuri'")
         ->toContain("'nav.utilities': 'Utilități'")
+        ->toContain("'nav.exports': 'Exporturi'")
         ->toContain("'nav.payments': 'Income'")
         ->toContain("'nav.expenses': 'Costs'")
-        ->toContain("'nav.utilities': 'Utilities'");
+        ->toContain("'nav.utilities': 'Utilities'")
+        ->toContain("'nav.exports': 'Exports'");
 });
 
 test('dashboard prioritizes primary landlord signals without changing financial source fields', function () {
