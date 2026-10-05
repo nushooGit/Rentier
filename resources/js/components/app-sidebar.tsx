@@ -2,6 +2,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Building2,
     CalendarDays,
+    FileSpreadsheet,
     FileText,
     FolderOpen,
     LayoutDashboard,
@@ -27,6 +28,7 @@ import { dashboard } from '@/routes';
 import { index as calendarIndex } from '@/routes/calendar';
 import { index as documentsIndex } from '@/routes/documents';
 import { index as expensesIndex } from '@/routes/expenses';
+import { index as exportsIndex } from '@/routes/exports';
 import { index as leasesIndex } from '@/routes/leases';
 import { index as paymentsIndex } from '@/routes/payments';
 import { index as propertiesIndex } from '@/routes/properties';
@@ -76,6 +78,11 @@ export function AppSidebar() {
             title: t('nav.documents'),
             href: page.props.currentTeam ? documentsIndex(page.props.currentTeam.slug) : '/',
             icon: FolderOpen,
+        },
+        {
+            title: t('nav.exports'),
+            href: page.props.currentTeam ? exportsIndex(page.props.currentTeam.slug) : '/',
+            icon: FileSpreadsheet,
         },
     ];
 
