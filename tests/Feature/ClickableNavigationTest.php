@@ -162,3 +162,18 @@ test('utilities index exposes account bill and attachment controls', function ()
         ->toContain('destroyUtilityBill([');
 });
 
+
+
+test('export center exposes workspace csv download controls', function () {
+    $source = pageSource('exports/index.tsx');
+    $sidebar = file_get_contents(resource_path('js/components/app-sidebar.tsx'));
+
+    expect($sidebar)
+        ->toContain("t('nav.exports')")
+        ->toContain('exportsIndex');
+
+    expect($source)
+        ->toContain('data-test={`export-card-${item.key}`}')
+        ->toContain('data-test={`export-download-${item.key}`}')
+        ->toContain('downloadExport([');
+});
