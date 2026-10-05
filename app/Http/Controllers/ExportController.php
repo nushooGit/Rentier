@@ -50,7 +50,10 @@ class ExportController extends Controller
     {
         Gate::authorize('viewAny', [Property::class, $currentTeam]);
 
+        $today = today();
+
         $rows = Property::query()
+            ->with(['leases:id,property_id,start_date,end_date'])
             ->whereBelongsTo($currentTeam)
             ->orderBy('name')
             ->get()
@@ -68,7 +71,10 @@ class ExportController extends Controller
                 $property->total_area_sqm,
                 $property->floor,
                 $property->total_floors,
-                $property->occupancyStatus(),
+                $property->leases->contains(
+                    fn (Lease $lease) => $lease->start_date->lte($today)
+                        && ($lease->end_date === null || $lease->end_date->gte($today)),
+                ) ? 'occupied' : 'available',
                 $property->monthly_rent_amount,
                 $property->currency,
                 $property->deposit_amount,
