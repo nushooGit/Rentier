@@ -2,6 +2,7 @@
 
 use App\Enums\UtilityAccountStatus;
 use App\Enums\UtilityBillStatus;
+use App\Enums\UtilityPaidBy;
 use App\Enums\UtilityResponsibleParty;
 use App\Enums\UtilityServiceType;
 use App\Models\Expense;
@@ -262,7 +263,7 @@ test('all csv datasets localize stored domain values in Romanian', function () {
         'currency' => 'RON',
         'status' => UtilityBillStatus::Unpaid,
         'responsible_party' => UtilityResponsibleParty::Renter,
-        'paid_by' => UtilityResponsibleParty::Owner,
+        'paid_by' => UtilityPaidBy::Owner,
         'paid_on' => null,
         'notes' => null,
     ]);
