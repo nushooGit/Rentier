@@ -156,7 +156,7 @@ test('unknown export dataset returns not found', function () {
     $this
         ->actingAs($user)
         ->get(route('exports.download', [$team, 'unknown']))
-        ->assertForbidden();
+        ->assertNotFound();
 });
 
 test('a user cannot export another workspace through the workspace route', function () {
@@ -166,5 +166,5 @@ test('a user cannot export another workspace through the workspace route', funct
     $this
         ->actingAs($user)
         ->get(route('exports.download', [$otherTeam, 'properties']))
-        ->assertNotFound();
+        ->assertForbidden();
 });
