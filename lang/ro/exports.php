@@ -55,4 +55,92 @@ return [
         'total_due' => 'Total de plată',
         'paid_on' => 'Plătit la',
     ],
+    'values' => [
+        'country' => [
+            'Romania' => 'România',
+        ],
+        'property_type' => [
+            'studio' => 'Garsonieră',
+            'apartment' => 'Apartament',
+            'house' => 'Casă',
+            'commercial_space' => 'Spațiu comercial',
+            'office' => 'Birou',
+            'other' => 'Altul',
+        ],
+        'occupancy_status' => [
+            'occupied' => 'Ocupată',
+            'available' => 'Liberă',
+        ],
+        'lease_status' => [
+            'upcoming' => 'Viitor',
+            'active' => 'Activ',
+            'ended' => 'Încheiat',
+            'cancelled' => 'Anulat',
+        ],
+        'payment_type' => [
+            'rent' => 'Chirie',
+            'guarantee' => 'Garanție',
+        ],
+        'payment_method' => [
+            'cash' => 'Numerar',
+            'bank_transfer' => 'Transfer bancar',
+            'card' => 'Card',
+            'other' => 'Altă metodă',
+        ],
+        'payment_status' => [
+            'paid' => 'Achitată integral',
+            'partial' => 'Parțial achitată',
+            'pending' => 'În așteptare',
+            'cancelled' => 'Anulată',
+        ],
+        'expense_category' => [
+            'repairs' => 'Reparații',
+            'maintenance' => 'Întreținere',
+            'utilities' => 'Utilități',
+            'renovation' => 'Zugrăvit / renovări',
+            'taxes' => 'Taxe',
+            'insurance' => 'Altele',
+            'admin' => 'Altele',
+            'other' => 'Altele',
+        ],
+        'expense_party' => [
+            'owner' => 'Proprietar',
+            'tenant' => 'Chiriaș',
+            'renter' => 'Chiriaș',
+        ],
+        'settlement_type' => [
+            'none' => 'Nu se decontează',
+            'deduct_from_rent' => 'Se scade din chirie',
+            'deduct_from_utilities' => 'Se scade din utilități',
+            'reimburse' => 'Se rambursează separat',
+        ],
+        'settlement_context' => [
+            'recover_from_renter' => 'Se recuperează de la chiriaș',
+            'reimburse_renter' => 'Se rambursează către chiriaș',
+        ],
+        'expense_status' => [
+            'paid' => 'Plătită',
+            'pending' => 'În așteptare',
+            'reimbursable' => 'De recuperat',
+            'cancelled' => 'Anulat',
+        ],
+        'utility_service_type' => [
+            'electricity' => 'Electricitate',
+            'gas' => 'Gaz',
+            'water' => 'Apă',
+            'heating' => 'Încălzire',
+            'internet' => 'Internet',
+            'sanitation' => 'Salubritate',
+            'other' => 'Altă utilitate',
+        ],
+        'utility_bill_status' => [
+            'unpaid' => 'Neachitată',
+            'paid' => 'Achitată',
+        ],
+        'utility_party' => [
+            'owner' => 'Proprietar',
+            'renter' => 'Chiriaș',
+            'tenant' => 'Chiriaș',
+        ],
+    ],
 ];

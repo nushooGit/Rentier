@@ -53,33 +53,43 @@ class ExportController extends Controller
         $today = today();
 
         $rows = Property::query()
-            ->with(['leases:id,property_id,start_date,end_date'])
+            ->with([
+                'leases' => fn ($query) => $query
+                    ->select(['id', 'property_id', 'renter_id', 'start_date', 'end_date'])
+                    ->with('renter:id,name')
+                    ->orderByDesc('start_date'),
+            ])
             ->whereBelongsTo($currentTeam)
             ->orderBy('name')
             ->get()
-            ->map(fn (Property $property) => [
-                $property->id,
-                $property->name,
-                $property->type,
-                $property->country,
-                $property->city,
-                $property->county_or_sector,
-                $property->address_line,
-                $property->postal_code,
-                $property->rooms,
-                $property->usable_area_sqm,
-                $property->total_area_sqm,
-                $property->floor,
-                $property->total_floors,
-                $property->leases->contains(
+            ->map(function (Property $property) use ($today) {
+                $activeLease = $property->leases->first(
                     fn (Lease $lease) => $lease->start_date->lte($today)
                         && ($lease->end_date === null || $lease->end_date->gte($today)),
-                ) ? 'occupied' : 'available',
-                $property->monthly_rent_amount,
-                $property->currency,
-                $property->deposit_amount,
-                $property->notes,
-            ]);
+                );
+
+                return [
+                    $property->id,
+                    $property->name,
+                    $this->exportLabel('property_type', $property->type),
+                    $this->exportLabel('country', $property->country),
+                    $property->city,
+                    $property->county_or_sector,
+                    $property->address_line,
+                    $property->postal_code,
+                    $property->rooms,
+                    $property->usable_area_sqm,
+                    $property->total_area_sqm,
+                    $property->floor,
+                    $property->total_floors,
+                    $this->exportLabel('occupancy_status', $activeLease ? 'occupied' : 'available'),
+                    $activeLease?->renter?->name,
+                    $property->monthly_rent_amount,
+                    $property->currency,
+                    $property->deposit_amount,
+                    $property->notes,
+                ];
+            });
 
         return $this->csv(
             $currentTeam,
@@ -99,6 +109,7 @@ class ExportController extends Controller
                 __('exports.columns.floor'),
                 __('exports.columns.total_floors'),
                 __('exports.columns.occupancy_status'),
+                __('exports.columns.renter_name'),
                 __('exports.columns.monthly_rent'),
                 __('exports.columns.currency'),
                 __('exports.columns.deposit'),
@@ -129,7 +140,7 @@ class ExportController extends Controller
                 $lease->currency,
                 $lease->rent_due_day,
                 $lease->deposit_amount,
-                $lease->computedStatus(),
+                $this->exportLabel('lease_status', $lease->computedStatus()),
                 $lease->notes,
             ]);
 
@@ -168,14 +179,14 @@ class ExportController extends Controller
                 $payment->id,
                 $payment->property->name,
                 $payment->renter->name,
-                $payment->payment_type,
+                $this->exportLabel('payment_type', $payment->payment_type),
                 $payment->amount,
                 $payment->currency,
                 $payment->payment_date,
                 $payment->period_month,
                 $payment->period_year,
-                $payment->method,
-                $payment->status,
+                $this->exportLabel('payment_method', $payment->method),
+                $this->exportLabel('payment_status', $payment->status),
                 $payment->notes,
             ]);
 
@@ -214,14 +225,14 @@ class ExportController extends Controller
                 $expense->property->name,
                 $expense->lease?->renter?->name,
                 $expense->title,
-                $expense->category,
+                $this->exportLabel('expense_category', $expense->category),
                 $expense->amount,
                 $expense->currency,
                 $expense->expense_date,
-                $expense->paid_by,
-                $expense->responsible_party,
-                $expense->settlement_type,
-                $expense->status,
+                $this->exportLabel('expense_party', $expense->paid_by),
+                $this->exportLabel('expense_party', $expense->responsible_party),
+                $this->expenseSettlementLabel($expense),
+                $this->exportLabel('expense_status', $expense->status),
                 $expense->settled_at,
                 $expense->notes,
             ]);
@@ -263,7 +274,7 @@ class ExportController extends Controller
                 $bill->property->name,
                 $bill->lease?->renter?->name,
                 $bill->utilityAccount->provider_name,
-                $bill->utilityAccount->service_type->value,
+                $this->exportLabel('utility_service_type', $bill->utilityAccount->service_type->value),
                 $bill->utilityAccount->account_identifier,
                 $bill->invoice_number,
                 $bill->provider_invoice_id,
@@ -280,9 +291,9 @@ class ExportController extends Controller
                     ? null
                     : $this->minorToDecimal($bill->total_due_minor),
                 $bill->currency,
-                $bill->status->value,
-                $bill->responsible_party?->value,
-                $bill->paid_by?->value,
+                $this->exportLabel('utility_bill_status', $bill->status->value),
+                $this->exportLabel('utility_party', $bill->responsible_party?->value),
+                $this->exportLabel('utility_party', $bill->paid_by?->value),
                 $bill->paid_on,
                 $bill->notes,
             ]);
@@ -375,6 +386,33 @@ class ExportController extends Controller
         }
 
         return $cell;
+    }
+
+    private function expenseSettlementLabel(Expense $expense): ?string
+    {
+        if ($expense->settlement_type === 'reimburse') {
+            if ($expense->paid_by === 'owner' && $expense->responsible_party === 'tenant') {
+                return __('exports.values.settlement_context.recover_from_renter');
+            }
+
+            if ($expense->paid_by === 'tenant' && $expense->responsible_party === 'owner') {
+                return __('exports.values.settlement_context.reimburse_renter');
+            }
+        }
+
+        return $this->exportLabel('settlement_type', $expense->settlement_type);
+    }
+
+    private function exportLabel(string $group, ?string $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return $value;
+        }
+
+        $key = "exports.values.{$group}.{$value}";
+        $translated = __($key);
+
+        return $translated === $key ? $value : $translated;
     }
 
     private function minorToDecimal(int $amountMinor): string

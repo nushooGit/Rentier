@@ -55,4 +55,92 @@ return [
         'total_due' => 'Total due',
         'paid_on' => 'Paid on',
     ],
+    'values' => [
+        'country' => [
+            'Romania' => 'Romania',
+        ],
+        'property_type' => [
+            'studio' => 'Studio',
+            'apartment' => 'Apartment',
+            'house' => 'House',
+            'commercial_space' => 'Commercial space',
+            'office' => 'Office',
+            'other' => 'Other',
+        ],
+        'occupancy_status' => [
+            'occupied' => 'Occupied',
+            'available' => 'Available',
+        ],
+        'lease_status' => [
+            'upcoming' => 'Upcoming',
+            'active' => 'Active',
+            'ended' => 'Ended',
+            'cancelled' => 'Cancelled',
+        ],
+        'payment_type' => [
+            'rent' => 'Rent',
+            'guarantee' => 'Deposit',
+        ],
+        'payment_method' => [
+            'cash' => 'Cash',
+            'bank_transfer' => 'Bank transfer',
+            'card' => 'Card',
+            'other' => 'Other method',
+        ],
+        'payment_status' => [
+            'paid' => 'Paid in full',
+            'partial' => 'Partially paid',
+            'pending' => 'Pending',
+            'cancelled' => 'Cancelled',
+        ],
+        'expense_category' => [
+            'repairs' => 'Repairs',
+            'maintenance' => 'Maintenance',
+            'utilities' => 'Utilities',
+            'renovation' => 'Painting / renovation',
+            'taxes' => 'Taxes',
+            'insurance' => 'Other',
+            'admin' => 'Other',
+            'other' => 'Other',
+        ],
+        'expense_party' => [
+            'owner' => 'Owner',
+            'tenant' => 'Renter',
+            'renter' => 'Renter',
+        ],
+        'settlement_type' => [
+            'none' => 'No settlement',
+            'deduct_from_rent' => 'Deduct from rent',
+            'deduct_from_utilities' => 'Deduct from utilities',
+            'reimburse' => 'Reimburse separately',
+        ],
+        'settlement_context' => [
+            'recover_from_renter' => 'Recover from renter',
+            'reimburse_renter' => 'Reimburse renter',
+        ],
+        'expense_status' => [
+            'paid' => 'Paid',
+            'pending' => 'Pending',
+            'reimbursable' => 'Recoverable',
+            'cancelled' => 'Cancelled',
+        ],
+        'utility_service_type' => [
+            'electricity' => 'Electricity',
+            'gas' => 'Gas',
+            'water' => 'Water',
+            'heating' => 'Heating',
+            'internet' => 'Internet',
+            'sanitation' => 'Sanitation',
+            'other' => 'Other utility',
+        ],
+        'utility_bill_status' => [
+            'unpaid' => 'Unpaid',
+            'paid' => 'Paid',
+        ],
+        'utility_party' => [
+            'owner' => 'Owner',
+            'renter' => 'Renter',
+            'tenant' => 'Renter',
+        ],
+    ],
 ];
