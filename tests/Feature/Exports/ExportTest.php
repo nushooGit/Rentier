@@ -149,6 +149,27 @@ test('utility export keeps invoice amount previous balance and total due separat
         ->toContain('703.20');
 });
 
+test('csv export is utf 8 and neutralizes spreadsheet formulas from user text', function () {
+    $user = User::factory()->create();
+    $team = $user->currentTeam;
+
+    Property::factory()->for($team)->create([
+        'name' => '=1+1',
+        'notes' => '@SUM(A1:A2)',
+    ]);
+
+    $content = $this
+        ->actingAs($user)
+        ->get(route('exports.download', [$team, 'properties']))
+        ->assertOk()
+        ->streamedContent();
+
+    expect(str_starts_with($content, "\xEF\xBB\xBF"))->toBeTrue();
+    expect($content)
+        ->toContain("'=1+1")
+        ->toContain("'@SUM(A1:A2)");
+});
+
 test('unknown export dataset returns not found', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
