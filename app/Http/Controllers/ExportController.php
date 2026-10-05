@@ -72,7 +72,7 @@ class ExportController extends Controller
                     $property->id,
                     $property->name,
                     $this->exportLabel('property_type', $property->type),
-                    $property->country,
+                    $this->exportLabel('country', $property->country),
                     $property->city,
                     $property->county_or_sector,
                     $property->address_line,
