@@ -97,10 +97,10 @@ return [
             'repairs' => 'Repairs',
             'maintenance' => 'Maintenance',
             'utilities' => 'Utilities',
-            'renovation' => 'Renovation',
+            'renovation' => 'Painting / renovation',
             'taxes' => 'Taxes',
-            'insurance' => 'Insurance',
-            'admin' => 'Administration',
+            'insurance' => 'Other',
+            'admin' => 'Other',
             'other' => 'Other',
         ],
         'expense_party' => [
@@ -112,12 +112,16 @@ return [
             'none' => 'No settlement',
             'deduct_from_rent' => 'Deduct from rent',
             'deduct_from_utilities' => 'Deduct from utilities',
-            'reimburse' => 'Reimburse',
+            'reimburse' => 'Reimburse separately',
+        ],
+        'settlement_context' => [
+            'recover_from_renter' => 'Recover from renter',
+            'reimburse_renter' => 'Reimburse renter',
         ],
         'expense_status' => [
             'paid' => 'Paid',
             'pending' => 'Pending',
-            'reimbursable' => 'To settle',
+            'reimbursable' => 'Recoverable',
             'cancelled' => 'Cancelled',
         ],
         'utility_service_type' => [
