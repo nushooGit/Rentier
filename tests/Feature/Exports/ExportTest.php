@@ -170,7 +170,6 @@ test('csv export is utf 8 and neutralizes spreadsheet formulas from user text', 
         ->toContain("'@SUM(A1:A2)");
 });
 
-
 test('property export includes the active renter and localizes property values', function () {
     $user = User::factory()->create();
     $team = $user->currentTeam;
