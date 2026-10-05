@@ -16,7 +16,7 @@ import {
     index as exportsIndex,
 } from '@/routes/exports';
 
-const exports = [
+const exportCards = [
     {
         key: 'properties',
         icon: Building2,
@@ -86,7 +86,7 @@ export default function ExportsIndex() {
                 </div>
 
                 <section className="grid gap-3 md:grid-cols-2">
-                    {exports.map((item) => {
+                    {exportCards.map((item) => {
                         const Icon = item.icon;
 
                         return (
