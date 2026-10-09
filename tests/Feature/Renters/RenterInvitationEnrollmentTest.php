@@ -37,6 +37,7 @@ test('invitation-only enrollment creates user without immediately linking renter
     Event::fake([Registered::class]);
     [$renter, $token] = makeEnrollmentInvitation();
 
+    $this->withoutExceptionHandling();
     $this->post(route('renter-invitations.register', ['token' => $token]), [
         'name' => 'Invited Renter',
         'email' => 'guest@example.com',
