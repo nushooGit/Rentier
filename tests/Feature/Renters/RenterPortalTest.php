@@ -12,7 +12,7 @@ test('renter portal only shows leases linked to signed in verified user', functi
     $other = User::factory()->create(['email_verified_at' => now()]);
     $team = Team::factory()->create();
 
-    $mine = Renter::factory()->create(['team_id' => $team->id, 'user_id' => $user->id]);
+    $mine = Renter::factory()->create(['team_id' => $team->id, 'user_id' => $user->id, 'email' => $user->email]);
     $notMine = Renter::factory()->create(['team_id' => $team->id, 'user_id' => $other->id]);
 
     RenterInvitation::create([
