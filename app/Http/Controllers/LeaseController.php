@@ -81,13 +81,14 @@ class LeaseController extends Controller
     /**
      * Display the lease details.
      */
-    public function show(Team $currentTeam, Lease $lease): Response
+    public function show(Request $request, Team $currentTeam, Lease $lease): Response
     {
         Gate::authorize('view', $lease);
         $this->abortIfLeaseIsOutsideWorkspace($currentTeam, $lease);
 
         return Inertia::render('leases/show', [
             'lease' => $this->serializeLease($lease->load(['property', 'renter'])),
+            'canManageRenterPortal' => $request->user()->ownsTeam($currentTeam),
         ]);
     }
 
@@ -209,6 +210,7 @@ class LeaseController extends Controller
             ],
             'renter' => [
                 'id' => $lease->renter->id,
+                'hasPortalAccount' => $lease->renter->user_id !== null,
                 'name' => $lease->renter->name,
                 'email' => $lease->renter->email,
                 'phone' => $lease->renter->phone,

@@ -11,7 +11,8 @@ import { destroy, edit, index, show } from '@/routes/leases';
 import type { Lease } from '@/types';
 
 type Props = {
-    lease: Lease;
+    lease: Lease & { renter: Lease['renter'] & { hasPortalAccount?: boolean } };
+    canManageRenterPortal: boolean;
 };
 
 function formatValue(value?: string | number | null) {
@@ -44,7 +45,7 @@ function Detail({
     );
 }
 
-export default function LeaseShow({ lease }: Props) {
+export default function LeaseShow({ lease, canManageRenterPortal }: Props) {
     const { currentTeam } = usePage().props;
     const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -137,6 +138,37 @@ export default function LeaseShow({ lease }: Props) {
                             value={lease.renter.phone}
                         />
                     </dl>
+                    {canManageRenterPortal && lease.renter.email && !lease.renter.hasPortalAccount ? (
+                        <div className="mt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.post(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/invitations`)}
+                            >
+                                {t('renter.invite.send')}
+                            </Button>
+                        </div>
+                    ) : null}
+                    {lease.renter.hasPortalAccount ? (
+                        <div className="mt-3 space-y-3">
+                            <p className="text-sm text-muted-foreground">
+                                {t('renter.invite.connected')}
+                            </p>
+                            {canManageRenterPortal ? (
+                                <Button
+                                    variant="destructive"
+                                    type="button"
+                                    onClick={() => {
+                                        if (window.confirm(t('renter.invite.revokeConfirm'))) {
+                                            router.delete(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/portal-access`);
+                                        }
+                                    }}
+                                >
+                                    {t('renter.invite.revoke')}
+                                </Button>
+                            ) : null}
+                        </div>
+                    ) : null}
                     {lease.renter.notes ? (
                         <p className="mt-3 text-sm whitespace-pre-wrap">
                             {lease.renter.notes}

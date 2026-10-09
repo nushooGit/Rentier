@@ -16,6 +16,9 @@ use App\Http\Controllers\LeaseController;
 use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\RentPaymentController;
+use App\Http\Controllers\Renters\RenterInvitationController;
+use App\Http\Controllers\Renters\RenterInvitationAccessController;
+use App\Http\Controllers\Renters\RenterPortalController;
 use App\Http\Controllers\UtilityAccountController;
 use App\Http\Controllers\UtilityBillController;
 use App\Http\Controllers\UtilityBillReaderController;
@@ -93,6 +96,9 @@ Route::prefix('{current_team}')
         Route::delete('reminders/{reminder}', [ReminderController::class, 'destroy'])->name('reminders.destroy');
         Route::resource('properties', PropertyController::class);
         Route::resource('leases', LeaseController::class);
+        Route::post('renters/{renter}/invitations', [RenterInvitationController::class, 'store'])->name('renters.invitations.store');
+        Route::delete('renter-invitations/{invitation}', [RenterInvitationController::class, 'destroy'])->name('renters.invitations.destroy');
+        Route::delete('renters/{renter}/portal-access', [RenterInvitationController::class, 'revokeAccess'])->name('renters.portal-access.destroy');
         Route::resource('payments', RentPaymentController::class);
         Route::patch('expenses/{expense}/mark-reimbursed', [ExpenseController::class, 'markReimbursed'])->name('expenses.mark-reimbursed');
         Route::patch('expenses/{expense}/mark-recovered', [ExpenseController::class, 'markRecovered'])->name('expenses.mark-recovered');
@@ -104,6 +110,13 @@ Route::prefix('{current_team}')
         Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
         Route::resource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
     });
+
+Route::middleware([RejectAdminHost::class, 'throttle:20,1'])->get('renter-invitations/{token}', [RenterInvitationAccessController::class, 'show'])->name('renter-invitations.show');
+Route::middleware([RejectAdminHost::class, 'throttle:5,1'])->post('renter-invitations/{token}/register', [RenterInvitationAccessController::class, 'register'])->name('renter-invitations.register');
+
+Route::middleware(['auth', 'verified', RejectAdminHost::class])->get('renter/overview', RenterPortalController::class)->name('renter.overview');
+
+Route::middleware(['auth', 'verified', RejectAdminHost::class])->post('renter-invitations/accept', [RenterInvitationController::class, 'accept'])->middleware('throttle:6,1')->name('renter-invitations.accept');
 
 Route::middleware(['auth', RejectAdminHost::class])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
