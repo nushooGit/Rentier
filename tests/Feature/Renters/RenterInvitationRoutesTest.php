@@ -2,11 +2,13 @@
 
 use App\Actions\Renters\ManageRenterInvitation;
 use App\Enums\TeamRole;
+use App\Models\Lease;
 use App\Models\Renter;
 use App\Models\Team;
 use App\Models\User;
 use App\Notifications\Renters\RenterPortalInvitation;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
 
 test('workspace owner can issue invite but no outsider can use the endpoint', function () {
     Notification::fake();
@@ -60,6 +62,10 @@ test('workspace owner can withdraw accepted renter access immediately', function
     $action = app(ManageRenterInvitation::class);
     $issued = $action->issue($owner, $renter);
     $action->accept($recipient, $issued['token']);
+    Lease::factory()->create(['team_id' => $team->id, 'renter_id' => $renter->id]);
+
+    $this->actingAs($recipient)->get(route('renter.overview'))
+        ->assertInertia(fn (Assert $page) => $page->component('renters/overview')->has('leases', 1));
 
     $outsider = User::factory()->create();
     $this->actingAs($outsider)
@@ -74,4 +80,7 @@ test('workspace owner can withdraw accepted renter access immediately', function
     expect($renter->fresh()->user_id)->toBeNull()
         ->and($issued['invitation']->fresh()->revoked_at)->not->toBeNull()
         ->and($issued['invitation']->fresh()->accepted_by_user_id)->toBe($recipient->id);
+
+    $this->actingAs($recipient)->get(route('renter.overview'))
+        ->assertInertia(fn (Assert $page) => $page->component('renters/overview')->has('leases', 0));
 });
