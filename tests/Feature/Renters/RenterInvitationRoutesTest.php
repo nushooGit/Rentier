@@ -50,3 +50,28 @@ test('verified invited user accepts and reaches only their renter portal', funct
     expect($renter->fresh()->user_id)->toBe($recipient->id)
         ->and($recipient->belongsToTeam($team))->toBeFalse();
 });
+
+test('workspace owner can withdraw accepted renter access immediately', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $recipient = User::factory()->create(['email' => 'claim@example.com', 'email_verified_at' => now()]);
+    $renter = Renter::factory()->create(['team_id' => $team->id, 'user_id' => null, 'email' => $recipient->email]);
+    $action = app(ManageRenterInvitation::class);
+    $issued = $action->issue($owner, $renter);
+    $action->accept($recipient, $issued['token']);
+
+    $outsider = User::factory()->create();
+    $this->actingAs($outsider)
+        ->delete(route('renters.portal-access.destroy', ['current_team' => $team->slug, 'renter' => $renter->id]))
+        ->assertForbidden();
+    expect($renter->fresh()->user_id)->toBe($recipient->id);
+
+    $this->actingAs($owner)
+        ->delete(route('renters.portal-access.destroy', ['current_team' => $team->slug, 'renter' => $renter->id]))
+        ->assertRedirect();
+
+    expect($renter->fresh()->user_id)->toBeNull()
+        ->and($issued['invitation']->fresh()->revoked_at)->not->toBeNull()
+        ->and($issued['invitation']->fresh()->accepted_by_user_id)->toBe($recipient->id);
+});
