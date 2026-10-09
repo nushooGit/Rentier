@@ -84,7 +84,7 @@ class ManageRenterInvitation
 
             // Lock the renter before the invitation, consistently with issue and revoke.
             $renter = Renter::query()->lockForUpdate()->findOrFail($lookup->renter_id);
-            $invitation = RenterInvitation::query()->lockForUpdate()->findOrFail($lookup->id);
+            $invitation = RenterInvitation::query()->lockForUpdate()->find($lookup->id);
 
             if (! $invitation
                 || $invitation->accepted_at !== null
