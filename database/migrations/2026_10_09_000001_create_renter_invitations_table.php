@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('team_id')->constrained()->cascadeOnDelete();
             $table->foreignId('renter_id')->constrained()->cascadeOnDelete();
             $table->foreignId('invited_by')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('accepted_by_user_id')->nullable()->constrained('users')->nullOnDelete();
             $table->string('email');
             $table->string('token_hash', 64)->unique();
             $table->timestamp('expires_at');
