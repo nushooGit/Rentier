@@ -1,5 +1,6 @@
 <?php
 
+use App\Actions\Renters\ManageRenterInvitation;
 use App\Enums\TeamRole;
 use App\Models\Renter;
 use App\Models\Team;
@@ -39,7 +40,7 @@ test('verified invited user accepts and reaches only their renter portal', funct
     $team = Team::factory()->create();
     $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
     $renter = Renter::factory()->create(['team_id' => $team->id, 'user_id' => null, 'email' => 'guest@example.com']);
-    $token = app(\\App\\Actions\\Renters\\ManageRenterInvitation::class)->issue($owner, $renter)['token'];
+    $token = app(ManageRenterInvitation::class)->issue($owner, $renter)['token'];
     $recipient = User::factory()->create(['email' => 'guest@example.com', 'email_verified_at' => now()]);
 
     $this->actingAs($recipient)
