@@ -48,6 +48,26 @@ class ManageRenterInvitation
         });
     }
 
+    public function pending(string $rawToken): RenterInvitation
+    {
+        $invitation = RenterInvitation::query()
+            ->where('token_hash', hash('sha256', $rawToken))
+            ->first();
+
+        if (! $invitation
+            || $invitation->accepted_at !== null
+            || $invitation->revoked_at !== null
+            || $invitation->expires_at->isPast()
+            || $invitation->team->isSuspended()
+            || $invitation->renter->team_id !== $invitation->team_id
+            || $invitation->renter->user_id !== null
+            || strcasecmp((string) $invitation->renter->email, $invitation->email) !== 0) {
+            throw ValidationException::withMessages(['invitation' => __('Invalid or expired invitation.')]);
+        }
+
+        return $invitation;
+    }
+
     public function accept(User $user, string $rawToken): Renter
     {
         abort_unless($user->hasVerifiedEmail(), 403);
