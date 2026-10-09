@@ -21,7 +21,9 @@ class RenterPortalController extends Controller
                 ->whereHas('portalInvitations', fn ($invitation) => $invitation
                     ->whereNotNull('accepted_at')
                     ->whereNull('revoked_at')
-                    ->where('email', $user->email)))
+                    ->where('accepted_by_user_id', $user->id)
+                    ->where('email', $user->email)
+                    ->whereRaw('LOWER(renter_invitations.email) = LOWER(renters.email)')))
             ->whereHas('team', fn ($query) => $query->whereNull('suspended_at'))
             ->orderByDesc('start_date')
             ->get()
