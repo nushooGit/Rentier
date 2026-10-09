@@ -12,6 +12,7 @@ import type { Lease } from '@/types';
 
 type Props = {
     lease: Lease & { renter: Lease['renter'] & { hasPortalAccount?: boolean } };
+    canManageRenterPortal: boolean;
 };
 
 function formatValue(value?: string | number | null) {
@@ -44,7 +45,7 @@ function Detail({
     );
 }
 
-export default function LeaseShow({ lease }: Props) {
+export default function LeaseShow({ lease, canManageRenterPortal }: Props) {
     const { currentTeam } = usePage().props;
     const { t } = useI18n();
     const currentTeamSlug = currentTeam?.slug ?? '';
@@ -137,37 +138,35 @@ export default function LeaseShow({ lease }: Props) {
                             value={lease.renter.phone}
                         />
                     </dl>
-                    {lease.renter.email && !lease.renter.hasPortalAccount ? (
+                    {canManageRenterPortal && lease.renter.email && !lease.renter.hasPortalAccount ? (
                         <div className="mt-4">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => router.post(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/invitations`)}
                             >
-                                {currentIntlLocale().startsWith('en') ? 'Send renter portal invitation' : 'Trimite invitație în portalul chiriașului'}
+                                {t('renter.invite.send')}
                             </Button>
                         </div>
                     ) : null}
                     {lease.renter.hasPortalAccount ? (
                         <div className="mt-3 space-y-3">
                             <p className="text-sm text-muted-foreground">
-                                {currentIntlLocale().startsWith('en') ? 'Renter portal account linked' : 'Cont de chiriaș asociat'}
+                                {t('renter.invite.connected')}
                             </p>
-                            <Button
-                                variant="destructive"
-                                type="button"
-                                onClick={() => {
-                                    if (window.confirm(
-                                        currentIntlLocale().startsWith('en')
-                                            ? 'Revoke this renter’s portal access?'
-                                            : 'Retragi accesul acestui chiriaș la portal?',
-                                    )) {
-                                        router.delete(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/portal-access`);
-                                    }
-                                }}
-                            >
-                                {currentIntlLocale().startsWith('en') ? 'Revoke portal access' : 'Retrage accesul la portal'}
-                            </Button>
+                            {canManageRenterPortal ? (
+                                <Button
+                                    variant="destructive"
+                                    type="button"
+                                    onClick={() => {
+                                        if (window.confirm(t('renter.invite.revokeConfirm'))) {
+                                            router.delete(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/portal-access`);
+                                        }
+                                    }}
+                                >
+                                    {t('renter.invite.revoke')}
+                                </Button>
+                            ) : null}
                         </div>
                     ) : null}
                     {lease.renter.notes ? (
