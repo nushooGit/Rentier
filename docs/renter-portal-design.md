@@ -25,6 +25,24 @@ One user may legitimately be a landlord in a workspace and a renter in another. 
 5. An invited person gains access only to their linked renter records and permitted resources, not to all resources in the landlord's workspace. The invite must not create `Membership` / `TeamInvitation`.
 6. Existing records with a populated `renters.user_id` require an audit of how they were linked before exposing any renter-facing information; a non-null foreign key alone is insufficient proof of authorization.
 
+## Implementation-readiness audit (2026-10-09)
+
+Source files reviewed: `routes/web.php`, `LeaseController`, `Renter`, `LeasePolicy`, `TeamInvitationController`, `RespondToTeamInvitationRequest`, `CreateNewUser` and `config/fortify.php`.
+
+- `LeaseController::store` creates a new workspace-scoped `Renter` contact, with **no** `user_id` assignment. `update` only updates contact fields. This confirms contact email is not an authenticated identity proof.
+- Existing landlord pages live under `/{current_team}` and `EnsureTeamMembership`; renter routes must use a separate `auth` + `verified` + reject-admin-host surface, with dedicated scoped policies, not the current workspace-member route group.
+- `LeasePolicy::view` currently checks workspace membership only; do **not** widen it globally to permit renters. Introduce a dedicated renter policy/view or explicitly contextual policy boundaries to avoid exposing landlord payloads.
+- Existing `TeamInvitationController::accept` creates a `Membership` and switches workspace; it is categorically unsuitable for renter access. A new invitation type and lifecycle must not call it.
+- Fortify supports email verification, but public registration depends on `RENTIER_REGISTRATION_ENABLED`. An invited person without an existing login cannot complete a claim while registration is disabled. The restricted enrollment path must be separately designed and security-reviewed, not enabled by turning public registration on.
+- `CreateNewUser` also creates a personal workspace for every registered user; an eventual renter-only onboarding flow must either explicitly accept that behavior or safely adapt it after review.
+- Review and constrain existing populated `renters.user_id` values before enabling any read endpoint: the schema allows assignments but the current lease controller does not establish a secure claim provenance.
+
+### Decision gate for the backend PR
+
+Before implementing an invitation-acceptance endpoint, approve a **renter-only, token-scoped enrollment path** when public registration is disabled, preserving Fortify validation/email verification and avoiding workspace membership grants. The next security design should specify one-time token hashing, signed/opaque link behavior, expiry, rate limits, atomic acceptance, audited revocation, and protection for existing links.
+
+Until this gate is approved, only isolated non-auth tests, design and static review are in scope. No migration or credential-dependent testing is authorized. GitHub CI cannot substitute for production authorization verification.
+
 ## Minimum first implementation increment
 
 Backend only: design/review token persistence needs (migration is likely for an invitation record, but `renters.user_id` itself already exists); add invitation issuing/revocation/acceptance flows with explicit ownership checks, email verification and tests. No production migration until independently reviewed and approved. No public registration configuration changes as part of this increment.
@@ -56,4 +74,4 @@ Backend only: design/review token persistence needs (migration is likely for an 
 - Completed: owner-confirmed document deletion and corrected CSV export recorded in issue register; initial identity/access proposal.
 - Tests: not run locally (documentation-only). Review GitHub CI on PR before merge.
 - Unresolved: invitation token schema, verification and registration UX, preexisting `user_id` audit, lifecycle/revocation, explicit renter-visible data flags and approval for any authentication/migration change.
-- Exact next task: audit existing `Renter` creation/update endpoints, registration/email verification and invitation patterns, then prepare a focused backend-only invitation-link PR after security review. Never implement implicit email matching.
+- Exact next task: obtain explicit approval for the restricted renter-only enrollment/authentication design, then implement the backend invitation link in a separate, reviewed PR with migration and allow/deny tests. Never implement implicit email matching.
