@@ -19,6 +19,7 @@ test('renter portal only shows leases linked to signed in verified user', functi
         'team_id' => $team->id,
         'renter_id' => $mine->id,
         'invited_by' => $other->id,
+        'accepted_by_user_id' => $user->id,
         'email' => $user->email,
         'token_hash' => hash('sha256', 'test-invitation-provenance'),
         'expires_at' => now()->addDay(),
@@ -62,5 +63,24 @@ test('legacy user link without accepted invitation is not trusted for portal acc
 
     $this->actingAs($user)
         ->get(route('renter.overview'))
+        ->assertInertia(fn (Assert $page) => $page->component('renters/overview')->has('leases', 0));
+});
+
+test('changing renter contact email invalidates the previous accepted claim', function () {
+    $user = User::factory()->create(['email' => 'original@example.com', 'email_verified_at' => now()]);
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => \App\Enums\TeamRole::Owner->value]);
+    $renter = Renter::factory()->create(['team_id' => $team->id, 'email' => $user->email, 'user_id' => null]);
+    Lease::factory()->create(['team_id' => $team->id, 'renter_id' => $renter->id]);
+    $action = app(\App\Actions\Renters\ManageRenterInvitation::class);
+    $token = $action->issue($owner, $renter)['token'];
+    $action->accept($user, $token);
+
+    $this->actingAs($user)->get(route('renter.overview'))
+        ->assertInertia(fn (Assert $page) => $page->component('renters/overview')->has('leases', 1));
+
+    $renter->update(['email' => 'different@example.com']);
+    $this->actingAs($user)->get(route('renter.overview'))
         ->assertInertia(fn (Assert $page) => $page->component('renters/overview')->has('leases', 0));
 });
