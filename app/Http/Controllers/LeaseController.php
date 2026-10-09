@@ -209,6 +209,7 @@ class LeaseController extends Controller
             ],
             'renter' => [
                 'id' => $lease->renter->id,
+                'hasPortalAccount' => $lease->renter->user_id !== null,
                 'name' => $lease->renter->name,
                 'email' => $lease->renter->email,
                 'phone' => $lease->renter->phone,
