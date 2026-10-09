@@ -25,6 +25,6 @@ class RenterPortalInvitation extends Notification
             ->subject(__('Rentier renter portal invitation'))
             ->line(__('You have been invited to access your rental information in Rentier.'))
             ->line(__('Sign in using the invited email address and verify it before accepting.'))
-            ->action(__('Review invitation'), route('login', ['renter_invitation' => $this->token]));
+            ->action(__('Review invitation'), route('renter-invitations.show', ['token' => $this->token]));
     }
 }
