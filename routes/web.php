@@ -17,6 +17,7 @@ use App\Http\Controllers\PropertyController;
 use App\Http\Controllers\ReminderController;
 use App\Http\Controllers\RentPaymentController;
 use App\Http\Controllers\Renters\RenterInvitationController;
+use App\Http\Controllers\Renters\RenterInvitationAccessController;
 use App\Http\Controllers\UtilityAccountController;
 use App\Http\Controllers\UtilityBillController;
 use App\Http\Controllers\UtilityBillReaderController;
@@ -107,6 +108,9 @@ Route::prefix('{current_team}')
         Route::get('documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
         Route::resource('documents', DocumentController::class)->only(['index', 'store', 'destroy']);
     });
+
+Route::middleware([RejectAdminHost::class, 'throttle:20,1'])->get('renter-invitations/{token}', [RenterInvitationAccessController::class, 'show'])->name('renter-invitations.show');
+Route::middleware([RejectAdminHost::class, 'throttle:5,1'])->post('renter-invitations/{token}/register', [RenterInvitationAccessController::class, 'register'])->name('renter-invitations.register');
 
 Route::middleware(['auth', 'verified', RejectAdminHost::class])->post('renter-invitations/accept', [RenterInvitationController::class, 'accept'])->middleware('throttle:6,1')->name('renter-invitations.accept');
 
