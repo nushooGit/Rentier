@@ -38,6 +38,6 @@ class RenterInvitationController extends Controller
         $request->validate(['token' => ['required', 'string', 'size:64']]);
         $action->accept($request->user(), $request->string('token')->toString());
 
-        return redirect()->route('home');
+        return redirect()->route('renter.overview');
     }
 }
