@@ -149,9 +149,26 @@ export default function LeaseShow({ lease }: Props) {
                         </div>
                     ) : null}
                     {lease.renter.hasPortalAccount ? (
-                        <p className="mt-3 text-sm text-muted-foreground">
-                            {currentIntlLocale().startsWith('en') ? 'Renter portal account linked' : 'Cont de chiriaș asociat'}
-                        </p>
+                        <div className="mt-3 space-y-3">
+                            <p className="text-sm text-muted-foreground">
+                                {currentIntlLocale().startsWith('en') ? 'Renter portal account linked' : 'Cont de chiriaș asociat'}
+                            </p>
+                            <Button
+                                variant="destructive"
+                                type="button"
+                                onClick={() => {
+                                    if (window.confirm(
+                                        currentIntlLocale().startsWith('en')
+                                            ? 'Revoke this renter’s portal access?'
+                                            : 'Retragi accesul acestui chiriaș la portal?',
+                                    )) {
+                                        router.delete(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/portal-access`);
+                                    }
+                                }}
+                            >
+                                {currentIntlLocale().startsWith('en') ? 'Revoke portal access' : 'Retrage accesul la portal'}
+                            </Button>
+                        </div>
                     ) : null}
                     {lease.renter.notes ? (
                         <p className="mt-3 text-sm whitespace-pre-wrap">
