@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Renters\ManageRenterInvitation;
+use App\Enums\TeamRole;
 use App\Models\Renter;
 use App\Models\RenterInvitation;
 use App\Models\Team;
@@ -10,7 +11,8 @@ use Illuminate\Validation\ValidationException;
 function privateRenterFixture(): array
 {
     $owner = User::factory()->create();
-    $team = Team::factory()->create(['user_id' => $owner->id]);
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
     $renter = Renter::factory()->create([
         'team_id' => $team->id,
         'user_id' => null,
