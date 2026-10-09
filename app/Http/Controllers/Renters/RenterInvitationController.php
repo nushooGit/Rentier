@@ -33,6 +33,14 @@ class RenterInvitationController extends Controller
         return back();
     }
 
+    public function revokeAccess(Request $request, Team $currentTeam, Renter $renter, ManageRenterInvitation $action): RedirectResponse
+    {
+        abort_unless($renter->team_id === $currentTeam->id, 404);
+        $action->revokeAccess($request->user(), $renter);
+
+        return back();
+    }
+
     public function accept(Request $request, ManageRenterInvitation $action): RedirectResponse
     {
         $request->validate(['token' => ['required', 'string', 'size:64']]);
