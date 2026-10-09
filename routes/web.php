@@ -98,6 +98,7 @@ Route::prefix('{current_team}')
         Route::resource('leases', LeaseController::class);
         Route::post('renters/{renter}/invitations', [RenterInvitationController::class, 'store'])->name('renters.invitations.store');
         Route::delete('renter-invitations/{invitation}', [RenterInvitationController::class, 'destroy'])->name('renters.invitations.destroy');
+        Route::delete('renters/{renter}/portal-access', [RenterInvitationController::class, 'revokeAccess'])->name('renters.portal-access.destroy');
         Route::resource('payments', RentPaymentController::class);
         Route::patch('expenses/{expense}/mark-reimbursed', [ExpenseController::class, 'markReimbursed'])->name('expenses.mark-reimbursed');
         Route::patch('expenses/{expense}/mark-recovered', [ExpenseController::class, 'markRecovered'])->name('expenses.mark-recovered');
