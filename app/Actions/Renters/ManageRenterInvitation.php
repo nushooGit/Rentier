@@ -74,10 +74,17 @@ class ManageRenterInvitation
         abort_if($user->isSuspended(), 423);
 
         return DB::transaction(function () use ($user, $rawToken): Renter {
-            $invitation = RenterInvitation::query()
+            $lookup = RenterInvitation::query()
                 ->where('token_hash', hash('sha256', $rawToken))
-                ->lockForUpdate()
                 ->first();
+
+            if (! $lookup) {
+                throw ValidationException::withMessages(['invitation' => __('Invalid or expired invitation.')]);
+            }
+
+            // Lock the renter before the invitation, consistently with issue and revoke.
+            $renter = Renter::query()->lockForUpdate()->findOrFail($lookup->renter_id);
+            $invitation = RenterInvitation::query()->lockForUpdate()->findOrFail($lookup->id);
 
             if (! $invitation
                 || $invitation->accepted_at !== null
@@ -88,8 +95,6 @@ class ManageRenterInvitation
                 throw ValidationException::withMessages(['invitation' => __('Invalid or expired invitation.')]);
             }
 
-            $renter = Renter::query()->lockForUpdate()->findOrFail($invitation->renter_id);
-
             if ($renter->team_id !== $invitation->team_id
                 || $renter->user_id !== null
                 || strcasecmp((string) $renter->email, $invitation->email) !== 0) {
@@ -97,9 +102,26 @@ class ManageRenterInvitation
             }
 
             $renter->update(['user_id' => $user->id]);
-            $invitation->update(['accepted_at' => now()]);
+            $invitation->update(['accepted_at' => now(), 'accepted_by_user_id' => $user->id]);
 
             return $renter;
+        });
+    }
+
+    public function revokeAccess(User $actor, Renter $renter): void
+    {
+        abort_unless($actor->ownsTeam($renter->team), 403);
+
+        DB::transaction(function () use ($renter): void {
+            $locked = Renter::query()->lockForUpdate()->findOrFail($renter->id);
+
+            RenterInvitation::query()
+                ->where('team_id', $locked->team_id)
+                ->where('renter_id', $locked->id)
+                ->whereNull('revoked_at')
+                ->update(['revoked_at' => now()]);
+
+            $locked->update(['user_id' => null]);
         });
     }
 
