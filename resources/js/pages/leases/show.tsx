@@ -11,7 +11,7 @@ import { destroy, edit, index, show } from '@/routes/leases';
 import type { Lease } from '@/types';
 
 type Props = {
-    lease: Lease;
+    lease: Lease & { renter: Lease['renter'] & { hasPortalAccount?: boolean } };
 };
 
 function formatValue(value?: string | number | null) {
@@ -137,6 +137,22 @@ export default function LeaseShow({ lease }: Props) {
                             value={lease.renter.phone}
                         />
                     </dl>
+                    {lease.renter.email && !lease.renter.hasPortalAccount ? (
+                        <div className="mt-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => router.post(`/${encodeURIComponent(currentTeamSlug)}/renters/${lease.renter.id}/invitations`)}
+                            >
+                                {currentIntlLocale().startsWith('en') ? 'Send renter portal invitation' : 'Trimite invitație în portalul chiriașului'}
+                            </Button>
+                        </div>
+                    ) : null}
+                    {lease.renter.hasPortalAccount ? (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                            {currentIntlLocale().startsWith('en') ? 'Renter portal account linked' : 'Cont de chiriaș asociat'}
+                        </p>
+                    ) : null}
                     {lease.renter.notes ? (
                         <p className="mt-3 text-sm whitespace-pre-wrap">
                             {lease.renter.notes}
