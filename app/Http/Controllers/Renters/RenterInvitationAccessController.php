@@ -50,6 +50,7 @@ class RenterInvitationAccessController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
             'password' => $this->passwordRules(),
+            'password_confirmation' => ['required', 'string'],
         ]);
 
         if (strcasecmp($input['email'], $invitation->email) !== 0) {
