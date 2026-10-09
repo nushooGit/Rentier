@@ -12,6 +12,7 @@ use Illuminate\Support\Carbon;
  * @property int $team_id
  * @property int $renter_id
  * @property int $invited_by
+ * @property int|null $accepted_by_user_id
  * @property string $email
  * @property string $token_hash
  * @property Carbon $expires_at
@@ -20,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property-read Renter $renter
  * @property-read Team $team
  */
-#[Fillable(['team_id', 'renter_id', 'invited_by', 'email', 'token_hash', 'expires_at', 'accepted_at', 'revoked_at'])]
+#[Fillable(['team_id', 'renter_id', 'invited_by', 'accepted_by_user_id', 'email', 'token_hash', 'expires_at', 'accepted_at', 'revoked_at'])]
 class RenterInvitation extends Model
 {
     /**
