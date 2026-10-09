@@ -16,7 +16,12 @@ class RenterPortalController extends Controller
 
         $leases = Lease::query()
             ->with('property')
-            ->whereHas('renter', fn ($query) => $query->where('user_id', $user->id))
+            ->whereHas('renter', fn ($query) => $query
+                ->where('user_id', $user->id)
+                ->whereHas('portalInvitations', fn ($invitation) => $invitation
+                    ->whereNotNull('accepted_at')
+                    ->whereNull('revoked_at')
+                    ->where('email', $user->email)))
             ->whereHas('team', fn ($query) => $query->whereNull('suspended_at'))
             ->orderByDesc('start_date')
             ->get()
