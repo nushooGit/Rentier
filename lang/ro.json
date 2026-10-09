@@ -12,5 +12,10 @@
     "Invitation declined.": "Invitația a fost refuzată.",
     "Member role updated.": "Rolul membrului a fost actualizat.",
     "Member removed.": "Membrul a fost eliminat.",
-    "The workspace owner cannot be removed.": "Proprietarul workspace-ului nu poate fi eliminat."
+    "The workspace owner cannot be removed.": "Proprietarul workspace-ului nu poate fi eliminat.",
+    "Rentier renter portal invitation": "Invitație în portalul chiriașului Rentier",
+    "You have been invited to access your rental information in Rentier.": "Ai primit o invitație pentru a accesa informațiile despre chirie în Rentier.",
+    "Sign in using the invited email address and verify it before accepting.": "Autentifică-te folosind adresa de email invitată și verific-o înainte de a accepta.",
+    "Review invitation": "Vezi invitația",
+    "Invalid or expired invitation.": "Invitația nu este validă sau a expirat."
 }
