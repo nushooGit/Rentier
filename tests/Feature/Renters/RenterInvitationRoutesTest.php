@@ -33,3 +33,19 @@ test('renter cannot accept a claim without verified email', function () {
         ->post(route('renter-invitations.accept'), ['token' => str_repeat('a', 64)])
         ->assertRedirect();
 });
+
+test('verified invited user accepts and reaches only their renter portal', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+    $renter = Renter::factory()->create(['team_id' => $team->id, 'user_id' => null, 'email' => 'guest@example.com']);
+    $token = app(\\App\\Actions\\Renters\\ManageRenterInvitation::class)->issue($owner, $renter)['token'];
+    $recipient = User::factory()->create(['email' => 'guest@example.com', 'email_verified_at' => now()]);
+
+    $this->actingAs($recipient)
+        ->post(route('renter-invitations.accept'), ['token' => $token])
+        ->assertRedirect(route('renter.overview'));
+
+    expect($renter->fresh()->user_id)->toBe($recipient->id)
+        ->and($recipient->belongsToTeam($team))->toBeFalse();
+});
