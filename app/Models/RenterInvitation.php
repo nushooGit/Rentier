@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $team_id
+ * @property int $renter_id
+ * @property int $invited_by
+ * @property string $email
+ * @property string $token_hash
+ * @property Carbon $expires_at
+ * @property Carbon|null $accepted_at
+ * @property Carbon|null $revoked_at
+ * @property-read Renter $renter
+ * @property-read Team $team
+ */
 #[Fillable(['team_id', 'renter_id', 'invited_by', 'email', 'token_hash', 'expires_at', 'accepted_at', 'revoked_at'])]
 class RenterInvitation extends Model
 {
