@@ -60,6 +60,14 @@ class Renter extends Model
     }
 
     /**
+     * @return HasMany<RenterInvitation, $this>
+     */
+    public function portalInvitations(): HasMany
+    {
+        return $this->hasMany(RenterInvitation::class);
+    }
+
+    /**
      * Get this renter's leases.
      *
      * @return HasMany<Lease, $this>
